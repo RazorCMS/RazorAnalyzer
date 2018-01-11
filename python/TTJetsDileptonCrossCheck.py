@@ -62,7 +62,7 @@ if __name__ == "__main__":
         tmpSFHists = copy.copy(sfHists)
         if 'TTJets2L' in tmpSFHists: del tmpSFHists["TTJets2L"]
         appendScaleFactors("TTJets2L", hists, tmpSFHists, lumiData=analysis.lumi, 
-            debugLevel=debugLevel, signifThreshold=1.0, printdir=outdir)
+            var='MR', debugLevel=debugLevel, printdir=outdir)
         #write out scale factors
         print "Writing histogram",tmpSFHists["TTJets2L"].GetName(),"to file"
         if not args.noSave:

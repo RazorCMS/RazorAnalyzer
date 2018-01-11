@@ -377,7 +377,7 @@ def makeRazor2DTable(pred, boxName, nsigma=None, obs=None, mcNames=[], mcHists=[
         printstr='razor2DFitTableFull'+boxName+str(btags)+'btag'
     else:
         printstr='razor2DFitTable'+boxName+str(btags)+'btag'
-    plotting.table_basic(headers, cols, caption=caption, label=label, printstr=printstr, printdir=printdir, landscape=True, size='tiny')
+    plotting.table_basic(headers, cols, caption=caption, label=label, printstr=printstr, printdir=printdir, landscape=True, size='normalsize')
 
 ###########################################
 ### BASIC HISTOGRAM FILLING/PLOTTING MACRO
@@ -622,7 +622,17 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
 
     #print histograms
     rt.SetOwnership(c, False)
-    if makePlots: macro.basicPrint(hists, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=nsigmaFitData, printdir=printdir, doDensity=plotDensity, special=special, unrollBins=unrollBins, vartitles=titles, debugLevel=debugLevel)
+    if makePlots:
+        histsCopy = { proc:hs.copy() for proc, hs in hists.iteritems() }
+        if 'combineBackgrounds' in plotOpts:
+            print "Combining backgrounds according to dictionary",plotOpts['combineBackgrounds']
+            macro.combineBackgroundHists(histsCopy, plotOpts['combineBackgrounds'], 
+                    listOfVars, debugLevel=debugLevel)
+            if 'combineSamples' in plotOpts:
+                samples = plotOpts['combineSamples']
+            else: #get new list of samples, possibly not keeping the same ordering
+                samples = macro.combineBackgroundNames(samples, plotOpts["combineBackgrounds"])
+        macro.basicPrint(histsCopy, mcNames=samples, varList=listOfVars, c=c, printName=regionName, logx=logx, dataName=dataName, ymin=ymin, comment=comment, lumistr=('%.1f' % (lumiData*1.0/1000))+" fb^{-1}", boxName=boxName, btags=btags, blindBins=blindBins, nsigmaFitData=nsigmaFitData, printdir=printdir, doDensity=plotDensity, special=special, unrollBins=unrollBins, vartitles=titles, debugLevel=debugLevel)
 
     #close files and return
     for f in files: files[f].Close()
@@ -848,16 +858,24 @@ def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", 
 ### MAKE SCALE FACTORS FROM HISTOGRAMS
 #######################################
 
-def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"), dataName="Data", normErrFraction=0.2, lumiData=0, signifThreshold=0., th2PolyXBins=None, th2PolyCols=None, debugLevel=0, printdir=".",makePlots=True):
+def appendScaleFactors(process="TTJets", hists={}, sfHists={}, 
+        var=("MR","Rsq"), dataName="Data", normErrFraction=0.2, 
+        lumiData=0, signifThreshold=0., th2PolyXBins=None, useUncertainty=False,
+        th2PolyCols=None, debugLevel=0, printdir=".",makePlots=True):
     """Subtract backgrounds and make the data/MC histogram for the given process.
     Also makes up/down histograms corresponding to uncertainty on the background normalization (controlled by the normErrFraction argument).
+    normErrFraction can be provided as a dictionary to implement process-dependent
+    normalization uncertainties.
     
     process: MC physics process for which scale factors should be computed.  
     if process is not in the histogram collection, will compute Data/Total MC scale factors instead. 
+    if process is a list, will compute scale factors for the sum of the processes in the list.
     hists: dictionary of data and MC histograms like that produced by the macro.loopTrees function
     sfHists: dictionary of existing scale factor histograms. the new scale factor histograms will be inserted into this dictionary.
     var: variable or tuple of variables in which scale factors should be computed (usually ("MR","Rsq") is used)
     signifThreshold: scale factors that are within N sigma of 1.0, where N=signifThreshold, are set to 1.
+    useUncertainty: if True, ignores the data/MC ratio value and instead 
+        fills the output histogram with 1 plus the error on the data/MC ratio.
     th2PolyXBins, th2PolyCols: if non-grid binning is desired, provide here the binning for a TH2Poly with rectangular bins.  th2PolyXBins should be a list of bin edges in the x-direction.  th2PolyCols should be a list of lists containing bin low edges in the y-direction for each x-bin.
     """
 
@@ -866,8 +884,11 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
         print "Scale factor histograms so far:"
         print sfHists
     #warn if this scale factor histogram already exists
-    if process in sfHists:
-        print "Warning in appendScaleFactors: ",process," scale factor histogram already exists!  Will overwrite..."
+    try:
+        if process in sfHists:
+            print "Warning in appendScaleFactors: ",process," scale factor histogram already exists!  Will overwrite..."
+    except TypeError: # this deals with errors when process is a list
+        pass
     #warn if the needed histograms are not found
     if dataName not in hists:
         print "Error in appendScaleFactors: target data histogram (",dataName,") was not found!"
@@ -877,7 +898,12 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
         return
     #if process is not in the input collection, we will do Data/Total MC scale factors
     doTotalMC = False
-    if process not in hists:
+    doMultipleProcs = False
+    if not isinstance(process, basestring):
+        process = '_'.join(process)
+        print "Will compute scale factors for",process
+        doMultipleProcs = True
+    elif process not in hists:
         print "The requested process",process,"was not found in the input collection.  Will compute Data/Total MC scale factors."
         doTotalMC=True
     elif var not in hists[process]:
@@ -899,7 +925,9 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
     mcSysUncDown.Reset()
     if not doTotalMC:
         #subtract backgrounds in data
-        bgProcesses = [mcProcess for mcProcess in hists if mcProcess != process and mcProcess != dataName and mcProcess != "Fit"] #get list of non-data, non-fit, non-signal samples
+        bgProcesses = [mcProcess for mcProcess in hists 
+                if mcProcess != process and mcProcess not in process.split('_')
+                and mcProcess != dataName and mcProcess != "Fit"] 
         for mcProcess in bgProcesses:
 
             #make sure relevant background histogram exists
@@ -907,13 +935,19 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
                 print "Error in appendScaleFactors: could not find",var," in hists[",mcProcess,"]!  Returning from appendScaleFactors..."
                 return
             #subtract it
-            if debugLevel > 0: print "Subtracting",mcProcess,"from",dataName,"distribution"
+            print "Subtracting",mcProcess,"from",dataName,"distribution"
             sfHists[process].Add(hists[mcProcess][var], -1) 
             if mcProcess not in sfHists: #if we have not computed scale factors for this process, apply a flat normalization uncertainty to its yield
-                if debugLevel > 0: print "Process",mcProcess,"has no associated scale factors.  Its normalization will be given a ",int(normErrFraction*100),"% uncertainty"
+                try:
+                    errFrac = normErrFraction[mcProcess]
+                except TypeError: # normErrFraction is not a dictionary
+                    errFrac = normErrFraction
+                except KeyError: # no norm err specified for this process
+                    errFrac = 0.
+                print "Process",mcProcess,"has no associated scale factors.  Its normalization will be given a ",int(errFrac*100),"% uncertainty"
                 for bx in range(1,mcSysUncUp.GetSize()+1):
-                    mcSysUncUp.SetBinContent(bx, ( (mcSysUncUp.GetBinContent(bx))**2 + (normErrFraction*hists[mcProcess][var].GetBinContent(bx))**2 )**(0.5))
-                    mcSysUncDown.SetBinContent(bx, ( (mcSysUncDown.GetBinContent(bx))**2 + ((1/(1+normErrFraction)-1)*hists[mcProcess][var].GetBinContent(bx))**2 )**(0.5))
+                    mcSysUncUp.SetBinContent(bx, ( (mcSysUncUp.GetBinContent(bx))**2 + (errFrac*hists[mcProcess][var].GetBinContent(bx))**2 )**(0.5))
+                    mcSysUncDown.SetBinContent(bx, ( (mcSysUncDown.GetBinContent(bx))**2 + ((1/(1+errFrac)-1)*hists[mcProcess][var].GetBinContent(bx))**2 )**(0.5))
         #make up/down systematic error histograms (this is the systematic due to MC background normalization)
         sfHists[process+"NormUp"] = sfHists[process].Clone(process+"ScaleFactorsUp")
         sfHists[process+"NormUp"].SetDirectory(0)
@@ -952,6 +986,8 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
 
     ###################### TH2Poly Case
     if th2PolyXBins is not None and th2PolyCols is not None: 
+        if doMultipleProcs or useUncertainty:
+            raise NotImplementedError("This combination of options isn't implemented")
         print "Converting TH2 to TH2Poly"
         sfHists[process] = macro.makeTH2PolyRatioHist(sfHists[process], hists[process][var], th2PolyXBins, th2PolyCols)
         sfHists[process+"NormUp"] = macro.makeTH2PolyRatioHist(sfHists[process+"NormUp"], hists[process][var], th2PolyXBins, th2PolyCols)
@@ -978,7 +1014,15 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
     ###################### Ordinary TH2 Case
     else:
         #divide data/MC
-        if not doTotalMC:
+        if doMultipleProcs:
+            procs = process.split('_')
+            denom = hists[procs[0]][var].Clone()
+            for p in procs[1:]:
+                denom.Add(hists[p][var])
+            sfHists[process].Divide(denom)
+            sfHists[process+"NormUp"].Divide(denom)
+            sfHists[process+"NormDown"].Divide(denom)
+        elif not doTotalMC:
             sfHists[process].Divide(hists[process][var])
             sfHists[process+"NormUp"].Divide(hists[process][var])
             sfHists[process+"NormDown"].Divide(hists[process][var])
@@ -988,6 +1032,12 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
             sfHists[process+"NormDown"].Divide(mcTotalDown)
         #save yields for debugging 
         dataDebugRatio = sfHists[process].Clone()
+
+        if useUncertainty:
+            for bx in range(sfHists[process].GetSize()+1):
+                print "Setting scale factor bin content {} to {}".format(bx, 1+sfHists[process].GetBinError(bx))
+                sfHists[process].SetBinContent(bx, 
+                        1 + sfHists[process].GetBinError(bx))
 
         #zero any negative scale factors
         for bx in range(sfHists[process].GetSize()+1):
@@ -1049,9 +1099,15 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
                     else: 
                         statUncerts.append('--')
                     for mcProcess in bgProcesses: 
+                        try:
+                            errFrac = normErrFraction[mcProcess]
+                        except TypeError: # normErrFraction is not a dictionary
+                            errFrac = normErrFraction
+                        except KeyError: # no norm err specified for this process
+                            errFrac = 0.
                         dataYield = hists[dataName][var].GetBinContent(bx,by)
                         if dataYield > 0 and scaleFactor > 0:
-                            sysUncerts[mcProcess].append('%.1f\\%%' % (100*abs(hists[mcProcess][var].GetBinContent(bx,by)*normErrFraction*1.0/dataYield/scaleFactor)))
+                            sysUncerts[mcProcess].append('%.1f\\%%' % (100*abs(hists[mcProcess][var].GetBinContent(bx,by)*errFrac*1.0/dataYield/scaleFactor)))
                         else: 
                             sysUncerts[mcProcess].append('--')
             xRanges = [low+'-'+high for (low, high) in zip(xbinLowEdges, xbinUpEdges)]
@@ -1063,7 +1119,11 @@ def appendScaleFactors(process="TTJets", hists={}, sfHists={}, var=("MR","Rsq"),
                 cols.extend([sysUncerts[mcProcess]])
             plotting.table_basic(headers, cols, caption="Scale factors for "+process+" background", printstr="scaleFactorTable"+process, printdir=printdir)
 
-def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lumiData=0, signifThreshold=0., debugLevel=0, regionName="Veto Lepton", normErrFraction=0.2, sfHists={}, histsToCorrect=None, signalRegionVar=None, doDataOverMC=False, mtEfficiencyHist=None, dPhiEfficiencyHist=None, printdir="."):
+def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lumiData=0, 
+        signifThreshold=0., debugLevel=0, regionName="Veto Lepton", 
+        normErrFraction=0.2, sfHists={}, histsToCorrect=None, 
+        signalRegionVar=None, doDataOverMC=False, mtEfficiencyHist=None, 
+        dPhiEfficiencyHist=None, printdir=".", useUncertainty=False):
     """Compare data and MC in veto lepton control region.  Makes ratio histogram and returns it.  
     Arguments are similar to those for appendScaleFactors()
 
@@ -1072,6 +1132,7 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
     signalRegionVar: histsToCorrect (signal region) variable name
     mtEfficiencyHist: histogram of MT cut efficiency, used to correct the control region yields
     dPhiEfficiencyHist: histogram of dPhi cut efficiency, used to correct the control region yields
+    useUncertainty: output histogram bins contain 1 + uncertainty on data/MC ratio
     """
     regionNameReduced = regionName.replace(' ','')
 
@@ -1220,7 +1281,10 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
             h.Divide(histToCorrect)
             #zero any negative scale factors
             for bx in range(h.GetSize()+1):
-                h.SetBinContent(bx,max(0., h.GetBinContent(bx)))
+                if useUncertainty:
+                    h.SetBinContent(bx, 1 + h.GetBinError(bx))
+                else:
+                    h.SetBinContent(bx,max(0., h.GetBinContent(bx)))
             print "Writing histogram",h.GetName(),"to file"
             h.Write()
 

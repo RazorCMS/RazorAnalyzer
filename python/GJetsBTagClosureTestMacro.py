@@ -1,4 +1,5 @@
 import sys, os
+import copy
 import ROOT as rt
 
 from macro import macro, razorWeights
@@ -26,7 +27,7 @@ if __name__ == "__main__":
             "MultiJet":(4,6),
             "SevenJet":(7,-1)
             }.iteritems():
-        for nb in range(4):
+        for nb in reversed(range(4)):
             regionName = 'GJetsInv'+name+str(nb)+'B'
             nbMax = nb
             if nb >= 2:
@@ -65,19 +66,22 @@ if __name__ == "__main__":
                 dataDrivenQCD=True, debugLevel=debugLevel, noFill=args.noFill )
 
         sfHistName = bclosure.getSFHistName(analysis, gjets=True)
+        sfHistsTmp = copy.copy(sfHists)
         if 'MRCorr' in region:
             sfHistName = sfHistName.replace('MR', 'Rsq')
-            appendScaleFactors( sfHistName, hists, sfHists, lumiData=analysis.lumi, 
-                    var="Rsq_NoPho", signifThreshold=1.0, debugLevel=debugLevel, printdir=outdir )
+            appendScaleFactors( 'GJetsInv', hists, sfHistsTmp, lumiData=analysis.lumi, 
+                    var="Rsq_NoPho", debugLevel=debugLevel, printdir=outdir )
         else:
-            appendScaleFactors( sfHistName, hists, sfHists, lumiData=analysis.lumi, 
+            appendScaleFactors( 'GJetsInv', hists, sfHistsTmp, lumiData=analysis.lumi, 
                     var="MR_NoPho", debugLevel=debugLevel, printdir=outdir )
+        sfHists[sfHistName] = sfHistsTmp['GJetsInv']
         if not args.noSave:
             macro.exportHists( hists, outFileName='controlHistograms'+region+'.root',
                     outDir=outdir, debugLevel=debugLevel )
             #write out scale factors
             outfile = rt.TFile(bclosure.getOutputFilename(tag), 'UPDATE')
             histToWrite = sfHists[sfHistName]
+            histToWrite.SetName(sfHistName)
             print "Writing scale factor histogram",histToWrite.GetName(),"to file"
             outfile.cd()
             histToWrite.Write( histToWrite.GetName() )

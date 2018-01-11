@@ -31,6 +31,9 @@ def getCondorSubmitFile(subdir, executable, flavor='espresso'):
     f.write("Universe = vanilla\n")
     f.write("Executable = "+executable+"\n")
     f.write('Transfer_Output_Files = ""\n')
+    f.write('Output = /dev/null\n')
+    f.write('Error = /dev/null\n')
+    f.write('Log = /dev/null\n')
     f.write("Notification = Never\n")
     f.write('+JobFlavour = "'+flavor+'"\n')
     return f

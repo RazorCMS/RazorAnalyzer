@@ -57,7 +57,7 @@ void plotScaleFactor(string label) {
   GJetInvNominal->SetMaximum(1.8);
   GJetInvNominal->SetMinimum(0.35);
 
-  lumi_13TeV = "2.3 fb^{-1}";
+  lumi_13TeV = "35.9 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   lumiTextSize = 0.5;
@@ -99,7 +99,7 @@ void plotScaleFactor(string label) {
   GJetInvUncertainties->SetStats(false);
   GJetInvUncertainties->SetMaximum(50);
   GJetInvUncertainties->SetMinimum(0.0);
-  lumi_13TeV = "2.3 fb^{-1}";
+  lumi_13TeV = "35.9 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   lumiTextSize = 0.5;
@@ -138,7 +138,7 @@ void plotScaleFactor(string label) {
   wInvNominal->SetMinimum(0.0);
 
 
-  lumi_13TeV = "2.3 fb^{-1}";
+  lumi_13TeV = "35.9 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   lumiTextSize = 0.5;
@@ -176,7 +176,7 @@ void plotScaleFactor(string label) {
   wNominal->SetMaximum(1.8);
   wNominal->SetMinimum(0.35);
 
-  lumi_13TeV = "2.3 fb^{-1}";
+  lumi_13TeV = "35.9 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   lumiTextSize = 0.5;
@@ -220,7 +220,7 @@ void plotScaleFactor(string label) {
   WJetsUncertainties->SetStats(false);
   WJetsUncertainties->SetMaximum(50);
   WJetsUncertainties->SetMinimum(0.0);
-  lumi_13TeV = "2.3 fb^{-1}";
+  lumi_13TeV = "35.9 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   lumiTextSize = 0.5;
@@ -261,7 +261,7 @@ void plotScaleFactor(string label) {
   ttbarNominal->SetMaximum(1.8);
   ttbarNominal->SetMinimum(0.35);
 
-  lumi_13TeV = "2.3 fb^{-1}";
+  lumi_13TeV = "35.9 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   lumiTextSize = 0.5;
@@ -306,7 +306,7 @@ void plotScaleFactor(string label) {
   TTBarUncertainties->SetStats(false);
   TTBarUncertainties->SetMaximum(50);
   TTBarUncertainties->SetMinimum(0.0);
-  lumi_13TeV = "2.3 fb^{-1}";
+  lumi_13TeV = "35.9 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   lumiTextSize = 0.5;
@@ -420,7 +420,7 @@ void plotGJetsScaleFactorSystematics(string label) {
   GJetsSystematicUnc->SetMaximum(1.0);
   GJetsSystematicUnc->SetMinimum(-1.0);
 
-  lumi_13TeV = "2.3 fb^{-1}";
+  lumi_13TeV = "35.9 fb^{-1}";
   writeExtraText = true;
   relPosX = 0.13;
   lumiTextSize = 0.5;

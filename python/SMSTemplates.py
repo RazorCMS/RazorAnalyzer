@@ -11,10 +11,10 @@ from macro.razorMacros import makeControlSampleHistsForAnalysis, getMaxBtags, un
 from macro.razorWeights import getNPVHist, getNISRScaleFactor
 
 signalShapeUncerts = ['tightmuoneff','tighteleeff','vetomuoneff',
-        'vetoeleeff','jes','muontrig','eletrig','btag',
+        'vetoeleeff','jes','muontrig','eletrig','btag','bmistag',
         'tightmuonfastsim','tightelefastsim','vetomuonfastsim',
         'vetoelefastsim','btagfastsim','facscale','renscale',
-        'facrenscale','ees','mes','isr']
+        'facrenscale','isr']
 
 class SMSOpts(object):
     """
@@ -118,6 +118,7 @@ def doNPVExtrapolation(hists, npvHist, npvLowHighHist, scale):
         averageYield = max(0., averageYield)
         # Scale all signal histograms based on these weights
         nominal = hists['Signal'].GetBinContent(ibin)
+        poisson = hists['Signal'].GetBinError(ibin) # nominal error
         if nominal > 0:
             weightedOverNominal = (averageYield / nominal)
             print "In bin %d, weighted yield is %.3f of nominal"%(
@@ -129,7 +130,17 @@ def doNPVExtrapolation(hists, npvHist, npvLowHighHist, scale):
                         hist.GetBinContent(ibin) * weightedOverNominal)
 
         # Put the up/down errors from this procedure 
-        # into the npvextrap histograms
+        # into the npvextrap histograms.
+        # If the uncertainty obtained is larger than
+        # 1.6 times the statistical uncertainty from
+        # Poisson statistics, it is capped at that level.
+        # This prevents instability in limit setting
+        # due to large uncertainties from this procedure.
+        errThreshold = 1.6 * poisson
+        if averageYieldErr > errThreshold:
+            print "Reducing uncertainty on bin {} ({:.2f} events) from {:.2f} to {:.2f}".format(
+                    ibin, nominal, averageYieldErr, errThreshold)
+            averageYieldErr = errThreshold
         hists['Signal_npvextrapUp'].SetBinContent(ibin,
                 averageYield + averageYieldErr)
         hists['Signal_npvextrapDown'].SetBinContent(ibin,
@@ -186,7 +197,8 @@ def getGlobalNISRScaleFactor(f):
     return numUnweighted / numWeighted
 
 def makeSMSTemplates(box, inFile, uncertainties=[], debugLevel=0,
-        tag="Razor2016_MoriondRereco", opts=None, boostCuts=True):
+        tag="Razor2016_MoriondRereco", opts=None, boostCuts=True,
+        doUncorrelate=True):
     """Returns a dictionary of histograms representing predicted
         yields for the indicated signal sample.
         'opts' should be an SMSOpts instance containing desired
@@ -284,7 +296,8 @@ def makeSMSTemplates(box, inFile, uncertainties=[], debugLevel=0,
             signalHists[sysName.replace(
                 'npvextrap','npvextrap'+box)] = signalHists[sysName]
             del signalHists[sysName]
-        uncorrelate(signalHists, 'npvextrap'+box, suppressLevel=0.1)
+        if doUncorrelate:
+            uncorrelate(signalHists, 'npvextrap'+box, suppressLevel=0.1)
 
     # apply gen-MET vs PF MET systematic
     if 'Signal_genmetvspfmetUp' in signalHists:

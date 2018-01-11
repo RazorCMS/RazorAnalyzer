@@ -37,7 +37,7 @@ if __name__ == '__main__':
     draw_string = 'nBTaggedJets:Rsq>>'
     mc_draw_string = draw_string+'+'
     
-    fD = rt.TFile.Open("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_05Oct2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_Data_NoDuplicates_GoodLumiGolden.root","read")
+    fD = rt.TFile.Open("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_27Nov2017/Signal/FullRazorInclusive_Razor2016_MoriondRereco_Data_NoDuplicates_RazorSkim_GoodLumiGolden.root","read")
     tree = fD.Get("RazorInclusive")
     bkg_files = {
             'ttjets':rt.TFile.Open('TTJets.root'),

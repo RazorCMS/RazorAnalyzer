@@ -17,7 +17,7 @@ def loadScaleFactors(sfHists={}, tag='Razor2016_MoriondRereco', gjets=False):
         for btags in range(4):
             if (jets == 'DiJet' or gjets) and btags > 2:
                 continue
-            name = jets+str(btags)+'BScaleFactors'
+            name = jets+str(btags)+'B'
             h = f.Get(sfKey+name)
             assert(h)
             h.SetDirectory(0)
@@ -140,7 +140,7 @@ if __name__ == "__main__":
     jetsOrder = ["SevenJet", "MultiJet", "DiJet"]
     jetsLimit = [(7,-1),(4,6),(2,3)]
     for name,jets in zip(jetsOrder, jetsLimit):
-        for nb in range(4):
+        for nb in reversed(range(4)):
             if nb >= 3 and name == 'DiJet': 
                 continue
             regionName = 'OneLepton'+name+str(nb)+'B'
@@ -175,13 +175,19 @@ if __name__ == "__main__":
                 debugLevel=debugLevel, noFill=args.noFill )
 
         sfHistName = getSFHistName(analysis)
+        sfProcs = ['TTJets', 'WJets']
+        sfHistsTmp = sfHists.copy()
         if 'MRCorr' in region:
             sfHistName = sfHistName.replace('MR', 'Rsq')
-            appendScaleFactors( sfHistName, hists, sfHists, lumiData=analysis.lumi, var="Rsq",
-                    debugLevel=debugLevel, signifThreshold=1.0, printdir=outdir )
-        else:
-            appendScaleFactors( sfHistName, hists, sfHists, lumiData=analysis.lumi, var="MR",
+            appendScaleFactors( sfProcs, hists, sfHistsTmp, 
+                    lumiData=analysis.lumi, var="Rsq", useUncertainty=True,
                     debugLevel=debugLevel, printdir=outdir )
+        else:
+            appendScaleFactors( sfProcs, hists, sfHistsTmp, 
+                    lumiData=analysis.lumi, var="MR",
+                    debugLevel=debugLevel, printdir=outdir )
+        sfHists[sfHistName] = sfHistsTmp['_'.join(sfProcs)]
+        sfHists[sfHistName].SetName(sfHistName)
         if not args.noSave:
             macro.exportHists( hists, outFileName='controlHistograms'+region+'.root',
                     outDir=outdir, debugLevel=debugLevel )

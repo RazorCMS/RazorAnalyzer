@@ -18,9 +18,9 @@ using namespace std;
 
 const int NUM_PDF_WEIGHTS = 60;
 
-const int JET_PT_CUT = 40;
-const int BJET_PT_CUT = 40;
-const float JET_ETA_CUT = 3.0;
+const int JET_PT_CUT = 30;
+const int BJET_PT_CUT = 30;
+const float JET_ETA_CUT = 2.4;
 
 struct greater_than_pt{
     inline bool operator() (const TLorentzVector& p1, const TLorentzVector& p2){
