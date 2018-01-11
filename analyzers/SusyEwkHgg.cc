@@ -72,7 +72,7 @@ struct evt
   std::string event;
 };
 
-#define _phodebug 0
+#define _phodebug 1
 #define _debug    0 
 #define _info     1
 
@@ -1317,7 +1317,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       vector<double> GoodPhotonSigmaE; // energy uncertainties of selected photons
       vector<bool> GoodPhotonPassesIso; //store whether each photon is isolated
       std::vector< PhotonCandidate > phoCand;//PhotonCandidate defined in RazorAuxPhoton.hh
-      int nPhotonsAbove40GeV = 0;
+      //int nPhotonsAbove40GeV = 0;
       for(int i = 0; i < nPhotons; i++)
 	{
 	  if ( (pho_seedRecHitSwitchToGain6[i] || 
@@ -1328,7 +1328,10 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	       ) {
 	    Flag_hasEcalGainSwitch = true;
 	  }
-	  
+	 
+          if( phoR9[i] < 0.5 ) continue;
+	  if ( _phodebug ) std::cout << " pho_P9: " << phoR9[i] << std::endl;
+
 	  double scale = 1;
 	  double smear = 0;
 	  if (analysisTag != "Razor2017_PromptReco") {
@@ -1358,13 +1361,13 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           bool overlapm = false;
           for(int j = 0; j < int(GoodMuons.size()); j++){
                   TLorentzVector mu = GoodMuons.at(j);
-                  if (RazorAnalyzer::deltaR(phoEta[i],phoPhi[i],mu.Eta(),mu.Phi()) < 0.4)  overlapm = true;
+                  if (RazorAnalyzer::deltaR(phoEta[i],phoPhi[i],mu.Eta(),mu.Phi()) < 0.5)  overlapm = true;
           }
           if (overlapm) continue;
           bool overlape = false;
           for(int k = 0; k < int(GoodElectrons.size()); k++){
                   TLorentzVector ele = GoodElectrons.at(k);
-                  if (RazorAnalyzer::deltaR(phoEta[i],phoPhi[i],ele.Eta(),ele.Phi()) < 0.4) overlape = true;
+                  if (RazorAnalyzer::deltaR(phoEta[i],phoPhi[i],ele.Eta(),ele.Phi()) < 1.0) overlape = true;
           }
 
 	  if( doEleVeto && overlape ) continue;
@@ -1397,12 +1400,14 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  TVector3 vec;
 	  vec.SetPtEtaPhi( pho_pt_corr, phoEta[i], phoPhi[i] );
 	
-	  if ( phoPt[i] < 20.0 )
+	  /*
+           if ( phoPt[i] < 20.0 )
 	    {
 	      if ( _phodebug ) std::cout << "[DEBUG]: failed pt" << std::endl;
 	      continue;
 	    }
-		
+	   */
+
 	  if ( fabs(pho_superClusterEta[i]) > 1.4442 && fabs(pho_superClusterEta[i]) < 1.566 )
 	    {
 	      //Removing gap photons
@@ -1411,7 +1416,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	    }
 
 	  //photon passes
-	  if( phoPt[i] > 40.0 ) nPhotonsAbove40GeV++;
+	  //if( phoPt[i] > 40.0 ) nPhotonsAbove40GeV++;
 	  //setting up photon 4-momentum with zero mass
 	  TLorentzVector thisPhoton;
 	  thisPhoton.SetVectM( vec, .0 );
@@ -1467,11 +1472,13 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //------------------------------------------------------------
       //if there is no photon with pT above 40 GeV, reject the event
       //------------------------------------------------------------
+      /*
       if( nPhotonsAbove40GeV == 0 ) {
       	if ( _debug ) std::cout << "[DEBUG]: no photons above 40 GeV, nphotons: " 
       				<< phoCand.size() << std::endl;
       	//continue;
       }
+      */
 
       //--------------------------------------
       //Require at least two photon candidates
@@ -1514,11 +1521,14 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 			    << std::endl;
 		}
 	      //need one photon in the pair to have pt > 40 GeV
-	      if ( pho1.photon.Pt() < 40.0 && pho2.photon.Pt() < 40.0 )
+	      /*
+              if ( pho1.photon.Pt() < 40.0 && pho2.photon.Pt() < 40.0 )
 		{
 		  if ( _debug ) std::cout << "[DEBUG]: both photons failed PT > 40 GeV" << std::endl; 
 		  //continue;
 		}
+               */
+
 	      //need diphoton mass between > 100 GeV as in AN (April 1st)
 	      double diphotonMass = (pho1.photon + pho2.photon).M();
 	      if ( _debug )
@@ -1559,14 +1569,21 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 		      HiggsPhoIndex2 = pho1.Index;
 		    }
 		}//best pt if
-	    }
-	}
+	    }//loop j-th photon
+	}//loop i-th photon
     
     
       //---------------------------------------
       //just use this container for convenience
       //to parse the data into TTree
       //---------------------------------------
+      //bestCand[0] is the leading photon
+      //bestCand[1] is the subleading photon
+      double diphotonMass_bestPhoCand = (bestCand[0].photon + bestCand[1].photon).M();
+      if( bestCand[0].photon.Pt()/diphotonMass_bestPhoCand < 1./3. ) continue;
+      if( bestCand[1].photon.Pt()/diphotonMass_bestPhoCand < 1./4. ) continue;
+      if ( _phodebug ) std::cout << "pho PT :  " << bestCand[0].photon.Pt() << " and  " << bestCand[1].photon.Pt() << " Mgg : " << diphotonMass_bestPhoCand << " pt1/Mgg = "   << bestCand[0].photon.Pt()/diphotonMass_bestPhoCand  << " pt2/Mgg = " << bestCand[1].photon.Pt()/diphotonMass_bestPhoCand << std::endl;
+
       phoSelectedCand.push_back(bestCand[0]);
       phoSelectedCand.push_back(bestCand[1]);
     
@@ -2110,7 +2127,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
 	
 	  if( thisJet.Pt() < JET_CUT ) continue;//According to the April 1st 2015 AN
-	  if( fabs( thisJet.Eta() ) >= 3.0 ) continue;
+	  if( fabs( thisJet.Eta() ) >= 2.4 ) continue;
 	  if (!isFastsimSMS) {
 	    if ( !jetPassIDLoose[i] ) continue;
 	  }
@@ -2133,7 +2150,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	
 	  //exclude selected photons from the jet collection
 	  double deltaRJetPhoton = min( thisJet.DeltaR( pho_cand_vec[0] ), thisJet.DeltaR( pho_cand_vec[1] ) );
-	  if ( deltaRJetPhoton <= 0.5 ) continue;//According to the April 1st 2015 AN
+	  if ( deltaRJetPhoton <= 0.4 ) continue;//According to the April 1st 2015 AN
       
 	  GoodJets.push_back(thisJet);
 	  GoodJetsIsCVSL.push_back(isCSVL(i));
