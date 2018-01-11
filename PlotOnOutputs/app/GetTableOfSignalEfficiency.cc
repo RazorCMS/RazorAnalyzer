@@ -130,27 +130,27 @@ int main( int argc, char* argv[] )
   cut_name2.push_back("MR150");
   cut_name3.push_back("MR150");
   //box=0 Zmm
-  string Zmm = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 0 ";
+  string Zmm = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 0  && lep1PassSelection > 1 && lep2PassSelection > 1";
   cut.push_back(Zmm);
   cut_name.push_back("Zmm");
   //box=1 Zee
-  string Zee = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 1 ";
+  string Zee = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 1 && lep1PassSelection > 1 && lep2PassSelection > 1";
   cut.push_back(Zee);
   cut_name.push_back("Zee");
   cut_name1.push_back("TwoLeptons");
   cut_name3.push_back("TwoLeptons");
   //box=2 Emu
-  string Emu = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 2 ";
+  string Emu = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 2 && lep1PassSelection > 1 && lep2PassSelection > 1";
   cut.push_back(Emu);
   cut_name.push_back("Emu");
   cut_name1.push_back("Emu");
   cut_name3.push_back("Emu");
   //box=3 OneMu
-  string OneMu = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 3 ";
+  string OneMu = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 3 && lep1PassSelection > 1";
   cut.push_back(OneMu);
   cut_name.push_back("OneMu");
   //box=4 OneEle
-  string OneEle = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 4 ";
+  string OneEle = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 4 && lep1PassSelection > 1 ";
   cut.push_back(OneEle);
   cut_name.push_back("OneEle");
   cut_name1.push_back("OneLepton");
@@ -182,7 +182,7 @@ int main( int argc, char* argv[] )
   cut.push_back(LowRes);
   cut_name.push_back("LowRes");
   cut_name1.push_back("LowPt");
-  cut_name2.push_back("Inclusive");
+  cut_name2.push_back("Hadrons");
   cut_name3.push_back("LowPt");
 
 /*  
@@ -354,7 +354,7 @@ int main( int argc, char* argv[] )
   std::cout << "\\hline\n\\end{tabular}\n\\end{center}\n\\end{table*}" << std::endl;
   std::cout << "\n\n";
 
-  //TABLE 2
+  //TABLE 3
 
   std::cout << "\\begin{table*}[htb]\n\\begin{center}\n\\caption{Signal Efficiency of leptons and inclusive\\label{tab:2groups}}\n\\def\\arraystretch{1.5}";
   std::cout << "\n\\begin{tabular}{|c|c|c|c|c|c|c|c|}\n\\hline\n \\multirow{}{}{Cut} & \\multicolumn{" << n << "}{c|}{SignalEfficiency \(\\%\)} \\\\";
