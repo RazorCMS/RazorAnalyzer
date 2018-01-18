@@ -66,6 +66,15 @@ struct ElectronCandidate
   int isTightElectron;
 };
 
+struct BjetCandidate
+{                                                  
+  int   Index;
+  TLorentzVector bjet;
+  bool isCSVL;
+  bool isCSVM;
+  bool isCSVT;
+};
+
 struct evt
 {
   std::string run;
@@ -2132,6 +2141,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //BTagged Jets
       //------------
       vector<TLorentzVector> GoodBJets;
+      std::vector< BjetCandidate > bjetCand;
       vector<bool> GoodBJetsIsCVSL;
       vector<bool> GoodBJetsIsCVSM;
       vector<bool> GoodBJetsIsCVST;
@@ -2152,14 +2162,39 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  }
 
 	  //Exclude selected leptons from the jet collection
+          /*
+          bool overlapjm = false;
+          bool overlapje = false;
+          for(int j = 0; j < int(muSelectedCand.size()); j++){
+                  MuonCandidate mu = muSelectedCand[j];
+                  if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), mu.muon.Eta(), mu.muon.Phi()) < 0.4 ) overlapjm = true;	  
+          }
+          for(int k = 0; k < int(eleSelectedCand.size()); k++){
+                  ElectronCandidate ele = eleSelectedCand[k];
+                  if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), ele.electron.Eta(), ele.electron.Phi()) < 0.4 ) overlapje = true;	  
+          }
+          //if(muSelectedCandEmu) 
+          MuonCandidate muEmu = muSelectedCandEmu[0];
+          ElectronCandidate eleEmu = eleSelectedCandEmu[0];
+          if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), muEmu.muon.Eta(), muEmu.muon.Phi()) < 0.4 ) overlapjm = true;	  
+          if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), eleEmu.electron.Eta(), eleEmu.electron.Phi()) < 0.4 ) overlapje = true;
+          TLorentzVector lep = LeptonCandidate; 
+          if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), lep.Eta(), lep.Phi()) < 0.4 ) overlapje = true;
+          
+          if(overlapjm || overlapje) continue;
+          */
+          bool overlapjm = false;
           for(int j = 0; j < int(GoodMuons.size()); j++){
                   TLorentzVector mu = GoodMuons.at(j);
-                  if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), mu.Eta(), mu.Phi()) < 0.4 ) continue;	  
+                  if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), mu.Eta(), mu.Phi()) < 0.4 ) overlapjm = true;	  
           }
+          if(overlapjm) continue;
+          bool overlapje = false;
           for(int k = 0; k < int(GoodElectrons.size()); k++){
                   TLorentzVector ele = GoodElectrons.at(k);
-                  if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), ele.Eta(), ele.Phi()) < 0.4 ) continue;	  
+                  if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), ele.Eta(), ele.Phi()) < 0.4 ) overlapje = true;	  
           }
+          if(overlapje) continue;
 
 	  //exclude selected photons from the jet collection
 	  double deltaRJetPhoton = min( thisJet.DeltaR( pho_cand_vec[0] ), thisJet.DeltaR( pho_cand_vec[1] ) );
@@ -2170,6 +2205,16 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  GoodBJetsIsCVSM.push_back(isCSVM(i));
 	  GoodBJetsIsCVST.push_back(isCSVT(i));
 	  n_BJets++;
+
+	  //Filling bjet Candidate
+	  BjetCandidate tmp_bjetCand;
+	  tmp_bjetCand.Index = i;
+	  tmp_bjetCand.bjet = thisJet;
+	  tmp_bjetCand.isCSVL = isCSVL(i);
+	  tmp_bjetCand.isCSVM = isCSVM(i);
+	  tmp_bjetCand.isCSVT = isCSVT(i);
+          bjetCand.push_back( tmp_bjetCand );
+
 	
 	  double jetCorrPt = thisJet.Pt();
 	  double jetCorrE  = thisJet.E();
@@ -2344,7 +2389,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 
 
         }//end of loop over jet for b-jet
-      
+  /*    
       for ( int iBJet = 0; iBJet < int(GoodBJets.size()) ; iBJet++ ) {
 	bjet_E[iBJet] = GoodBJets[iBJet].E();
 	bjet_Pt[iBJet] = GoodBJets[iBJet].Pt();
@@ -2389,9 +2434,78 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 		}//end second jet loop
 	    }//end first jet loop
 	}
-
+  */
+       
       TLorentzVector HbbZbbCandidate(0,0,0,0);
+      std::vector< BjetCandidate > bjetSelectedCand;
+      BjetCandidate bestBjetCandHbb[2];
+      BjetCandidate bestBjetCandZbb[2];
       if( ( razorbox == None ) && ( muCand.size() == 0 ) && ( eleCand.size() == 0 ) ) {
+
+              //if there are two loose b-tags and one medium b-tag, look for b-bbar resonances
+              if( nLooseBTaggedJets > 1 && nMediumBTaggedJets > 0 )
+              {
+                      for(int i = 0; i < int(bjetCand.size()); i++)
+                      {
+                              for(int j = i+1; j < int(bjetCand.size()); j++)
+                              {
+                                      BjetCandidate bjet1 = bjetCand[i]; 
+                                      BjetCandidate bjet2 = bjetCand[j]; 
+                                      //if neither of the b-jets passes CSVM, continue
+                                      if( !bjet1.isCSVM && !bjet2.isCSVM ) continue;
+                                      double mbb = (bjet1.bjet + bjet2.bjet).M();
+                                      double pTbb = (bjet1.bjet + bjet2.bjet).Pt();
+                                      //if mbb is closer to the higgs mass than mbbH, make mbbH = mbb
+                                      if( fabs(mbbH - 125.0) > fabs(mbb - 125.0) ) 
+                                      {
+                                             mbbH = mbb; 
+                                             pTbbH = pTbb;
+                                             bestBjetCandHbb[0] = bjet1;  
+                                             bestBjetCandHbb[1] = bjet2;  
+                                      }
+                                      //same for mbbZ
+                                      if( fabs(mbbZ - 91.2) > fabs(mbb - 91.2) ) 
+                                      {
+                                             mbbZ = mbb; 
+                                             pTbbZ = pTbb; 
+                                             bestBjetCandZbb[0] = bjet1;
+                                             bestBjetCandZbb[0] = bjet1;
+
+                                      }
+                              }//end second jet loop
+                      }//end first jet loop
+              }
+              
+              if( nLooseBTaggedJets >= 2 )//at least two btag jets
+              {
+                      for(int i = 0; i < int(bjetCand.size()); i++)
+                      {
+                              for(int j = i+1; j < int(bjetCand.size()); j++)
+                              {
+                                      BjetCandidate bjet1 = bjetCand[i]; 
+                                      BjetCandidate bjet2 = bjetCand[j]; 
+                                      double mbb = (bjet1.bjet + bjet2.bjet).M();
+                                      double pTbb = (bjet1.bjet + bjet2.bjet).Pt();
+                                      //if mbb is closer to the higgs mass than mbbH, make mbbH = mbb
+                                      if( fabs(mbbH - 125.0) > fabs(mbb - 125.0) ) 
+                                      {
+                                             mbbH_L = mbb; 
+                                             pTbbH_L = pTbb;
+                                             bestBjetCandHbb[0] = bjet1;  
+                                             bestBjetCandHbb[1] = bjet2;  
+                                      }
+                                      //same for mbbZ
+                                      if( fabs(mbbZ - 91.2) > fabs(mbb - 91.2) ) 
+                                      {
+                                             mbbZ_L = mbb; 
+                                             pTbbZ_L = pTbb; 
+                                             bestBjetCandZbb[0] = bjet1;
+                                             bestBjetCandZbb[1] = bjet2;
+
+                                      }
+                              }//end second jet loop
+                      }//end first jet loop
+              }
               //Priority to Hbb
               //Hbb Box
               //????how about mbbH_L case??????
@@ -2399,6 +2513,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
                       razorbox = Hbb;
                       mbbH = HbbZbbCandidate.M();
                       pTbbH = HbbZbbCandidate.Pt();
+                      bjetSelectedCand.push_back(bestBjetCandHbb[0]);
+                      bjetSelectedCand.push_back(bestBjetCandHbb[1]);
               }
 
               //Zbb Box
@@ -2406,6 +2522,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
                       razorbox = Zbb;
                       mbbZ = HbbZbbCandidate.M();
                       pTbbZ = HbbZbbCandidate.Pt();
+                      bjetSelectedCand.push_back(bestBjetCandZbb[0]);
+                      bjetSelectedCand.push_back(bestBjetCandZbb[1]);
               }
       }
 
@@ -2442,24 +2560,58 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  }
 
 	  //Exclude selected leptons from the jet collection
+          /*
+          bool overlapjm = false;
+          bool overlapje = false;
+          for(int j = 0; j < int(muSelectedCand.size()); j++){
+                  MuonCandidate mu = muSelectedCand[j];
+                  if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), mu.muon.Eta(), mu.muon.Phi()) < 0.4 ) overlapjm = true;	  
+          }
+          for(int k = 0; k < int(eleSelectedCand.size()); k++){
+                  ElectronCandidate ele = eleSelectedCand[k];
+                  if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), ele.electron.Eta(), ele.electron.Phi()) < 0.4 ) overlapje = true;	  
+          }
+          //if(muSelectedCandEmu) 
+          MuonCandidate muEmu = muSelectedCandEmu[0];
+          ElectronCandidate eleEmu = eleSelectedCandEmu[0];
+          if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), muEmu.muon.Eta(), muEmu.muon.Phi()) < 0.4 ) overlapjm = true;	  
+          if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), eleEmu.electron.Eta(), eleEmu.electron.Phi()) < 0.4 ) overlapje = true;
+          TLorentzVector lep = LeptonCandidate; 
+          if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), lep.Eta(), lep.Phi()) < 0.4 ) overlapje = true;
+          
+          if(overlapjm || overlapje) continue;
+          */
+
+          bool overlapjm = false;
           for(int j = 0; j < int(GoodMuons.size()); j++){
                   TLorentzVector mu = GoodMuons.at(j);
-                  if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), mu.Eta(), mu.Phi()) < 0.4 ) continue;	  
+                  if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), mu.Eta(), mu.Phi()) < 0.4 ) overlapjm = true;	  
           }
+          if(overlapjm) continue;
+          bool overlapje = false;
           for(int k = 0; k < int(GoodElectrons.size()); k++){
                   TLorentzVector ele = GoodElectrons.at(k);
-                  if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), ele.Eta(), ele.Phi()) < 0.4 ) continue;	  
+                  if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), ele.Eta(), ele.Phi()) < 0.4 ) overlapje = true;	  
           }
-	
+          if(overlapje) continue;
+
 	  //exclude selected photons from the jet collection
 	  double deltaRJetPhoton = min( thisJet.DeltaR( pho_cand_vec[0] ), thisJet.DeltaR( pho_cand_vec[1] ) );
 	  if ( deltaRJetPhoton <= 0.4 ) continue;//According to the April 1st 2015 AN
 	  
           //Exclude selected b-jets from the jet collection
+          bool overlapbjj = false;
+          for(int b = 0; b < int(bjetSelectedCand.size()); b++){
+                  BjetCandidate Bjet = bjetSelectedCand[b];
+                  if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), Bjet.bjet.Eta(), Bjet.bjet.Phi()) < 0.4 ) overlapbjj = true;	  
+          }
+          /*
           for(int b = 0; b < int(GoodBJets.size()); b++){
                   TLorentzVector bjet = GoodBJets.at(b);
-                  if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), bjet.Eta(), bjet.Phi()) < 0.4 ) continue;	  
+                  if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), bjet.Eta(), bjet.Phi()) < 0.4 ) overlapbjj = true;	  
           }
+          */
+          if(overlapbjj) continue;
       
 	  GoodJets.push_back(thisJet);
 	  //GoodJetsIsCVSL.push_back(isCSVL(i));
