@@ -80,6 +80,7 @@ const double EB_R = 129.0;
 const double EE_Z = 317.0;
 
 const double JET_CUT = 30.;
+const double BJET_CUT = 20.;
 const int NUM_PDF_WEIGHTS = 60;
 
 //Testing branching and merging
@@ -364,6 +365,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   int nSelectedPhotons;
   float mGammaGamma, pTGammaGamma, mGammaGammaSC, pTGammaGammaSC, sigmaMoverM;
   float mbbZ, mbbZ_L, mbbH, mbbH_L;
+  float pTbbZ, pTbbZ_L, pTbbH, pTbbH_L;
   bool passedDiphotonTrigger;
   SusyEwkHggBox razorbox = None;
   
@@ -392,10 +394,12 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   int   Pho_motherID[2];
 
   //jet information
-  int n_Jets, nLooseBTaggedJets, nMediumBTaggedJets;
+  int n_Jets, n_BJets, nLooseBTaggedJets, nMediumBTaggedJets;
   int n_Jets_JESUp, n_Jets_JESDown; 
   float jet_E[50], jet_Pt[50], jet_Eta[50], jet_Phi[50];
-  bool jetIsCSVL[50], jetIsCSVM[50], jetIsCSVT[50];
+  //bool jetIsCSVL[50], jetIsCSVM[50], jetIsCSVT[50];
+  float bjet_E[50], bjet_Pt[50], bjet_Eta[50], bjet_Phi[50];
+  bool bjetIsCSVL[50], bjetIsCSVM[50], bjetIsCSVT[50];
 
   //ECALGainSwitchFlag
   bool Flag_hasEcalGainSwitch = false;
@@ -603,15 +607,27 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   razorTree->Branch("mbbH", &mbbH, "mbbH/F");
   razorTree->Branch("mbbZ_L", &mbbZ_L, "mbbZ_L/F");
   razorTree->Branch("mbbH_L", &mbbH_L, "mbbH_L/F");
+  razorTree->Branch("pTbbZ", &pTbbZ, "pTbbZ/F");
+  razorTree->Branch("pTbbH", &pTbbH, "pTbbH/F");
+  razorTree->Branch("pTbbZ_L", &pTbbZ_L, "pTbbZ_L/F");
+  razorTree->Branch("pTbbH_L", &pTbbH_L, "pTbbH_L/F");
       
   razorTree->Branch("n_Jets", &n_Jets, "n_Jets/I");
   razorTree->Branch("jet_E", jet_E, "jet_E[n_Jets]/F");
   razorTree->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
   razorTree->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
   razorTree->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
-  razorTree->Branch("jetIsCSVL", jetIsCSVL, "jetIsCSVL[n_Jets]/O");
-  razorTree->Branch("jetIsCSVM", jetIsCSVM, "jetIsCSVM[n_Jets]/O");
-  razorTree->Branch("jetIsCSVT", jetIsCSVT, "jetIsCSVT[n_Jets]/O");
+  //razorTree->Branch("jetIsCSVL", jetIsCSVL, "jetIsCSVL[n_Jets]/O");
+  //razorTree->Branch("jetIsCSVM", jetIsCSVM, "jetIsCSVM[n_Jets]/O");
+  //razorTree->Branch("jetIsCSVT", jetIsCSVT, "jetIsCSVT[n_Jets]/O");
+  razorTree->Branch("n_BJets", &n_Jets, "n_BJets/I");
+  razorTree->Branch("bjet_E", bjet_E, "bjet_E[n_BJets]/F");
+  razorTree->Branch("bjet_Pt", bjet_Pt, "bjet_Pt[n_BJets]/F");
+  razorTree->Branch("bjet_Eta", bjet_Eta, "bjet_Eta[n_BJets]/F");
+  razorTree->Branch("bjet_Phi", bjet_Phi, "bjet_Phi[n_BJets]/F");
+  razorTree->Branch("bjetIsCSVL", bjetIsCSVL, "bjetIsCSVL[n_BJets]/O");
+  razorTree->Branch("bjetIsCSVM", bjetIsCSVM, "bjetIsCSVM[n_BJets]/O");
+  razorTree->Branch("bjetIsCSVT", bjetIsCSVT, "bjetIsCSVT[n_BJets]/O");
   razorTree->Branch("n_Jets_JESUp", &n_Jets_JESUp, "n_Jets_JESUp/I");
   razorTree->Branch("n_Jets_JESDown", &n_Jets_JESDown, "n_Jets_JESDown/I");
   razorTree->Branch("HLTDecision", HLTDecision, "HLTDecision[300]/O");
@@ -711,6 +727,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       sf_facRenScaleDown = 1.0;
       
       n_Jets = 0;
+      n_BJets = 0;
       n_Jets_JESUp = 0;
       n_Jets_JESDown = 0;
       nLooseBTaggedJets = 0;
@@ -740,6 +757,10 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       mbbH   = 0;
       mbbZ_L = 0;
       mbbH_L = 0;
+      pTbbZ   = 0;
+      pTbbH   = 0;
+      pTbbZ_L = 0;
+      pTbbH_L = 0;
       run = runNum;
       lumi = lumiNum; 
       event = eventNum;
@@ -791,9 +812,16 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  jet_Pt[i]  = -99.;
 	  jet_Eta[i] = -99.;
 	  jet_Phi[i] = -99.;
-	  jetIsCSVL[i] = 0;  
-	  jetIsCSVM[i] = 0;  
-	  jetIsCSVT[i] = 0;  
+	  //jetIsCSVL[i] = 0;  
+	  //jetIsCSVM[i] = 0;  
+	  //jetIsCSVT[i] = 0;  
+	  bjet_E[i]   = -99.;
+	  bjet_Pt[i]  = -99.;
+	  bjet_Eta[i] = -99.;
+	  bjet_Phi[i] = -99.;
+	  bjetIsCSVL[i] = 0;  
+	  bjetIsCSVM[i] = 0;  
+	  bjetIsCSVT[i] = 0;  
 	}
 
       mChi = 0;
@@ -2100,25 +2128,16 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       }//end of one lepton category
 
 
-      //----
-      //Jets
-      //----
-      //Propagate jet uncertainties to MET
-      float MetXCorr_JESUp = 0;
-      float MetYCorr_JESUp = 0;
-      float MetXCorr_JESDown = 0;
-      float MetYCorr_JESDown = 0;
-    
-      vector<TLorentzVector> GoodJets;
-      vector<bool> GoodJetsIsCVSL;
-      vector<bool> GoodJetsIsCVSM;
-      vector<bool> GoodJetsIsCVST;
-      vector<TLorentzVector> GoodJetsJESUp;
-      vector<TLorentzVector> GoodJetsJESDown;
-      vector< pair<TLorentzVector, bool> > GoodCSVLJets; //contains CSVL jets passing selection.  The bool is true if the jet passes CSVM, false if not
-
+      //------------
+      //BTagged Jets
+      //------------
+      vector<TLorentzVector> GoodBJets;
+      vector<bool> GoodBJetsIsCVSL;
+      vector<bool> GoodBJetsIsCVSM;
+      vector<bool> GoodBJetsIsCVST;
+      vector< pair<TLorentzVector, bool> > GoodCSVLBJets; //contains CSVL jets passing selection.  The bool is true if the jet passes CSVM, false if not
       for(int i = 0; i < nJets; i++)
-	{
+        {
 	  //Jet Corrections                                                                      
 	  double JEC = JetEnergyCorrectionFactor( jetPt[i], jetEta[i], jetPhi[i], jetE[i],
 						  fixedGridRhoAll, jetJetArea[i], runNum,
@@ -2126,7 +2145,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       
 	  TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
 	
-	  if( thisJet.Pt() < JET_CUT ) continue;//According to the April 1st 2015 AN
+	  if( thisJet.Pt() < BJET_CUT ) continue;//According to the April 1st 2015 AN
 	  if( fabs( thisJet.Eta() ) >= 2.4 ) continue;
 	  if (!isFastsimSMS) {
 	    if ( !jetPassIDLoose[i] ) continue;
@@ -2141,22 +2160,16 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
                   TLorentzVector ele = GoodElectrons.at(k);
                   if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), ele.Eta(), ele.Phi()) < 0.4 ) continue;	  
           }
-/*
-          if ( deltaR( thisJet.Eta(), thisJet.Phi(), lep1Eta, lep1Phi) < 0.4 ) continue;	  
-	  if (razorbox == Zmm || razorbox == Zee) {
-	    if ( deltaR( thisJet.Eta(), thisJet.Phi(), lep2Eta, lep2Phi) < 0.4 ) continue;	  
-	  }
-*/
-	
+
 	  //exclude selected photons from the jet collection
 	  double deltaRJetPhoton = min( thisJet.DeltaR( pho_cand_vec[0] ), thisJet.DeltaR( pho_cand_vec[1] ) );
 	  if ( deltaRJetPhoton <= 0.4 ) continue;//According to the April 1st 2015 AN
-      
-	  GoodJets.push_back(thisJet);
-	  GoodJetsIsCVSL.push_back(isCSVL(i));
-	  GoodJetsIsCVSM.push_back(isCSVM(i));
-	  GoodJetsIsCVST.push_back(isCSVT(i));
-	  n_Jets++;
+
+	  GoodBJets.push_back(thisJet);
+	  GoodBJetsIsCVSL.push_back(isCSVL(i));
+	  GoodBJetsIsCVSM.push_back(isCSVM(i));
+	  GoodBJetsIsCVST.push_back(isCSVT(i));
+	  n_BJets++;
 	
 	  double jetCorrPt = thisJet.Pt();
 	  double jetCorrE  = thisJet.E();
@@ -2165,7 +2178,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	      //****************************************************************************
 	      //Apply b-tagging correction factor 
 	      //****************************************************************************
-	      if ( !isData && abs(jetEta[i]) < 2.4 && jetCorrPt > JET_CUT ) 
+	      if ( !isData && abs(jetEta[i]) < 2.4 && jetCorrPt > BJET_CUT ) 
 		{ 
 		  double effMedium = 0;
 		  double effLoose  = 0;
@@ -2311,6 +2324,151 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 		}//Jetcut
 	    }//isData
 	
+	
+	  /*
+	    Change to isCSVL and isCSVM if you want CISV
+	  */
+	  if( isCSVL(i) )
+	    {
+	      nLooseBTaggedJets++;
+	      if( isCSVM(i) )
+		{ 
+		  nMediumBTaggedJets++;
+		  GoodCSVLBJets.push_back(make_pair(thisJet, true));
+		}
+	      else
+		{
+		  GoodCSVLBJets.push_back(make_pair(thisJet, false));
+		}
+	    }
+
+
+        }//end of loop over jet for b-jet
+      
+      for ( int iBJet = 0; iBJet < int(GoodBJets.size()) ; iBJet++ ) {
+	bjet_E[iBJet] = GoodBJets[iBJet].E();
+	bjet_Pt[iBJet] = GoodBJets[iBJet].Pt();
+	bjet_Eta[iBJet] = GoodBJets[iBJet].Eta();
+	bjet_Phi[iBJet] = GoodBJets[iBJet].Phi();
+	bjetIsCSVL[iBJet] = GoodBJetsIsCVSL[iBJet];
+	bjetIsCSVM[iBJet] = GoodBJetsIsCVSM[iBJet];
+	bjetIsCSVT[iBJet] = GoodBJetsIsCVST[iBJet];
+      }
+    
+      //if there are two loose b-tags and one medium b-tag, look for b-bbar resonances
+      if( nLooseBTaggedJets > 1 && nMediumBTaggedJets > 0 )
+	{
+	  for(int i = 0; i < nLooseBTaggedJets; i++)
+	    {
+	      for(int j = i+1; j < nLooseBTaggedJets; j++)
+		{
+		  //if neither of the b-jets passes CSVM, continue
+		  if( !GoodCSVLBJets[i].second && !GoodCSVLBJets[j].second ) continue;
+		  double mbb = (GoodCSVLBJets[i].first + GoodCSVLBJets[j].first).M();
+		  double pTbb = (GoodCSVLBJets[i].first + GoodCSVLBJets[j].first).Pt();
+		  //if mbb is closer to the higgs mass than mbbH, make mbbH = mbb
+		  if( fabs(mbbH - 125.0) > fabs(mbb - 125.0) ) { mbbH = mbb; pTbbH = pTbb; }
+		  //same for mbbZ
+		  if( fabs(mbbZ - 91.2) > fabs(mbb - 91.2) ) { mbbZ = mbb; pTbbZ = pTbb; }
+		}//end second jet loop
+	    }//end first jet loop
+	}
+    
+      if( nLooseBTaggedJets >= 2 )//at least two btag jets
+	{
+	  for(int i = 0; i < nLooseBTaggedJets; i++)
+	    {
+	      for(int j = i+1; j < nLooseBTaggedJets; j++)
+		{
+		  double mbb = (GoodCSVLBJets[i].first + GoodCSVLBJets[j].first).M();
+		  double pTbb = (GoodCSVLBJets[i].first + GoodCSVLBJets[j].first).Pt();
+		  //if mbb is closer to the higgs mass than mbbH, make mbbH = mbb
+		  if( fabs(mbbH_L - 125.0) > fabs(mbb - 125.0) ) { mbbH_L = mbb; pTbbH_L = pTbb; }
+		  //same for mbbZ
+		  if( fabs(mbbZ_L - 91.2) > fabs(mbb - 91.2) ) { mbbZ_L = mbb; pTbbZ_L = pTbb; }
+		}//end second jet loop
+	    }//end first jet loop
+	}
+
+      TLorentzVector HbbZbbCandidate(0,0,0,0);
+      if( ( razorbox == None ) && ( muCand.size() == 0 ) && ( eleCand.size() == 0 ) ) {
+              //Priority to Hbb
+              //Hbb Box
+              //????how about mbbH_L case??????
+              if ( mbbH > 110.0 && mbbH < 140.0 ) {
+                      razorbox = Hbb;
+                      mbbH = HbbZbbCandidate.M();
+                      pTbbH = HbbZbbCandidate.Pt();
+              }
+
+              //Zbb Box
+              else if( mbbZ > 76.0 && mbbZ < 106.0 ) {
+                      razorbox = Zbb;
+                      mbbZ = HbbZbbCandidate.M();
+                      pTbbZ = HbbZbbCandidate.Pt();
+              }
+      }
+
+
+      //----
+      //Jets
+      //----
+      //Propagate jet uncertainties to MET
+      float MetXCorr_JESUp = 0;
+      float MetYCorr_JESUp = 0;
+      float MetXCorr_JESDown = 0;
+      float MetYCorr_JESDown = 0;
+    
+      vector<TLorentzVector> GoodJets;
+      //vector<bool> GoodJetsIsCVSL;
+      //vector<bool> GoodJetsIsCVSM;
+      //vector<bool> GoodJetsIsCVST;
+      vector<TLorentzVector> GoodJetsJESUp;
+      vector<TLorentzVector> GoodJetsJESDown;
+
+      for(int i = 0; i < nJets; i++)
+	{
+	  //Jet Corrections                                                                      
+	  double JEC = JetEnergyCorrectionFactor( jetPt[i], jetEta[i], jetPhi[i], jetE[i],
+						  fixedGridRhoAll, jetJetArea[i], runNum,
+						  JetCorrectorIOV, JetCorrector );
+      
+	  TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
+	
+	  if( thisJet.Pt() < JET_CUT ) continue;//According to the April 1st 2015 AN
+	  if( fabs( thisJet.Eta() ) >= 2.4 ) continue;
+	  if (!isFastsimSMS) {
+	    if ( !jetPassIDLoose[i] ) continue;
+	  }
+
+	  //Exclude selected leptons from the jet collection
+          for(int j = 0; j < int(GoodMuons.size()); j++){
+                  TLorentzVector mu = GoodMuons.at(j);
+                  if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), mu.Eta(), mu.Phi()) < 0.4 ) continue;	  
+          }
+          for(int k = 0; k < int(GoodElectrons.size()); k++){
+                  TLorentzVector ele = GoodElectrons.at(k);
+                  if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), ele.Eta(), ele.Phi()) < 0.4 ) continue;	  
+          }
+	
+	  //exclude selected photons from the jet collection
+	  double deltaRJetPhoton = min( thisJet.DeltaR( pho_cand_vec[0] ), thisJet.DeltaR( pho_cand_vec[1] ) );
+	  if ( deltaRJetPhoton <= 0.4 ) continue;//According to the April 1st 2015 AN
+	  
+          //Exclude selected b-jets from the jet collection
+          for(int b = 0; b < int(GoodBJets.size()); b++){
+                  TLorentzVector bjet = GoodBJets.at(b);
+                  if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), bjet.Eta(), bjet.Phi()) < 0.4 ) continue;	  
+          }
+      
+	  GoodJets.push_back(thisJet);
+	  //GoodJetsIsCVSL.push_back(isCSVL(i));
+	  //GoodJetsIsCVSM.push_back(isCSVM(i));
+	  //GoodJetsIsCVST.push_back(isCSVT(i));
+	  n_Jets++;
+
+	  double jetCorrPt = thisJet.Pt();
+	  double jetCorrE  = thisJet.E();
 	  if ( !isData )
 	    {
 	      double unc = helper->getJecUnc( jetCorrPt, jetEta[i], 999 ); //use run=999 by default
@@ -2345,23 +2503,6 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 		  n_Jets_JESDown++;
 		}
 	    }
-	
-	  /*
-	    Change to isCSVL and isCSVM if you want CISV
-	  */
-	  if( isCSVL(i) )
-	    {
-	      nLooseBTaggedJets++;
-	      if( isCSVM(i) )
-		{ 
-		  nMediumBTaggedJets++;
-		  GoodCSVLJets.push_back(make_pair(thisJet, true));
-		}
-	      else
-		{
-		  GoodCSVLJets.push_back(make_pair(thisJet, false));
-		}
-	    }
 	} //loop over jets
       
       for ( int iJet = 0; iJet < int(GoodJets.size()) ; iJet++ ) {
@@ -2369,9 +2510,9 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	jet_Pt[iJet] = GoodJets[iJet].Pt();
 	jet_Eta[iJet] = GoodJets[iJet].Eta();
 	jet_Phi[iJet] = GoodJets[iJet].Phi();
-	jetIsCSVL[iJet] = GoodJetsIsCVSL[iJet];
-	jetIsCSVM[iJet] = GoodJetsIsCVSM[iJet];
-	jetIsCSVT[iJet] = GoodJetsIsCVST[iJet];
+	//jetIsCSVL[iJet] = GoodJetsIsCVSL[iJet];
+	//jetIsCSVM[iJet] = GoodJetsIsCVSM[iJet];
+	//jetIsCSVT[iJet] = GoodJetsIsCVST[iJet];
       }
     
       //Compute the razor variables using the selected jets and the diphoton system
@@ -2384,6 +2525,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       ObjectCandidates.push_back(HiggsCandidate);
       if (razorbox == Zmm || razorbox == Zee) ObjectCandidates.push_back(ZCandidate);
       if (razorbox == OneMu || razorbox == OneEle) ObjectCandidates.push_back(LeptonCandidate);
+      if (razorbox == Hbb || razorbox == Zbb) ObjectCandidates.push_back(HbbZbbCandidate);
     
       TLorentzVector PFMET = makeTLorentzVectorPtEtaPhiM(metPt, 0, metPhi, 0);
       TLorentzVector t1PFMET = makeTLorentzVectorPtEtaPhiM( metType1Pt, 0, metType1Phi, 0 );
@@ -2474,39 +2616,6 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  //continue;
 	}
     
-      //if there are two loose b-tags and one medium b-tag, look for b-bbar resonances
-      if( nLooseBTaggedJets > 1 && nMediumBTaggedJets > 0 )
-	{
-	  for(int i = 0; i < nLooseBTaggedJets; i++)
-	    {
-	      for(int j = i+1; j < nLooseBTaggedJets; j++)
-		{
-		  //if neither of the b-jets passes CSVM, continue
-		  if( !GoodCSVLJets[i].second && !GoodCSVLJets[j].second ) continue;
-		  double mbb = (GoodCSVLJets[i].first + GoodCSVLJets[j].first).M();
-		  //if mbb is closer to the higgs mass than mbbH, make mbbH = mbb
-		  if( fabs(mbbH - 125.0) > fabs(mbb - 125.0) ) mbbH = mbb;
-		  //same for mbbZ
-		  if( fabs(mbbZ - 91.2) > fabs(mbb - 91.2) ) mbbZ = mbb;
-		}//end second jet loop
-	    }//end first jet loop
-	}
-    
-      if( nLooseBTaggedJets >= 2 )//at least two btag jets
-	{
-	  for(int i = 0; i < nLooseBTaggedJets; i++)
-	    {
-	      for(int j = i+1; j < nLooseBTaggedJets; j++)
-		{
-		  double mbb = (GoodCSVLJets[i].first + GoodCSVLJets[j].first).M();
-		  //if mbb is closer to the higgs mass than mbbH, make mbbH = mbb
-		  if( fabs(mbbH_L - 125.0) > fabs(mbb - 125.0) ) mbbH_L = mbb;
-		  //same for mbbZ
-		  if( fabs(mbbZ_L - 91.2) > fabs(mbb - 91.2) ) mbbZ_L = mbb;
-		}//end second jet loop
-	    }//end first jet loop
-	}
-
 
       //------------------------------------------------
       //I n v a ri a n t   m a s s   r e s o l u t i o n
@@ -2522,10 +2631,10 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
               if ( pTGammaGamma > 110.0 ) razorbox = HighPt;
 
               //Hbb Box
-              else if ( mbbH > 110.0 && mbbH < 140.0 ) razorbox = Hbb;
+              //else if ( mbbH > 110.0 && mbbH < 140.0 ) razorbox = Hbb;
 
               //Zbb Box
-              else if( mbbZ > 76.0 && mbbZ < 106.0 ) razorbox = Zbb;
+              //else if( mbbZ > 76.0 && mbbZ < 106.0 ) razorbox = Zbb;
 
               //HighRes Box
               else if( sigmaMoverM < 0.0085 ) razorbox = HighRes;
