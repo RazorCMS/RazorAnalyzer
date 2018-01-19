@@ -629,7 +629,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   //razorTree->Branch("jetIsCSVL", jetIsCSVL, "jetIsCSVL[n_Jets]/O");
   //razorTree->Branch("jetIsCSVM", jetIsCSVM, "jetIsCSVM[n_Jets]/O");
   //razorTree->Branch("jetIsCSVT", jetIsCSVT, "jetIsCSVT[n_Jets]/O");
-  razorTree->Branch("n_BJets", &n_Jets, "n_BJets/I");
+  razorTree->Branch("n_BJets", &n_BJets, "n_BJets/I");
   razorTree->Branch("bjet_E", bjet_E, "bjet_E[n_BJets]/F");
   razorTree->Branch("bjet_Pt", bjet_Pt, "bjet_Pt[n_BJets]/F");
   razorTree->Branch("bjet_Eta", bjet_Eta, "bjet_Eta[n_BJets]/F");
