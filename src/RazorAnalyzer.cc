@@ -2039,6 +2039,8 @@ double RazorAnalyzer::BTagScaleFactor(double jetPt, bool CSVM, string option){
 // PHOTON
 //////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
 bool RazorAnalyzer::photonPassesElectronVeto(int i){
     //use presence of a pixel seed as proxy for an electron veto
     return (pho_passEleVeto[i]);
@@ -2091,7 +2093,6 @@ void RazorAnalyzer::getPhotonEffAreaRun2( float eta, double& effAreaChHad, doubl
     }
 };
 
-/*
 // 80X values from EGamma Presentation
 // https://indico.cern.ch/event/491517/contributions/2349134/attachments/1359450/2056689/CutBasedPhotonID_24-10-2016.pdf
 void RazorAnalyzer::getPhotonEffArea90( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho )
@@ -2137,55 +2138,6 @@ void RazorAnalyzer::getPhotonEffArea90( float eta, double& effAreaChHad, double&
       effAreaChHad = 0.0167;
       effAreaNHad  = 0.0591;
       effAreaPho   = 0.1998;
-    }
-};
-*/
-
-// 92X values from EGamma twiki
-// https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Working_points_for_92X_and_later
-void RazorAnalyzer::getPhotonEffArea90( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho )
-{
-  if( fabs( eta ) < 1.0 )
-    {
-      effAreaChHad = 0.0385;
-      effAreaNHad  = 0.0636;
-      effAreaPho   = 0.1240;
-    }
-  else if( fabs( eta ) < 1.479 )
-    {
-      effAreaChHad = 0.0468;
-      effAreaNHad  = 0.1103;
-      effAreaPho   = 0.1093;
-    }
-  else if( fabs( eta ) < 2.0 )
-    {
-      effAreaChHad = 0.0435;
-      effAreaNHad  = 0.0759;
-      effAreaPho   = 0.0631;
-    }
-  else if( fabs( eta ) < 2.2 )
-    {
-      effAreaChHad = 0.0378;
-      effAreaNHad  = 0.0236;
-      effAreaPho   = 0.0779;
-    }
-  else if( fabs( eta ) < 2.3 )
-    {
-      effAreaChHad = 0.0338;
-      effAreaNHad  = 0.0151;
-      effAreaPho   = 0.0999;
-    }
-  else if( fabs( eta ) < 2.4 )
-    {
-      effAreaChHad = 0.0314;
-      effAreaNHad  = 0.00007;
-      effAreaPho   = 0.1155;
-    }
-  else
-    {
-      effAreaChHad = 0.0269;
-      effAreaNHad  = 0.0132;
-      effAreaPho   = 0.1373;
     }
 };
 
@@ -2291,71 +2243,6 @@ bool RazorAnalyzer::photonPassTightIDWithoutEleVeto(int i, bool use25nsCuts){
   return pass;
 }
 
-/*
-// 92X values from EGamma twiki
-// https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Working_points_for_92X_and_later
-bool RazorAnalyzer::photonPassLooseIDWithoutEleVeto(int i, bool use25nsCuts ){
-
-  bool pass = true;
-
-  if (use25nsCuts) {
-    if(fabs(pho_superClusterEta[i]) < 1.479){    
-      if(pho_HoverE[i] > 0.105) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0103) pass = false;   
-    } else { 
-      if(pho_HoverE[i] > 0.029) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0276) pass = false;    
-    }
-  }  else {
-    cout << "Warning: you are not using 25nsCuts. return false.\n";
-    pass = false;
-  }
-
-  return pass;
-}
-
-// 92X values from EGamma twiki
-// https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Working_points_for_92X_and_later
-bool RazorAnalyzer::photonPassMediumIDWithoutEleVeto(int i, bool use25nsCuts){
-  bool pass = true;
-
-  if (use25nsCuts) {
-    if(fabs(pho_superClusterEta[i]) < 1.479){    
-      if(pho_HoverE[i] > 0.035) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0103) pass = false;   
-    } else { 
-      if(pho_HoverE[i] > 0.027) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0271) pass = false;    
-    }
-  } else {
-    cout << "Warning: you are not using 25nsCuts. return false.\n";
-    pass = false;
-  }
-
-  return pass;
-}
-
-// 92X values from EGamma twiki
-// https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Working_points_for_92X_and_later
-bool RazorAnalyzer::photonPassTightIDWithoutEleVeto(int i, bool use25nsCuts){
-  bool pass = true;
-
-  if (use25nsCuts) {
-    if(fabs(pho_superClusterEta[i]) < 1.479){    
-      if(pho_HoverE[i] > 0.020) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0103) pass = false;   
-    } else { 
-      if(pho_HoverE[i] > 0.025) pass = false;
-      if(phoFull5x5SigmaIetaIeta[i] > 0.0271) pass = false;    
-    }
-  } else {
-    cout << "Warning: you are not using 25nsCuts. return false.\n";
-    pass = false;
-  }
-
-  return pass;
-}
-*/
 
 bool RazorAnalyzer::photonPassLooseID(int i, bool use25nsCuts){
 
@@ -2436,58 +2323,6 @@ bool RazorAnalyzer::photonPassTightIso(int i, bool use25nsCuts, bool usePrivateP
 
 }
 
-/*
-// 92X values from EGamma twiki
-// https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Working_points_for_92X_and_later
-bool RazorAnalyzer::photonPassLooseIso(int i, bool use25nsCuts, bool usePrivatePF){
-
-  if (use25nsCuts) {
-    if(fabs(pho_superClusterEta[i]) < 1.479){
-      return photonPassesIsolation(i, 2.839, 9.188 + 0.0126*phoPt[i] + 0.000026*phoPt[i]*phoPt[i], 2.956 + 0.0035*phoPt[i], true, usePrivatePF );
-    } else {
-      return photonPassesIsolation(i, 2.150, 10.471 + 0.0119*phoPt[i] + 0.000025*phoPt[i]*phoPt[i], 4.895 + 0.0040*phoPt[i], true, usePrivatePF);
-    }
-  } else {
-    cout << "Warning: you are not using 25nsCuts. return false.\n";
-    return false;
-  }
-
-}
-
-// 92X values from EGamma twiki
-// https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Working_points_for_92X_and_later
-bool RazorAnalyzer::photonPassMediumIso(int i, bool use25nsCuts, bool usePrivatePF){
-
-  if (use25nsCuts) {
-    if(fabs(pho_superClusterEta[i]) < 1.479){
-      return photonPassesIsolation(i, 1.416, 2.491 + 0.0126*phoPt[i] + 0.000026*phoPt[i]*phoPt[i], 2.952 + 0.0035*phoPt[i], true, usePrivatePF);
-    } else {
-      return photonPassesIsolation(i, 1.012, 9.131 + 0.0119*phoPt[i] + 0.000025*phoPt[i]*phoPt[i], 4.095 + 0.0040*phoPt[i], true, usePrivatePF);
-    }
-  } else {
-    cout << "Warning: you are not using 25nsCuts. return false.\n";
-    return false;
-  }
-
-}
-
-// 92X values from EGamma twiki
-// https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Working_points_for_92X_and_later
-bool RazorAnalyzer::photonPassTightIso(int i, bool use25nsCuts, bool usePrivatePF){
-
-  if (use25nsCuts) {
-    if(fabs(pho_superClusterEta[i]) < 1.479){
-        return photonPassesIsolation(i, 1.158, 1.267 + 0.0126*phoPt[i] + 0.000026*phoPt[i]*phoPt[i], 2.065 + 0.0035*phoPt[i], true, usePrivatePF);
-    } else {
-      return photonPassesIsolation(i, 0.575, 8.916 + 0.0119*phoPt[i] + 0.000025*phoPt[i]*phoPt[i], 3.272 + 0.0040*phoPt[i], true, usePrivatePF);
-    }
-  }  else {
-    cout << "Warning: you are not using 25nsCuts. return false.\n";
-    return false;
-  }
-
-}
-*/
 
 bool RazorAnalyzer::isLoosePhoton(int i, bool use25nsCuts){
 
@@ -2637,6 +2472,359 @@ void RazorAnalyzer::getPhotonEffAreaExo15004( float eta, double& effAreaPho )
     }
 };
 
+
+bool RazorAnalyzer::photonPassLooseIsoExo15004(int i)
+{
+  if( fabs(pho_superClusterEta[i]) < 1.4442 )
+    {
+      return photonPassesIsolationExo15004(i, 5, (2.75 - 2.5) + 0.0045*phoPt[i] );
+    } 
+  else if ( fabs(pho_superClusterEta[i]) < 2.0 )
+    {
+      return photonPassesIsolationExo15004(i, 5, (2.0 - 2.5) + 0.003*phoPt[i] );
+    }
+  else
+    {
+      return photonPassesIsolationExo15004(i, 5, (2.0 - 2.5) + 0.003*phoPt[i] );
+    }
+};
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////Photon ID 2017///////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+
+
+// 92X values from EGamma twiki
+// https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Working_points_for_92X_and_later
+void RazorAnalyzer::getPhotonEffArea90_2017( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho )
+{
+  if( fabs( eta ) < 1.0 )
+    {
+      effAreaChHad = 0.0385;
+      effAreaNHad  = 0.0636;
+      effAreaPho   = 0.1240;
+    }
+  else if( fabs( eta ) < 1.479 )
+    {
+      effAreaChHad = 0.0468;
+      effAreaNHad  = 0.1103;
+      effAreaPho   = 0.1093;
+    }
+  else if( fabs( eta ) < 2.0 )
+    {
+      effAreaChHad = 0.0435;
+      effAreaNHad  = 0.0759;
+      effAreaPho   = 0.0631;
+    }
+  else if( fabs( eta ) < 2.2 )
+    {
+      effAreaChHad = 0.0378;
+      effAreaNHad  = 0.0236;
+      effAreaPho   = 0.0779;
+    }
+  else if( fabs( eta ) < 2.3 )
+    {
+      effAreaChHad = 0.0338;
+      effAreaNHad  = 0.0151;
+      effAreaPho   = 0.0999;
+    }
+  else if( fabs( eta ) < 2.4 )
+    {
+      effAreaChHad = 0.0314;
+      effAreaNHad  = 0.00007;
+      effAreaPho   = 0.1155;
+    }
+  else
+    {
+      effAreaChHad = 0.0269;
+      effAreaNHad  = 0.0132;
+      effAreaPho   = 0.1373;
+    }
+};
+
+void RazorAnalyzer::getPhotonEffAreaRun2_2017( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho )
+{
+  if( fabs( eta ) < 1.0 )
+    {
+      effAreaChHad = 0.0385;
+      effAreaNHad  = 0.0636;
+      effAreaPho   = 0.1240;
+    }
+  else if( fabs( eta ) < 1.479 )
+    {
+      effAreaChHad = 0.0468;
+      effAreaNHad  = 0.1103;
+      effAreaPho   = 0.1093;
+    }
+  else if( fabs( eta ) < 2.0 )
+    {
+      effAreaChHad = 0.0435;
+      effAreaNHad  = 0.0759;
+      effAreaPho   = 0.0631;
+    }
+  else if( fabs( eta ) < 2.2 )
+    {
+      effAreaChHad = 0.0378;
+      effAreaNHad  = 0.0236;
+      effAreaPho   = 0.0779;
+    }
+  else if( fabs( eta ) < 2.3 )
+    {
+      effAreaChHad = 0.0338;
+      effAreaNHad  = 0.0151;
+      effAreaPho   = 0.0999;
+    }
+  else if( fabs( eta ) < 2.4 )
+    {
+      effAreaChHad = 0.0314;
+      effAreaNHad  = 0.00007;
+      effAreaPho   = 0.1155;
+    }
+  else
+    {
+      effAreaChHad = 0.0269;
+      effAreaNHad  = 0.0132;
+      effAreaPho   = 0.1373;
+    }
+};
+
+
+//photon ID and isolation cuts from https://twiki.cern.ch/twiki/bin/viewauth/CMS/EgammaIDRecipesRun2
+bool RazorAnalyzer::photonPassesIsolation_2017(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90, bool usePrivatePF){
+    //get effective area for isolation calculations
+    double effAreaChargedHadrons = 0.0;
+    double effAreaNeutralHadrons = 0.0;
+    double effAreaPhotons = 0.0;
+
+    //get the effective areas. results are passed to variables by reference
+    if (useEffectiveArea90) 
+      {
+	getPhotonEffArea90_2017( pho_superClusterEta[i] , effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons);
+      }
+    else 
+      {
+	getPhotonEffAreaRun2_2017( pho_superClusterEta[i] , effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons);
+      }
+
+    //Rho corrected PF charged hadron isolation
+    double PFIsoCorrected_ChHad = fmax(pho_pfIsoChargedHadronIso[i] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.);
+    if(usePrivatePF) PFIsoCorrected_ChHad = fmax(pho_sumChargedHadronPt[i] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.);
+    if(PFIsoCorrected_ChHad > PFChHadIsoCut) return false;
+    
+    //Rho corrected PF neutral hadron isolation
+    double PFIsoCorrected_NeuHad = fmax(pho_pfIsoNeutralHadronIso[i] - fixedGridRhoFastjetAll*effAreaNeutralHadrons, 0.);
+    if(usePrivatePF) PFIsoCorrected_NeuHad = fmax(pho_sumNeutralHadronEt[i] - fixedGridRhoFastjetAll*effAreaNeutralHadrons, 0.);
+    if(PFIsoCorrected_NeuHad > PFNeuHadIsoCut) return false;
+    
+    //Rho corrected PF photon isolation
+    double PFIsoCorrected_Photons = fmax(pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);
+    if(usePrivatePF) PFIsoCorrected_Photons = fmax(pho_sumPhotonEt[i] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);
+    if(PFIsoCorrected_Photons > PFPhotIsoCut) return false;
+
+    //photon passed all cuts
+    return true;
+}
+
+
+// 92X values from EGamma twiki
+// https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Working_points_for_92X_and_later
+bool RazorAnalyzer::photonPassLooseIDWithoutEleVeto_2017(int i, bool use25nsCuts ){
+
+  bool pass = true;
+
+  if (use25nsCuts) {
+    if(fabs(pho_superClusterEta[i]) < 1.479){    
+      if(pho_HoverE[i] > 0.105) pass = false;
+      if(phoFull5x5SigmaIetaIeta[i] > 0.0103) pass = false;   
+    } else { 
+      if(pho_HoverE[i] > 0.029) pass = false;
+      if(phoFull5x5SigmaIetaIeta[i] > 0.0276) pass = false;    
+    }
+  }  else {
+    cout << "Warning: you are not using 25nsCuts. return false.\n";
+    pass = false;
+  }
+
+  return pass;
+}
+
+// 92X values from EGamma twiki
+// https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Working_points_for_92X_and_later
+bool RazorAnalyzer::photonPassMediumIDWithoutEleVeto_2017(int i, bool use25nsCuts){
+  bool pass = true;
+
+  if (use25nsCuts) {
+    if(fabs(pho_superClusterEta[i]) < 1.479){    
+      if(pho_HoverE[i] > 0.035) pass = false;
+      if(phoFull5x5SigmaIetaIeta[i] > 0.0103) pass = false;   
+    } else { 
+      if(pho_HoverE[i] > 0.027) pass = false;
+      if(phoFull5x5SigmaIetaIeta[i] > 0.0271) pass = false;    
+    }
+  } else {
+    cout << "Warning: you are not using 25nsCuts. return false.\n";
+    pass = false;
+  }
+
+  return pass;
+}
+
+// 92X values from EGamma twiki
+// https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Working_points_for_92X_and_later
+bool RazorAnalyzer::photonPassTightIDWithoutEleVeto_2017(int i, bool use25nsCuts){
+  bool pass = true;
+
+  if (use25nsCuts) {
+    if(fabs(pho_superClusterEta[i]) < 1.479){    
+      if(pho_HoverE[i] > 0.020) pass = false;
+      if(phoFull5x5SigmaIetaIeta[i] > 0.0103) pass = false;   
+    } else { 
+      if(pho_HoverE[i] > 0.025) pass = false;
+      if(phoFull5x5SigmaIetaIeta[i] > 0.0271) pass = false;    
+    }
+  } else {
+    cout << "Warning: you are not using 25nsCuts. return false.\n";
+    pass = false;
+  }
+
+  return pass;
+}
+
+bool RazorAnalyzer::photonPassLooseID_2017(int i, bool use25nsCuts){
+
+  bool pass = true;
+
+  if (!photonPassLooseIDWithoutEleVeto_2017(i,use25nsCuts)) pass = false;
+  if(!photonPassesElectronVeto(i)) pass = false;
+
+  return pass;
+}
+
+bool RazorAnalyzer::photonPassMediumID_2017(int i, bool use25nsCuts){
+  bool pass = true;
+
+  if (!photonPassMediumIDWithoutEleVeto_2017(i,use25nsCuts)) pass = false;
+  if(!photonPassesElectronVeto(i)) pass = false;
+
+  return pass;
+}
+
+bool RazorAnalyzer::photonPassTightID_2017(int i, bool use25nsCuts){
+  bool pass = true;
+
+  if (!photonPassTightIDWithoutEleVeto_2017(i,use25nsCuts)) pass = false;
+  if(!photonPassesElectronVeto(i)) pass = false;
+
+  return pass;
+}
+
+// 92X values from EGamma twiki
+// https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Working_points_for_92X_and_later
+bool RazorAnalyzer::photonPassLooseIso_2017(int i, bool use25nsCuts, bool usePrivatePF){
+
+  if (use25nsCuts) {
+    if(fabs(pho_superClusterEta[i]) < 1.479){
+      return photonPassesIsolation_2017(i, 2.839, 9.188 + 0.0126*phoPt[i] + 0.000026*phoPt[i]*phoPt[i], 2.956 + 0.0035*phoPt[i], true, usePrivatePF );
+    } else {
+      return photonPassesIsolation_2017(i, 2.150, 10.471 + 0.0119*phoPt[i] + 0.000025*phoPt[i]*phoPt[i], 4.895 + 0.0040*phoPt[i], true, usePrivatePF);
+    }
+  } else {
+    cout << "Warning: you are not using 25nsCuts. return false.\n";
+    return false;
+  }
+
+}
+
+// 92X values from EGamma twiki
+// https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Working_points_for_92X_and_later
+bool RazorAnalyzer::photonPassMediumIso_2017(int i, bool use25nsCuts, bool usePrivatePF){
+
+  if (use25nsCuts) {
+    if(fabs(pho_superClusterEta[i]) < 1.479){
+      return photonPassesIsolation_2017(i, 1.416, 2.491 + 0.0126*phoPt[i] + 0.000026*phoPt[i]*phoPt[i], 2.952 + 0.0035*phoPt[i], true, usePrivatePF);
+    } else {
+      return photonPassesIsolation_2017(i, 1.012, 9.131 + 0.0119*phoPt[i] + 0.000025*phoPt[i]*phoPt[i], 4.095 + 0.0040*phoPt[i], true, usePrivatePF);
+    }
+  } else {
+    cout << "Warning: you are not using 25nsCuts. return false.\n";
+    return false;
+  }
+
+}
+
+// 92X values from EGamma twiki
+// https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Working_points_for_92X_and_later
+bool RazorAnalyzer::photonPassTightIso_2017(int i, bool use25nsCuts, bool usePrivatePF){
+
+  if (use25nsCuts) {
+    if(fabs(pho_superClusterEta[i]) < 1.479){
+        return photonPassesIsolation_2017(i, 1.158, 1.267 + 0.0126*phoPt[i] + 0.000026*phoPt[i]*phoPt[i], 2.065 + 0.0035*phoPt[i], true, usePrivatePF);
+    } else {
+      return photonPassesIsolation_2017(i, 0.575, 8.916 + 0.0119*phoPt[i] + 0.000025*phoPt[i]*phoPt[i], 3.272 + 0.0040*phoPt[i], true, usePrivatePF);
+    }
+  }  else {
+    cout << "Warning: you are not using 25nsCuts. return false.\n";
+    return false;
+  }
+
+}
+
+
+bool RazorAnalyzer::isLoosePhotonWithoutEleVeto_2017(int i, bool use25nsCuts){
+
+  bool pass = true;
+
+  if (!photonPassLooseIDWithoutEleVeto_2017(i,use25nsCuts)) pass = false;
+  if(!photonPassLooseIso_2017(i,use25nsCuts)) pass = false;
+
+  return pass;
+}
+
+bool RazorAnalyzer::isMediumPhotonWithoutEleVeto_2017(int i, bool use25nsCuts){
+  bool pass = true;
+
+  if (!photonPassMediumIDWithoutEleVeto_2017(i,use25nsCuts)) pass = false;
+  if(!photonPassMediumIso_2017(i,use25nsCuts)) pass = false;
+
+  return pass;
+}
+
+bool RazorAnalyzer::isTightPhotonWithoutEleVeto_2017(int i, bool use25nsCuts){
+  bool pass = true;
+
+  if (!photonPassTightIDWithoutEleVeto_2017(i,use25nsCuts)) pass = false;
+  if(!photonPassTightIso_2017(i,use25nsCuts)) pass = false;
+
+  return pass;
+}
+
+bool RazorAnalyzer::isLoosePhoton_2017(int i, bool use25nsCuts){
+
+  bool pass = true;
+  if(!isLoosePhotonWithoutEleVeto(i,use25nsCuts)) pass = false;
+  if(!photonPassesElectronVeto(i)) pass = false;
+
+  return pass;
+}
+
+
+bool RazorAnalyzer::isMediumPhoton_2017(int i, bool use25nsCuts){
+  bool pass = true;
+
+  if(!isMediumPhotonWithoutEleVeto_2017(i,use25nsCuts)) pass = false;
+  if(!photonPassesElectronVeto(i)) pass = false;
+
+  return pass;
+}
+
+bool RazorAnalyzer::isTightPhoton_2017(int i, bool use25nsCuts){
+  bool pass = true;
+  if (!isTightPhotonWithoutEleVeto_2017(i,use25nsCuts)) pass = false;
+  if(!photonPassesElectronVeto(i)) pass = false;
+
+  return pass;
+}
+
 /*
 // 92X values from EGamma twiki
 // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Working_points_for_92X_and_later
@@ -2672,22 +2860,6 @@ void RazorAnalyzer::getPhotonEffAreaExo15004( float eta, double& effAreaPho )
     }
 };
 */
-
-bool RazorAnalyzer::photonPassLooseIsoExo15004(int i)
-{
-  if( fabs(pho_superClusterEta[i]) < 1.4442 )
-    {
-      return photonPassesIsolationExo15004(i, 5, (2.75 - 2.5) + 0.0045*phoPt[i] );
-    } 
-  else if ( fabs(pho_superClusterEta[i]) < 2.0 )
-    {
-      return photonPassesIsolationExo15004(i, 5, (2.0 - 2.5) + 0.003*phoPt[i] );
-    }
-  else
-    {
-      return photonPassesIsolationExo15004(i, 5, (2.0 - 2.5) + 0.003*phoPt[i] );
-    }
-};
 
 //////////////////////////////
 // GEN
