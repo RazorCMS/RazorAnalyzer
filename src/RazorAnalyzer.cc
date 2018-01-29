@@ -2226,7 +2226,7 @@ bool RazorAnalyzer::photonPassesIsolation(int i, double PFChHadIsoCut, double PF
     return true;
 }
 
-/*
+
 // 80X values from EGamma Presentation
 // https://indico.cern.ch/event/491517/contributions/2349134/attachments/1359450/2056689/CutBasedPhotonID_24-10-2016.pdf
 bool RazorAnalyzer::photonPassLooseIDWithoutEleVeto(int i, bool use25nsCuts ){
@@ -2290,8 +2290,8 @@ bool RazorAnalyzer::photonPassTightIDWithoutEleVeto(int i, bool use25nsCuts){
 
   return pass;
 }
-*/
 
+/*
 // 92X values from EGamma twiki
 // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Working_points_for_92X_and_later
 bool RazorAnalyzer::photonPassLooseIDWithoutEleVeto(int i, bool use25nsCuts ){
@@ -2355,6 +2355,7 @@ bool RazorAnalyzer::photonPassTightIDWithoutEleVeto(int i, bool use25nsCuts){
 
   return pass;
 }
+*/
 
 bool RazorAnalyzer::photonPassLooseID(int i, bool use25nsCuts){
 
@@ -2384,7 +2385,6 @@ bool RazorAnalyzer::photonPassTightID(int i, bool use25nsCuts){
   return pass;
 }
 
-/*
 // 80X-v2.2 Cuts from EGamma Presentation
 // https://indico.cern.ch/event/491548/contributions/2384977/attachments/1377936/2093213/CutBasedPhotonID_25-11-2016.pdf
 bool RazorAnalyzer::photonPassLooseIso(int i, bool use25nsCuts, bool usePrivatePF){
@@ -2435,8 +2435,8 @@ bool RazorAnalyzer::photonPassTightIso(int i, bool use25nsCuts, bool usePrivateP
   }
 
 }
-*/
 
+/*
 // 92X values from EGamma twiki
 // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Working_points_for_92X_and_later
 bool RazorAnalyzer::photonPassLooseIso(int i, bool use25nsCuts, bool usePrivatePF){
@@ -2487,6 +2487,7 @@ bool RazorAnalyzer::photonPassTightIso(int i, bool use25nsCuts, bool usePrivateP
   }
 
 }
+*/
 
 bool RazorAnalyzer::isLoosePhoton(int i, bool use25nsCuts){
 
@@ -2612,7 +2613,6 @@ bool RazorAnalyzer::photonPassesIsolationExo15004(int i, double PFChHadIsoCut, d
   return true;
 };
 
-/*
 void RazorAnalyzer::getPhotonEffAreaExo15004( float eta, double& effAreaPho )
 {
   if ( fabs( eta ) < 0.9 )
@@ -2636,8 +2636,8 @@ void RazorAnalyzer::getPhotonEffAreaExo15004( float eta, double& effAreaPho )
       effAreaPho = 0.22;
     }
 };
-*/
 
+/*
 // 92X values from EGamma twiki
 // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Working_points_for_92X_and_later
 void RazorAnalyzer::getPhotonEffAreaExo15004( float eta, double& effAreaPho )
@@ -2671,6 +2671,7 @@ void RazorAnalyzer::getPhotonEffAreaExo15004( float eta, double& effAreaPho )
       effAreaPho = 0.1373;
     }
 };
+*/
 
 bool RazorAnalyzer::photonPassLooseIsoExo15004(int i)
 {
