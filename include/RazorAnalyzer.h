@@ -131,6 +131,25 @@ class RazorAnalyzer: public RazorEvents {
 	bool photonPassLooseIsoExo15004(int i);
 	TLorentzVector GetCorrectedMomentum( TVector3 vtx, TVector3 phoPos, double phoE );
 
+        //functions for 2017 photon ID
+	void getPhotonEffAreaRun2_2017( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
+	void getPhotonEffArea90_2017( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
+        bool photonPassesIsolation_2017(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90, bool usePrivatePF = false);
+	bool photonPassLooseIDWithoutEleVeto_2017(int i, bool use25nsCuts = true);
+	bool photonPassMediumIDWithoutEleVeto_2017(int i, bool use25nsCuts = true);
+	bool photonPassTightIDWithoutEleVeto_2017(int i, bool use25nsCuts = true);
+	bool photonPassLooseID_2017(int i, bool use25nsCuts = true);
+	bool photonPassMediumID_2017(int i, bool use25nsCuts = true);
+	bool photonPassTightID_2017(int i, bool use25nsCuts = true);
+	bool photonPassLooseIso_2017(int i, bool use25nsCuts = true, bool usePrivatePF = false);
+	bool photonPassMediumIso_2017(int i, bool use25nsCuts = true, bool usePrivatePF = false);
+	bool photonPassTightIso_2017(int i, bool use25nsCuts = true, bool usePrivatePF = false);
+        bool isLoosePhoton_2017(int i, bool use25nsCuts = true);
+        bool isMediumPhoton_2017(int i, bool use25nsCuts = true);
+        bool isTightPhoton_2017(int i, bool use25nsCuts = true);
+        bool isLoosePhotonWithoutEleVeto_2017(int i, bool use25nsCuts = true);
+        bool isMediumPhotonWithoutEleVeto_2017(int i, bool use25nsCuts = true);
+        bool isTightPhotonWithoutEleVeto_2017(int i, bool use25nsCuts = true);
 	/* //function in HggRazorAuxPhoton.cc */
 	/* // R u n 1   C u t   B a s e d   I D */
 	/* //---------------------------------- */
