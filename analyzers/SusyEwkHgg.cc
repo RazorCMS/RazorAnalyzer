@@ -195,7 +195,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   RazorHelper *helper = 0;
   if (analysisTag == "Razor2015_76X") helper = new RazorHelper("Razor2015_76X", isData, isFastsimSMS);
   else if (analysisTag == "Razor2016_80X") helper = new RazorHelper("Razor2016_80X", isData, isFastsimSMS);
-  else if (analysisTag == "Razor2017_PromptReco") helper = new RazorHelper("Razor2017_PromptReco", isData, isFastsimSMS);
+  else if (analysisTag == "Razor2017_92X") helper = new RazorHelper("Razor2017_92X", isData, isFastsimSMS);
   else helper = new RazorHelper(analysisTag, isData, isFastsimSMS);
   
 
@@ -212,7 +212,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
     photonCorrector = new EnergyScaleCorrection_class(Form("%s/80X_2016", photonCorrectionPath.c_str()));
   } else if (analysisTag == "Razor2016_MoriondRereco") {
     photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
-  } else if (analysisTag == "Razor2017_PromptReco") {
+  } else if (analysisTag == "Razor2017_92X") {
     photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
   }
 
@@ -280,7 +280,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
     btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_76X.csv",bTagPathname.c_str()));
     effMeasType="mujets";
     misMeasType="comb";
-  } else if (analysisTag == "Razor2016_80X" || analysisTag == "Razor2016_MoriondRereco" || analysisTag == "Razor2017_PromptReco" ) {
+  } else if (analysisTag == "Razor2016_80X" || analysisTag == "Razor2016_MoriondRereco" || analysisTag == "Razor2017_92X" ) {
     if(isFastsimSMS) {
       btagcalib = new BTagCalibration("csvv2", Form("%s/fastsim_csvv2_ttbar_26_1_2017.csv",bTagPathname.c_str()));
       effMeasType="fastsim";
@@ -1371,7 +1371,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 
 	  double scale = 1;
 	  double smear = 0;
-	  if (analysisTag != "Razor2017_PromptReco") {
+	  if (analysisTag != "Razor2017_92X") {
 	    scale = photonCorrector->ScaleCorrection(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]));
 	    smear = photonCorrector->getSmearingSigma(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]), 0., 0.); 
 	  }
@@ -1385,10 +1385,22 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	    }
 	  }
 	  if (doRequireTightID) {
-	    if ( !photonPassTightIDWithoutEleVeto(i) ) {
-	      if ( _phodebug ) std::cout << "[DEBUG]: failed run2 Tight ID" << std::endl;
-	      continue;
-	    }
+	        if (analysisTag != "Razor2017_92X") 
+                {
+                        if ( !photonPassTightIDWithoutEleVeto(i) ) 
+                        {
+	                        if ( _phodebug ) std::cout << "[DEBUG]: failed run2 Tight ID" << std::endl;
+	                        continue;
+	                } 
+                } 
+                else 
+                {
+                        if ( !photonPassTightIDWithoutEleVeto_2017(i) ) 
+                        {
+	                        if ( _phodebug ) std::cout << "[DEBUG]: failed 92X Tight ID" << std::endl;
+	                        continue;
+	                } 
+                }
 	  }
 	  
 	  //*****************************************************************************
@@ -1418,10 +1430,24 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	    if (!(pho_passEleVeto[i])) continue;
 	  }
 	  if (doRequireIso) {
-	    if (!(photonPassLooseIso(i))) continue;
+	        if (analysisTag != "Razor2017_92X")
+                {
+	                if (!(photonPassLooseIso(i))) continue;
+                }
+                else
+                {
+	                if (!(photonPassLooseIso_2017(i))) continue;
+                } 
 	  }
 	  if (doRequireTightIso) {
-	    if (!(photonPassTightIso(i))) continue;
+	        if (analysisTag != "Razor2017_92X")
+                {
+	                if (!(photonPassTightIso(i))) continue;
+                }
+                else
+                {
+	                if (!(photonPassTightIso_2017(i))) continue;
+                } 
 	  }	  	  	  
 
 	  //Defining Corrected Photon momentum
@@ -1499,7 +1525,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  tmp_phoCand.sumPhotonEt = pho_pfIsoPhotonIso[i];
 	  tmp_phoCand.sigmaEOverE = pho_RegressionEUncertainty[i]/pho_RegressionE[i];
 	  tmp_phoCand._passEleVeto = pho_passEleVeto[i];
-	  tmp_phoCand._passIso = photonPassLooseIso(i);
+	  if (analysisTag != "Razor2017_92X") tmp_phoCand._passIso = photonPassLooseIso(i);
+          else tmp_phoCand._passIso = photonPassLooseIso_2017(i);
 	  phoCand.push_back( tmp_phoCand );
 	
 	  nSelectedPhotons++;
