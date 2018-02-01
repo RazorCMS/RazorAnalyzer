@@ -41,8 +41,8 @@ int main( int argc, char* argv[] )
   srand(time(NULL));
   gROOT->Reset();
   gStyle->SetOptStat(0);
-  if ( argc == 3 )
-  { 
+  //if ( argc == 3 )
+  //{ 
         //file.open (argv[1], ios::in | ios::binary);
         file.open (argv[1], ios::in | ios::binary);
         std::cout << "[INFO]: Opening file " << argv[1] << " ......" << std::endl;
@@ -50,7 +50,7 @@ int main( int argc, char* argv[] )
         if ( !file.is_open () )
         {
                 std::cerr << "!! File open error:" << argv[1] << "; make sure the file is in the correct location" << std::endl;
-                return 1;
+                return -1;
         } else {
                 while(getline(file,line)) ++n;
                 std::cout << "n = " << n << "\n" << std::endl;
@@ -62,7 +62,7 @@ int main( int argc, char* argv[] )
                 std::cerr << "[ERROR]: please provide the analysisTag<Razor2015_76X,Razor2016_80X,Razor2017_92X>" << std::endl;
                 return -1;
         } 
-  }
+  //}
 
   std::ifstream ifs( argv[1], std::ifstream::in );
   assert(ifs);
@@ -122,11 +122,12 @@ int main( int argc, char* argv[] )
   vector<string> cut_name2;
   vector<string> cut_name3;
   //baseline cut
-  if(analysisTag!=Razor2017_92X)
-          string baseline = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25.";
+  string baseline;
+  if(analysisTag!="Razor2017_92X")
+          baseline = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25.";
   else
-          //string baseline = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt/pTGammaGamma>1./3. || pho2Pt/pTGammaGamma>1./3.) && pho1Pt/pTGammaGamma>1./4. && pho2Pt/pTGammaGamma>1./4. && pho1R9>0.5 && pho2R9>0.5";
-          string baseline = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1SC_Eta) <1.4442 && abs(pho2SC_Eta)<1.4442 && (pho1Pt/pTGammaGamma>1./3. || pho2Pt/pTGammaGamma>1./3.) && pho1Pt/pTGammaGamma>1./4. && pho2Pt/pTGammaGamma>1./4. && pho1R9>0.5 && pho2R9>0.5";
+          //baseline = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt/pTGammaGamma>1./3. || pho2Pt/pTGammaGamma>1./3.) && pho1Pt/pTGammaGamma>1./4. && pho2Pt/pTGammaGamma>1./4. && pho1R9>0.5 && pho2R9>0.5";
+          baseline = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1SC_Eta) <1.4442 && abs(pho2SC_Eta)<1.4442 && (pho1Pt/pTGammaGamma>1./3. || pho2Pt/pTGammaGamma>1./3.) && pho1Pt/pTGammaGamma>1./4. && pho2Pt/pTGammaGamma>1./4. && pho1R9>0.5 && pho2R9>0.5";
 
   cut.push_back(baseline);
   cut_name.push_back("Baseline");
@@ -196,12 +197,12 @@ int main( int argc, char* argv[] )
   cut_name3.push_back("HZbb");
   //box=8 HighRes
   //string HighRes = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 8 ";
-  string Highres = MR150+ " && box == 8";
+  string HighRes = MR150+ " && box == 8";
   cut.push_back(HighRes);
   cut_name.push_back("HighRes");
   //box=9 LowRes
   //string LowRes = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 9 ";
-  string Lowres = MR150+ " && box == 9";
+  string LowRes = MR150+ " && box == 9";
   cut.push_back(LowRes);
   cut_name.push_back("LowRes");
   cut_name1.push_back("LowPt");
