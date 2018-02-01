@@ -1599,6 +1599,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	      if( pho1.photon.Pt() + pho2.photon.Pt() > bestSumPt )
 		{
 		  bestSumPt = pho1.photon.Pt() + pho2.photon.Pt();
+		  pTGammaGamma = pho1.photon.Pt() + pho2.photon.Pt();
 		  HiggsCandidate = pho1.photon + pho2.photon;
 		  HiggsCandidateSC = pho1.photonSC + pho2.photonSC;
 		  if ( pho1.photon.Pt() >= pho2.photon.Pt() )
@@ -2412,14 +2413,6 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  
 	  nLooseBTaggedJets++;
 	  if( isCSVM(i) ) nMediumBTaggedJets++;
-	  /*
-	      GoodCSVLBJets.push_back(make_pair(thisJet, true));
-	    }
-	  else
-	    {
-	      GoodCSVLBJets.push_back(make_pair(thisJet, false));
-	    }
-	  */
 	  
         }//end of loop over jet for b-jet
      
@@ -2427,7 +2420,9 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //----------------
       //High-pt category
       //----------------
-      if( ( razorbox == None ) && HiggsCandidate.Pt() > 110. && ( muCand.size() == 0 ) && ( eleCand.size() == 0 ) ) razorbox == HighPt;
+      if( ( razorbox == None ) && HiggsCandidate.Pt() > 110. && ( muCand.size() == 0 ) && ( eleCand.size() == 0 ) ) razorbox = HighPt;
+      if ( _phodebug ) std::cout << "pho PT :  " << bestCand[0].photon.Pt() << " and  " << bestCand[1].photon.Pt() << " Mgg : " << HiggsCandidate.M() << " pt1/Mgg = "   << bestCand[0].photon.Pt()/HiggsCandidate.M() << " pt2/Mgg = " << bestCand[1].photon.Pt()/HiggsCandidate.M() << std::endl;
+      if ( _phodebug ) std::cout << "Higgs PT :  " << HiggsCandidate.Pt() << "  razorbox : " << razorbox << std::endl;
 
 
       
