@@ -213,9 +213,10 @@ class RazorHelper {
         void loadBTag_Razor2016G_SUSYUnblind();
 	void loadTrigger_Razor2016G_SUSYUnblind();
 
-        // for Razor2016 80X tag
+        // for Razor2017 92X tag
         void loadPileup_Razor2017_92X();
         void loadTrigger_Razor2017_92X();
+        void loadPhoton_Razor2017_94X();
 
         // member data
         std::string tag;

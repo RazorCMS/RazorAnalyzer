@@ -1415,7 +1415,8 @@ void RazorHelper::loadTag_Razor2017_92X() {
   //loadPileup_Razor2016_MoriondRereco();
   loadPileup_Razor2017_92X();
   loadLepton_Razor2016_MoriondRereco();
-  loadPhoton_Razor2016_MoriondRereco();
+  //loadPhoton_Razor2016_MoriondRereco();
+  loadPhoton_Razor2017_94X();
   loadBTag_Razor2016_MoriondRereco();
   loadTrigger_Razor2017_92X();
   loadJECs_Razor2016_MoriondRereco();
@@ -1475,6 +1476,19 @@ void RazorHelper::loadTrigger_Razor2017_92X() {
     dileptonTriggerNums = { 16, 17,18, 19, 20, 21, 22, 23,24 };
     singleLeptonTriggerNums = { 1,2,3,4,5,6,7,12,13,14,15 };
     hadronicTriggerNums = { 106, 107, 108, 109, 110, 111 };
+}
+
+
+void RazorHelper::loadPhoton_Razor2017_94X(){
+    // photon efficiency scale factors
+    // use avaerage results for run 2017BCDEF for now 
+    std::cout << "RazorHelper: loading photon efficiency scale factor histograms" << std::endl;
+    phoEffSFFile = TFile::Open("efficiency_results_PhoLooseEffDenominatorReco_2017BCDEF_94X.root");
+    phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("EGamma_SF2D");   
+
+    // results for 2017MC is not available yet, use 2016 version for now 
+    phoEffFastsimSFFile = TFile::Open("PhotonEffFastsimToFullsimCorrectionFactors.2016.root");
+    phoLooseEffFastsimSFHist = (TH2D*)phoEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor"); 
 }
 
 
