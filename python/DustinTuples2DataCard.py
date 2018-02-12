@@ -97,8 +97,9 @@ def makeNewHistogramForUncorrelateSFs(name, centerName, systName, number, hists)
     else: 
         print("Error: shape histogram name "+name+" needs to contain 'Up' or 'Down'")
         return
-    hists[newHistName] = hists[centerName].Clone(newHistName)
-    hists[newHistName].SetDirectory(0)
+    if newHistName not in hists:
+        hists[newHistName] = hists[centerName].Clone(newHistName)
+        hists[newHistName].SetDirectory(0)
     return newHistName
 
 def setBinContentsForUncorrelateSFs(mrCenter, rsqCenter, refBN, sigBN, sysHist, newHist, referenceHist, oneD=False):
@@ -242,13 +243,17 @@ def uncorrelateSFs(hists, sysName, referenceHists, cfg, box, unrollBins=None):
         del hists[name]
 
 def uncorrelateSFs1D(hists, sysName, referenceHists, unrollBins, 
-        useRsq=True, bInclusive=False):
+        useRsq=True, bInclusive=False, xInclusive=False):
     """
     Same as uncorrelateSFs except that the reference histogram is assumed to
     be a 1D Rsq histogram instead of a 2D MR-Rsq histogram.
     (to decorrelate by MR value instead of Rsq, set useRsq to False)
-    Set bInclusive to True to keep different b-tag bins correlated
+    Set bInclusive to True to keep different b-tag bins correlated.
+    Set xInclusive to True to have one shape uncertainty for each b-tag bin.
     """
+    if bInclusive and xInclusive:
+        print "bInclusive and xInclusive are both set to True.  Nothing to do..."
+        return
     toUncorrelate = [name for name in hists if sysName in name]
     print "Uncorrelate SFs:",sysName
     print("Treating the following distributions as uncorrelated: ")
@@ -268,6 +273,8 @@ def uncorrelateSFs1D(hists, sysName, referenceHists, unrollBins,
                 newHistName = makeNewHistogramForUncorrelateSFs(name, centerName, systName, ibin, hists)
                 matchedAtLeastOneBin = False
             for bz in range(len(unrollBins)):
+                if xInclusive:
+                    ibin = 0
                 if not bInclusive:
                     ibin += 1
                     newHistName = makeNewHistogramForUncorrelateSFs(name, centerName, systName, ibin, hists)
@@ -283,7 +290,6 @@ def uncorrelateSFs1D(hists, sysName, referenceHists, unrollBins,
                         binCenter = (thisSigBin.GetYMax() + thisSigBin.GetYMin())/2.0
                     else:
                         binCenter = (thisSigBin.GetXMax() + thisSigBin.GetXMin())/2.0
-                    print "bin center:",binCenter
                     # Note that binCenter is an Rsq value but it is being passed
                     # into the mrCenter field of setBinContentsForUncorrelateSFs.  
                     # This is just for convenience -- that function assumes
@@ -294,7 +300,7 @@ def uncorrelateSFs1D(hists, sysName, referenceHists, unrollBins,
                         matchedAtLeastOneBin = True
                 poly.Delete()
                 #don't save the histogram if there is no change from the nominal
-                if not bInclusive and not matchedAtLeastOneBin:
+                if not bInclusive and not xInclusive and not matchedAtLeastOneBin:
                     print "No matches for bin {} {}".format(bx, bz)
                     del hists[newHistName]
             if bInclusive and not matchedAtLeastOneBin:

@@ -624,15 +624,22 @@ def getAuxSFsForErrorOpt(auxSFs={}, errorOpt="", auxSFsPerProcess=False):
             histNames.append("TTJetsDileptonUp")
         elif 'Down' in errorOpt:
             histNames.append("TTJetsDileptonDown")
-        varNames.append(("MR","Rsq"))
+        varNames.append("MR")
         cuts.append("1")
     #DYJets dilepton control region systematic
-    elif 'zllcrosscheck' in errorOpt.lower():
+    elif 'zllcrosscheckmr' in errorOpt.lower():
         if 'Up' in errorOpt:
-            histNames.append("DYJetsInvUp")
+            histNames.append("DYJetsInvMRUp")
         elif 'Down' in errorOpt:
-            histNames.append("DYJetsInvDown")
-        varNames.append(("MR","Rsq"))
+            histNames.append("DYJetsInvMRDown")
+        varNames.append("MR")
+        cuts.append("1")
+    elif 'zllcrosscheckrsq' in errorOpt.lower():
+        if 'Up' in errorOpt:
+            histNames.append("DYJetsInvRsqUp")
+        elif 'Down' in errorOpt:
+            histNames.append("DYJetsInvRsqDown")
+        varNames.append("Rsq")
         cuts.append("1")
     #Veto lepton scale factors up/down
     elif 'vetolepptcrosscheck' in errorOpt.lower():
@@ -711,7 +718,8 @@ def splitShapeErrorsByType(shapeErrors):
         'renscale':True,
         'facrenscale':True,
         'ttcrosscheck':True,
-        'zllcrosscheck':True,
+        'zllcrosscheckmr':True,
+        'zllcrosscheckrsq':True,
         'btagcrosscheckmr':True,
         'btagcrosscheckrsq':True,
         'btaginvcrosscheck':True,
@@ -784,6 +792,14 @@ def addBTagSFs(analysis, auxSFs={}, var='MR', gjets=False):
             if proc not in auxSFs:
                 auxSFs[proc] = {}
             auxSFs[proc][sfKey] = (var, '1')
+    return auxSFs
+
+def addBTagDoubleRatioSFs(analysis, auxSFs={}, var='nBTaggedJets'):
+    proc = 'ZInv'
+    if proc in analysis.samples:
+        if proc not in auxSFs:
+            auxSFs[proc] = {}
+        auxSFs[proc]['NBTagsInv'] = (var, '1')
     return auxSFs
 
 def addAllBTagSFs(analysis, auxSFs={}, var='MR', gjets=False, 

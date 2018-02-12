@@ -33,6 +33,34 @@
 #endif
 
 
+//Axis
+const float axisTitleSize = 0.06;
+const float axisTitleOffset = .8;
+
+const float axisTitleSizeRatioX   = 0.18;
+const float axisLabelSizeRatioX   = 0.12;
+const float axisTitleOffsetRatioX = 0.94;
+
+const float axisTitleSizeRatioY   = 0.15;
+const float axisLabelSizeRatioY   = 0.108;
+const float axisTitleOffsetRatioY = 0.32;
+
+//Margins
+const float leftMargin   = 0.12;
+const float rightMargin  = 0.05;
+const float topMargin    = 0.07;
+const float bottomMargin = 0.12;
+
+//CMS STANDARD
+TString CMSText = "CMS";
+TString extraText   = "Preliminary";
+TString lumiText = "23.9 fb^{-1} (13 TeV)";
+//TString lumiText = "35.9 fb^{-1} (13 TeV)";
+//TString lumiText = "Simulation (13 TeV)";
+
+bool AddCMS( TCanvas* C );
+
+
 
 
 bool PassSelection( bool *HLTDecision, int year, int wp, double HLTMR, double HLTRSQ ) {
@@ -318,8 +346,8 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int year, int wp
     //*****************************************************************************************
     TH1F *histDenominatorMR = new TH1F ("histDenominatorMR",";M_{R} [GeV/c^{2}]; Number of Events", 1000, 0, 2000);
     TH1F *histNumeratorMR = new TH1F ("histNumeratorMR",";M_{R} [GeV/c^{2}]; Number of Events", 1000, 0 , 2000);
-    TH1F *histDenominatorRsq = new TH1F ("histDenominatorRsq",";R^{2}; Number of Events", 400, 0 , 2);
-    TH1F *histNumeratorRsq = new TH1F ("histNumeratorRsq",";R^{2}; Number of Events", 400, 0 , 2);
+    TH1F *histDenominatorRsq = new TH1F ("histDenominatorRsq",";R^{2}; Number of Events", 400, 0 , 2.0);
+    TH1F *histNumeratorRsq = new TH1F ("histNumeratorRsq",";R^{2}; Number of Events", 400, 0 , 2.0);
 
     // TH1F *histDenominatorMR = new TH1F ("histDenominatorMR",";M_{R} [GeV/c^{2}]; Number of Events", 40, 0, 1000);
     // TH1F *histNumeratorMR = new TH1F ("histNumeratorMR",";M_{R} [GeV/c^{2}]; Number of Events", 40, 0 , 1000);
@@ -477,7 +505,7 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int year, int wp
       
 
         //**** MR ****
-        if (Rsq>0.25) 
+        if (Rsq>0.4) 
         { 
             histDenominatorMR->Fill(MR);
             //Numerator
@@ -491,7 +519,7 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int year, int wp
         }
 
         //**** Rsq ****
-        if (MR>1600) 
+      if (MR>600) 
         {
             histDenominatorRsq->Fill(Rsq);      
             //Numerator
@@ -616,28 +644,33 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int year, int wp
     gPad->SetGridx();
     efficiency_MR->Draw("AP");
     efficiency_MR->SetTitle("");
-    efficiency_MR->GetYaxis()->SetRangeUser(0.0,1.0);
+    efficiency_MR->GetYaxis()->SetRangeUser(0.0,1.1);
     efficiency_MR->GetXaxis()->SetTitle("M_{R} [GeV/c^{2}]");
     efficiency_MR->GetYaxis()->SetTitle("Efficiency");
     efficiency_MR->GetYaxis()->SetTitleOffset(1.2);
     efficiency_MR->SetLineWidth(3);  
     efficiency_MR->SetMarkerSize(2);
+    AddCMS(cv);
     cv->SaveAs(("Efficiency"+Label+"_MR.png").c_str());
+    cv->SaveAs(("Efficiency"+Label+"_MR.C").c_str());
 
     cv = new TCanvas("cv","cv",800,600);
     gPad->SetGridx();
     efficiency_Rsq->Draw("AP");
     efficiency_Rsq->SetTitle("");
-    efficiency_Rsq->GetYaxis()->SetRangeUser(0.0,1.0);
+    efficiency_Rsq->GetXaxis()->SetRangeUser(0.0,1.3);
+    efficiency_Rsq->GetYaxis()->SetRangeUser(0.0,1.1);
     efficiency_Rsq->GetXaxis()->SetTitle("R^{2}");
     efficiency_Rsq->GetYaxis()->SetTitle("Efficiency");
     efficiency_Rsq->GetYaxis()->SetTitleOffset(1.2);
     efficiency_Rsq->SetLineWidth(3);  
     efficiency_Rsq->SetMarkerSize(2);
+    AddCMS(cv);
     cv->SaveAs(("Efficiency"+Label+"_Rsq.png").c_str());
+    cv->SaveAs(("Efficiency"+Label+"_Rsq.C").c_str());
 
     cv = new TCanvas("cv","cv",800,600);
-    gPad->SetLogx();
+    //gPad->SetLogx();
     //  gPad->SetLogz();
     gPad->SetRightMargin(0.12);
     gStyle->SetOptStat(0);
@@ -651,8 +684,11 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int year, int wp
     efficiency_MRRsq->GetYaxis()->SetTitle("R^{2}");
     efficiency_MRRsq->GetZaxis()->SetTitle("Efficiency");
     efficiency_MRRsq->GetYaxis()->SetTitleOffset(1.2);
+    efficiency_MRRsq->GetYaxis()->SetRangeUser(0.0,1.2);
     efficiency_MRRsq->SetLineWidth(3); 
+    AddCMS(cv);
     cv->SaveAs(("Efficiency"+Label+"_MRRsq.png").c_str());
+    cv->SaveAs(("Efficiency"+Label+"_MRRsq.C").c_str());
 
 
     //--------------------------------------------------------------------------------------------------------------
@@ -715,19 +751,30 @@ void MakeRazorTriggerEfficiencyPlots( int option = 0) {
       //**************************************************************************
       //2016 Data (with Razor Hadronic Triggers OR PFHT triggers OR PFJet triggers)
       //**************************************************************************     
-      ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_03Oct2017_NoCuts/Signal/FullRazorInclusive_Razor2016_MoriondRereco_Data_NoDuplicates_GoodLumiGolden.root", 2016, 20, 11, "RazorTrigger_RsqMR270ORPFHT900ORPFJet450_All_SingleElectronData");
+      //ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_03Oct2017_NoCuts/Signal/FullRazorInclusive_Razor2016_MoriondRereco_Data_NoDuplicates_GoodLumiGolden.root", 2016, 20, 11, "RazorTrigger_RsqMR270ORPFHT900ORPFJet450_All_SingleElectronData");
 
       //**************************************************************************
       //2017 Data (For Razor Hadronic Triggers
       //**************************************************************************
       // //wp=6 main trigger
-      // ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20170913/FullRazorInclusive_SingleElectron_2017C_PRv1_25ns_GoodLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_SingleEkectronData_2017C");
-      // ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20170913/FullRazorInclusive_SingleElectron_2017D_PRv1_25ns_GoodLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_SingleEkectronData_2017D");
-      // ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20170913/FullRazorInclusive_SingleElectron_2017CD_PRv1_25ns_GoodLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_SingleEkectronData_2017CD");
+/*       
+       ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20171031/FullRazorInclusive_SingleElectron_Run2017C-PromptReco-v1_GoldenLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_SingleElectronData_2017Cv1");
+       ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20171031/FullRazorInclusive_SingleElectron_Run2017C-PromptReco-v2_GoldenLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_SingleElectronData_2017Cv2");
+       ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20171031/FullRazorInclusive_SingleElectron_Run2017C-PromptReco-v3_GoldenLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_SingleElectronData_2017Cv3");
+       ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20171031/FullRazorInclusive_SingleElectron_Run2017D-PromptReco-v1_GoldenLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_SingleElectronData_2017Dv1");
+       ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20171031/FullRazorInclusive_SingleElectron_Run2017E-PromptReco-v1_GoldenLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_SingleElectronData_2017Ev1");
+       ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20171031/FullRazorInclusive_SingleElectron_Run2017F-PromptReco-v1_GoldenLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_SingleElectronData_2017Fv1");
+       ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20171031/FullRazorInclusive_SingleElectron_Run2017A-F-PromptReco_GoldenLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_SingleElectronData_2017A-F");
+       
+       ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20171031/FullRazorInclusive_SingleElectron_Run2017B-F-PromptReco_GoldenLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_SingleElectronData_2017B-F");
+
+*/
+
+       //ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20171031/FullRazorInclusive_SingleElectron_Run2017C-F-PromptReco_GoldenLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_SingleElectronData_2017C-F");
+       ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20171127/FullRazorInclusive_SingleElectron_Run2017C-F-PromptReco_GoldenLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_SingleElectronData_2017C-F");
+       
       // //wp=7 backup trigger
-      // ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20170913/FullRazorInclusive_SingleElectron_2017C_PRv1_25ns_GoodLumi.root", 2017, 7, 11, "RazorTrigger_RsqMR320_Rsq0p09_MR200_All_SingleEkectronData_2017C");
-      // ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20170913/FullRazorInclusive_SingleElectron_2017D_PRv1_25ns_GoodLumi.root", 2017, 7, 11, "RazorTrigger_RsqMR320_Rsq0p09_MR200_All_SingleEkectronData_2017D");
-      // ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20170913/FullRazorInclusive_SingleElectron_2017CD_PRv1_25ns_GoodLumi.root", 2017, 7, 11, "RazorTrigger_RsqMR320_Rsq0p09_MR200_All_SingleEkectronData_2017CD");
+       //ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20171031/FullRazorInclusive_SingleElectron_Run2017A-F-PromptReco_GoldenLumi.root", 2017, 7, 11, "RazorTrigger_RsqMR320_Rsq0p09_MR200_All_SingleElectronData_2017A-F");
 
 
     }
@@ -739,3 +786,41 @@ void MakeRazorTriggerEfficiencyPlots( int option = 0) {
 
 }
 
+
+bool AddCMS( TCanvas* C )
+{
+  C->cd();
+  float lumix = 0.925;
+  float lumiy = 0.945;
+  float lumifont = 42;
+  
+  float cmsx = 0.225;
+  float cmsy = 0.940;
+  float cmsTextFont   = 61;  // default is helvetic-bold
+  float extrax = cmsx + 0.198;
+  float extray = cmsy;
+  float extraTextFont = 52;  // default is helvetica-italics
+  // ratio of "CMS" and extra text size
+  float extraOverCmsTextSize  = 0.76;
+  float cmsSize = 0.06;
+  TLatex latex;
+  latex.SetNDC();
+  latex.SetTextAngle(0);
+  latex.SetTextColor(kBlack);    
+  float extraTextSize = extraOverCmsTextSize*cmsSize;
+  latex.SetTextFont(lumifont);
+  latex.SetTextAlign(31); 
+  latex.SetTextSize(cmsSize);    
+  latex.DrawLatex(lumix, lumiy,lumiText);
+
+  latex.SetTextFont(cmsTextFont);
+  latex.SetTextAlign(31); 
+  latex.SetTextSize(cmsSize);
+  latex.DrawLatex(cmsx, cmsy, CMSText);
+   
+  latex.SetTextFont(extraTextFont);
+  latex.SetTextAlign(31); 
+  latex.SetTextSize(extraTextSize);
+  latex.DrawLatex(extrax, extray, extraText);
+  return true;
+};

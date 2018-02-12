@@ -144,7 +144,7 @@ class RazorHelper {
         void loadTag_Razor2016G_80X(); // Special configuration for Run2016G
         void loadTag_Razor2016G_SUSYUnblind_80X(); // For unblinded 2016 data
         void loadTag_Razor2016_ICHEP_80X(); 
-	void loadTag_Razor2017_PromptReco(); // Configuration for 2016 Rereco
+	void loadTag_Razor2017_92X(); // Configuration for 2017 92X
         void loadTag_Null(); // Default when tag is not provided
         void loadCMSSWPath();
         double lookupPtEtaScaleFactor(TH2D *hist, double pt, double eta, double ptmin=10.01, double ptmax=199.9, bool useAbsEta=true);
@@ -213,9 +213,10 @@ class RazorHelper {
         void loadBTag_Razor2016G_SUSYUnblind();
 	void loadTrigger_Razor2016G_SUSYUnblind();
 
-        // for Razor2016 80X tag
-        void loadPileup_Razor2017_PromptReco();
-        void loadTrigger_Razor2017_PromptReco();
+        // for Razor2017 92X tag
+        void loadPileup_Razor2017_92X();
+        void loadTrigger_Razor2017_92X();
+        void loadPhoton_Razor2017_94X();
 
         // member data
         std::string tag;

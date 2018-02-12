@@ -1,17 +1,17 @@
 import copy
 
-#VERSION = '16Nov2017_NoBoostCuts_sixie'
-VERSION = '13Nov2017'
-#VERSION = '13Nov2017_NoBoostCuts'
-BOOST_LIMIT_DIR = "/eos/user/j/jkarancs/RazorBoost/datacards/2017_11_21/"
+VERSION = '18Dec2017'
+#VERSION = '18Dec2017_NoBoostCuts'
+BOOST_LIMIT_DIR = "/eos/user/j/jkarancs/RazorBoost/datacards/2017_12_26/"
 BOOST_LOCAL_DIR = "syst_results/run_2017_11_13_syst/cards"
 
 DISP_OFFSET = 12.5 # Extra offset needed for display purposes
 
 ALL_BOXES = ['DiJet', 'MultiJet', 'SevenJet', 'LeptonMultiJet', 'LeptonSevenJet']
 HADRONIC_BOXES = ['DiJet', 'MultiJet', 'SevenJet']
+HAD_GLUINO_BOXES = ['MultiJet', 'SevenJet']
 GLUINO_BOXES = ['MultiJet', 'SevenJet', 'LeptonMultiJet', 'LeptonSevenJet']
-BOOST_BOXES = ['WAna_nj35', 'WAna_nj6', 'TopAna']
+BOOST_BOXES = ['WAna_nj45', 'WAna_nj6', 'TopAna']
 
 class SMS(object):
 
@@ -51,7 +51,7 @@ class SMS(object):
 
 
 sms_models = {
-        'T1bbbb':SMS(600, 2300, 0, 1650, boxes=HADRONIC_BOXES),
+        'T1bbbb':SMS(600, 2300, 0, 1650, boxes=HAD_GLUINO_BOXES),
         'T1ttbb':SMS(600, 2300, 0, 1650, boxes=GLUINO_BOXES,
             diagonalOffset=225),
         'T1tttt':SMS(600, 2300, 0, 1650, boxes=GLUINO_BOXES,

@@ -48,8 +48,8 @@ RazorHelper::RazorHelper(std::string tag_, bool isData_, bool isFastsim_):
     }
 
     // tag for 2017 Prompt Reco
-    else if (tag == "Razor2017_PromptReco") {
-        loadTag_Razor2017_PromptReco();
+    else if (tag == "Razor2017_92X") {
+        loadTag_Razor2017_92X();
     }
 
     // tag not found
@@ -1411,17 +1411,18 @@ void RazorHelper::loadTrigger_Razor2016G_SUSYUnblind() {
 ////////////////////////////////////////////////
 //  2017 PromptReco
 ////////////////////////////////////////////////
-void RazorHelper::loadTag_Razor2017_PromptReco() {
+void RazorHelper::loadTag_Razor2017_92X() {
   //loadPileup_Razor2016_MoriondRereco();
-  loadPileup_Razor2017_PromptReco();
+  loadPileup_Razor2017_92X();
   loadLepton_Razor2016_MoriondRereco();
-  loadPhoton_Razor2016_MoriondRereco();
+  //loadPhoton_Razor2016_MoriondRereco();
+  loadPhoton_Razor2017_94X();
   loadBTag_Razor2016_MoriondRereco();
-  loadTrigger_Razor2017_PromptReco();
+  loadTrigger_Razor2017_92X();
   loadJECs_Razor2016_MoriondRereco();
 }
 
-void RazorHelper::loadPileup_Razor2017_PromptReco() {
+void RazorHelper::loadPileup_Razor2017_92X() {
     // pileup weights
     // LAST UPDATED: 28 October 2017
     std::cout << "RazorHelper: loading pileup weight histograms" << std::endl;
@@ -1443,7 +1444,7 @@ void RazorHelper::loadPileup_Razor2017_PromptReco() {
 
 }
 
-void RazorHelper::loadTrigger_Razor2017_PromptReco() {
+void RazorHelper::loadTrigger_Razor2017_92X() {
     // single lepton trigger scale factors
     // LAST UPDATED: 30 July 2017
     std::cout << "RazorHelper: loading 2016 trigger efficiency histograms" << std::endl;
@@ -1475,6 +1476,19 @@ void RazorHelper::loadTrigger_Razor2017_PromptReco() {
     dileptonTriggerNums = { 16, 17,18, 19, 20, 21, 22, 23,24 };
     singleLeptonTriggerNums = { 1,2,3,4,5,6,7,12,13,14,15 };
     hadronicTriggerNums = { 106, 107, 108, 109, 110, 111 };
+}
+
+
+void RazorHelper::loadPhoton_Razor2017_94X(){
+    // photon efficiency scale factors
+    // use avaerage results for run 2017BCDEF for now 
+    std::cout << "RazorHelper: loading photon efficiency scale factor histograms" << std::endl;
+    phoEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2017/efficiency_results_PhoLooseEffDenominatorReco_2017BCDEF_94X.root");
+    phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("EGamma_SF2D");   
+
+    // results for 2017MC is not available yet, use 2016 version for now 
+    phoEffFastsimSFFile = TFile::Open("PhotonEffFastsimToFullsimCorrectionFactors.2016.root");
+    phoLooseEffFastsimSFHist = (TH2D*)phoEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor"); 
 }
 
 

@@ -41,8 +41,7 @@ if __name__ == "__main__":
     regionsOrder = []
 
     #define all tests
-    jetsOrder = ["SevenJet"]
-    #jetsOrder = ["SevenJet", "MultiJet", "DiJet"]
+    jetsOrder = ["SevenJet", "MultiJet", "DiJet"]
     jetsLimit = [(7,-1),(4,6),(2,3)]
     for name,jets in zip(jetsOrder, jetsLimit):
         regionName = 'OneLepton'+name

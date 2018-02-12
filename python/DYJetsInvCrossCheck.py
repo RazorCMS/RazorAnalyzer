@@ -22,11 +22,9 @@ if __name__ == "__main__":
     #Process inclusive sample twice; the first pass will compute the overall normalization 
     #and the second pass will be a rerun with the corrected normalization
     if closure:
-        regionsOrder = [
-                "DYJetsDileptonInv", 
-                "DYJetsDileptonInvDiJet",
-                "DYJetsDileptonInvMultiJet",
-                "DYJetsDileptonInvSevenJet"]
+        regionsOrder = []
+        for jets in ['SevenJet', 'MultiJet', 'DiJet', '']:
+            regionsOrder.append('DYJetsDileptonInv'+jets)
     else:
         regionsOrder = [
                 "DYJetsDileptonInvUncorr", 
@@ -36,15 +34,18 @@ if __name__ == "__main__":
                 "DYJetsDileptonInvSevenJet"
                 ]
     regions = {
-            "DYJetsDileptonInvUncorr":Analysis("DYJetsDileptonInv",tag=tag,boostCuts=boostCuts),
-            "DYJetsDileptonInv":Analysis("DYJetsDileptonInv",tag=tag,boostCuts=boostCuts),
-            "DYJetsDileptonInvDiJet":Analysis("DYJetsDileptonInv",tag=tag,njetsMin=2,njetsMax=3,
-                boostCuts=boostCuts),
-            "DYJetsDileptonInvMultiJet":Analysis("DYJetsDileptonInvMultiJet",tag=tag,njetsMin=4,njetsMax=6,
-                boostCuts=boostCuts),
-            "DYJetsDileptonInvSevenJet":Analysis("DYJetsDileptonInvMultiJet",tag=tag,njetsMin=7,
-                boostCuts=boostCuts),
-            "DYJetsDileptonInvNoSFs":Analysis("DYJetsDileptonInv",tag=tag,boostCuts=boostCuts),
+            "DYJetsDileptonInvUncorr":Analysis("DYJetsDileptonInv",
+                tag=tag,boostCuts=boostCuts),
+            "DYJetsDileptonInv":Analysis("DYJetsDileptonInv",
+                tag=tag,boostCuts=boostCuts),
+            "DYJetsDileptonInvDiJet":Analysis("DYJetsDileptonInv",
+                tag=tag,njetsMin=2,njetsMax=3, boostCuts=boostCuts),
+            "DYJetsDileptonInvMultiJet":Analysis("DYJetsDileptonInvMultiJet",
+                tag=tag,njetsMin=4,njetsMax=6, boostCuts=boostCuts),
+            "DYJetsDileptonInvSevenJet":Analysis("DYJetsDileptonInvMultiJet",
+                tag=tag,njetsMin=7, boostCuts=boostCuts),
+            "DYJetsDileptonInvNoSFs":Analysis("DYJetsDileptonInv",
+                tag=tag,boostCuts=boostCuts),
             }
     sfFilename="data/ScaleFactors/RazorMADD2015/RazorScaleFactors_%s.root"%(tag)
     #make two dictionaries of scale factor histograms, one with GJets and one with WJets corrections
@@ -86,7 +87,8 @@ if __name__ == "__main__":
         #prepare analysis
         auxSFs = razorWeights.getNJetsSFs(analysis,jetName='NJets_NoZ')
         auxSFs = razorWeights.addAllBTagSFs(analysis, auxSFs)
-        auxSFs = razorWeights.addAllBTagSFs(analysis, auxSFs, var='MR_NoZ', gjets=True)
+        auxSFs = razorWeights.addAllBTagSFs(analysis, auxSFs, var='MR_NoZ', 
+                gjets=True)
         bclosure.adjustForRegionBInclusive(analysis, sfHists, auxSFs)
         bclosure.adjustForRegionBInclusive(analysis, sfHists, auxSFs, gjets=True)
         #use the correct set of scale factors
@@ -97,17 +99,18 @@ if __name__ == "__main__":
             sfHistsToUse = sfHists
         #perform analysis
         hists = makeControlSampleHistsForAnalysis( analysis, plotOpts=plotOpts, sfHists=sfHistsToUse,
-            sfVars = sfVars, printdir=outdir, auxSFs=auxSFs, debugLevel=debugLevel, noFill=args.noFill )
-        #record discrepancies > 1 sigma
-        tmpSFHists = copy.copy(sfHists)
-        del tmpSFHists["DYJetsInv"]
-        appendScaleFactors("DYJetsInv", hists, tmpSFHists, lumiData=analysis.lumi, 
-            debugLevel=debugLevel, var=sfVars["DYJetsInv"], signifThreshold=1.0, printdir=outdir)
-        if not args.noSave:
-            #write out scale factors
-            print "Writing histogram",tmpSFHists["DYJetsInv"].GetName(),"to file"
-            outfile.cd()
-            tmpSFHists["DYJetsInv"].Write(region+"ScaleFactors")
+            sfVars=sfVars, printdir=outdir, auxSFs=auxSFs, debugLevel=debugLevel, noFill=args.noFill )
+        for v in ['MR', 'Rsq']:
+            tmpSFHists = copy.copy(sfHists)
+            del tmpSFHists["DYJetsInv"]
+            appendScaleFactors("DYJetsInv", hists, tmpSFHists, lumiData=analysis.lumi, 
+                debugLevel=debugLevel, var=v+'_NoZ', printdir=outdir)
+            histName = region+v+'ScaleFactors'
+            tmpSFHists['DYJetsInv'].SetName(histName)
+            if not args.noSave:
+                print "Writing histogram",tmpSFHists["DYJetsInv"].GetName(),"to file"
+                outfile.cd()
+                tmpSFHists["DYJetsInv"].Write(histName)
 
         #in the first pass, update the normalization of the G+jets scale factor histogram
         if updateNorm:

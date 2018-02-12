@@ -705,10 +705,6 @@ def getScaleFactorAndError(tree, sfHist, sfVars=("MR","Rsq"), formulas={}, debug
     if scaleFactor == 0:
         scaleFactor = 1.0
         scaleFactorErr = math.sqrt( 1 + scaleFactorErr*scaleFactorErr )
-    #if scale factor is > 2.0, then use scale factor of 1 and add difference between scale factor and 1.0 as a systematic uncertainty
-    if scaleFactor > 2.0:
-        scaleFactorErr = math.sqrt( (scaleFactor-1)*(scaleFactor-1) + scaleFactorErr*scaleFactorErr )
-        scaleFactor = 1.0        
     #protect against NaN uncertainties
     if math.isnan(scaleFactorErr):
         scaleFactorErr = 0.0
@@ -1246,7 +1242,7 @@ def combineBackgroundHists(hists, combineBackgrounds, listOfVars, debugLevel=0):
                 if debugLevel > 0:
                     print " Including",process
                 #delete it from the dictionary
-                hists[process][v].Delete()
+                #hists[process][v].Delete()
                 del hists[process][v]
             #insert the new histogram
             tmphists[v] = combHist
@@ -1397,8 +1393,7 @@ def invertHistogram(hist):
     """Replaces contents of each hist bin with 1/(contents).  Updates bin errors accordingly.
        For bins with no contents, does nothing."""
     if not hist:
-        print "Warning: hist does not exist"
-        return
+        raise ValueError("Hist does not exist")
     ret = hist.Clone(hist.GetName()+"Inverted")
     for b in range(hist.GetSize()+1):
         if hist.GetBinContent(b) != 0:

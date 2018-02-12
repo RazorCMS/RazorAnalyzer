@@ -28,10 +28,10 @@ def writeBashScript(tag, box, model, mg, mchi, submitDir,
         particleString = '--mGluino'
 
     # prepare the script to run
-    outputname = ('Limits/'+submitDir+"/submit_"+model+"_"
+    outputname = ('Limits/'+submitDir+"/"+box+"/submit_"+model+"_"
             +massPoint+box+".src")
         
-    ffDir = 'Limits/'+submitDir+"/logs_"+model+"_"+massPoint+"_"+box
+    ffDir = 'Limits/'+submitDir+"/"+box+"/logs_"+model+"_"+massPoint+"_"+box
     cmsswBase = os.environ['CMSSW_BASE']
 
     combineDir = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/Limits/RazorInclusive2016/%s/%s/"%(
@@ -54,7 +54,7 @@ def writeBashScript(tag, box, model, mg, mchi, submitDir,
     script += 'pwd\n'
     script += 'git clone https://github.com/RazorCMS/RazorAnalyzer.git\n'
     script += 'cd RazorAnalyzer\n'
-    script += 'git checkout -b Limits LimitsMADD20171115\n' 
+    script += 'git checkout -b Limits LimitsMADD20180104\n' 
     script += 'make\n'
     script += 'mkdir -p %s\n'%submitDir
     script += 'python python/WriteRazorMADDCard.py'
@@ -139,7 +139,7 @@ if __name__ == '__main__':
         nJobs+=1
 
         pwd = os.environ['PWD']
-        os.system("mkdir -p "+pwd+"/Limits/"+args.outDir)
+        os.system("mkdir -p "+pwd+"/Limits/"+args.outDir+"/"+args.box)
         outputname,ffDir = writeBashScript(args.tag, args.box, 
                 args.model, mg, mchi, args.outDir, args.noSys, args.bkgDir, 
                 args.saveWorkspace, noBoostCuts=args.noBoostCuts,

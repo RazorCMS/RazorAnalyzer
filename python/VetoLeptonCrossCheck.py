@@ -3,7 +3,7 @@ import ROOT as rt
 
 from macro import macro, razorWeights
 from macro.razorAnalysis import Analysis, make_parser
-from macro.razorMacros import makeControlSampleHistsForAnalysis, appendScaleFactors, makeVetoLeptonCorrectionHist
+from macro.razorMacros import makeControlSampleHistsForAnalysis, makeVetoLeptonCorrectionHist
 import BTagClosureTestMacro as bclosure
 
 if __name__ == "__main__":
@@ -135,9 +135,15 @@ if __name__ == "__main__":
         bclosure.adjustForRegionBInclusive(analysis, sfHistsToUse, auxSFsToUse)
         #set up lepton pt correction
         varForCorrection = "lep1.Pt()"
+        # The non-closure on the lepton pt distribution is taken as a 
+        # correlated shape systematic. For lepton eta, on the other hand,
+        # in the absence of any systematic non-closure we take the
+        # uncertainty on the data/MC ratio as a systematic in each bin
+        useUncertainty = False 
         sigVarForCorrection = "leadingGenLeptonPt"
         if "PtCorr" in region: 
             varForCorrection = "abs(lep1.Eta())"
+            useUncertainty = True
             sigVarForCorrection = "abs(leadingGenLeptonEta)"
             if region.startswith('VetoLepton'):
                 for proc in analysis.samples:
@@ -171,7 +177,7 @@ if __name__ == "__main__":
         if region.startswith('Veto'):
             #make control region scale factors
             sfHists[region] = makeVetoLeptonCorrectionHist(hists[region], lumiData=analysis.lumi, 
-                    debugLevel=debugLevel, var=varForCorrection, signifThreshold=1.0, 
+                    debugLevel=debugLevel, var=varForCorrection, 
                     regionName=region, doDataOverMC=True, sfHists=sfHistsToUse, 
                     printdir=outdir)
             sfHistsSignal[region] = sfHists[region]
@@ -182,7 +188,7 @@ if __name__ == "__main__":
             dphiHistToUse = regionDphiHists[region]
             sfHists[region] = makeVetoLeptonCorrectionHist(controlRegionHists, 
                     lumiData=analysis.lumi, debugLevel=debugLevel, var=varForCorrection, 
-                    signifThreshold=1.0, regionName=region, doDataOverMC=False, 
+                    regionName=region, doDataOverMC=False, useUncertainty=useUncertainty,
                     histsToCorrect=hists[region], signalRegionVar=sigVarForCorrection, 
                     mtEfficiencyHist=mtHistToUse, dPhiEfficiencyHist=dphiHistToUse, 
                     sfHists=sfHistsToUse, printdir=outdir)
