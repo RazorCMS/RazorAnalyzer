@@ -1483,7 +1483,7 @@ void RazorHelper::loadPhoton_Razor2017_94X(){
     // photon efficiency scale factors
     // use avaerage results for run 2017BCDEF for now 
     std::cout << "RazorHelper: loading photon efficiency scale factor histograms" << std::endl;
-    phoEffSFFile = TFile::Open("efficiency_results_PhoLooseEffDenominatorReco_2017BCDEF_94X.root");
+    phoEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2017/efficiency_results_PhoLooseEffDenominatorReco_2017BCDEF_94X.root");
     phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("EGamma_SF2D");   
 
     // results for 2017MC is not available yet, use 2016 version for now 
