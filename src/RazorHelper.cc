@@ -1530,18 +1530,19 @@ double RazorHelper::getPileupWeightDown(int NPU) {
 // Get scale factor from a histogram with pt on the x-axis and eta on the y-axis
 double RazorHelper::lookupPtEtaScaleFactor(TH2D *hist, double pt, double eta, double ptmin, double ptmax, bool useAbsEta) {
     if (hist) {
-        // constrain to histogram bounds
-        if( ptmax > hist->GetXaxis()->GetXmax() * 0.999 ) {
-            ptmax = hist->GetXaxis()->GetXmax() * 0.999;
-        }
-        double etaToUse = eta;
-        if( useAbsEta ) {
-            etaToUse = fabs(eta);
-        }
-        return hist->GetBinContent(
-                hist->GetXaxis()->FindFixBin( fmax( fmin(pt,ptmax), ptmin ) ),
-                hist->GetYaxis()->FindFixBin( etaToUse )
-                );
+      // constrain to histogram bounds
+      if( ptmax > hist->GetXaxis()->GetXmax() * 0.999 ) {
+	ptmax = hist->GetXaxis()->GetXmax() * 0.999;
+      }
+      double etaToUse = eta;
+      if( useAbsEta ) {
+	etaToUse = fabs(eta);
+	  }
+      
+      return hist->GetBinContent(
+				 hist->GetXaxis()->FindFixBin( fmax( fmin(pt,ptmax), ptmin ) ),
+				 hist->GetYaxis()->FindFixBin( etaToUse )
+				 );
     }
     else {
         std::cout << "Error: expected a histogram, got a null pointer" << std::endl;
@@ -1738,9 +1739,19 @@ double RazorHelper::getEleGSFTrackScaleFactor(float pt, float eta, bool isRecons
 }
 
 
-double RazorHelper::getPhotonScaleFactor(float pt, float eta) {
+double RazorHelper::getPhotonScaleFactor(float pt, float eta, bool invert) {
   double sf = 1.0;
-  if (phoLooseEffSFHist) sf = lookupPtEtaScaleFactor( phoLooseEffSFHist, pt, eta, 20.01, 99.9 ); 
+  if (phoLooseEffSFHist)
+    {
+      if( invert )
+	{
+	  sf = lookupEtaPtScaleFactor( phoLooseEffSFHist, pt, eta, 20.01, 99.9, false );
+	}
+      else
+	{
+	  sf = lookupPtEtaScaleFactor( phoLooseEffSFHist, pt, eta, 20.01, 99.9 ); 
+	}
+    }
   else { std::cout << "[WARNING] Could not load phoLooseEffSFHist.\n"; }
   return sf;
 }

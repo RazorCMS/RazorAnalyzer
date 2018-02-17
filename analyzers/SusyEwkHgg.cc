@@ -81,7 +81,7 @@ struct evt
   std::string event;
 };
 
-#define _phodebug 1
+#define _phodebug 0
 #define _debug    0 
 #define _info     1
 
@@ -1729,10 +1729,19 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //******************************************************
       //compute photon efficiency scale factor
       //******************************************************
-      photonEffSF = 
-	helper->getPhotonScaleFactor(leadPhoPt, leadPhoEta) * 
-	helper->getPhotonScaleFactor(trailingPhoPt, trailingPhoEta);      
-
+      if ( analysisTag == "Razor2017_92X" )
+	{ 
+	  photonEffSF = 
+	    helper->getPhotonScaleFactor(leadPhoPt, leadPhoEta, true) * 
+	    helper->getPhotonScaleFactor(trailingPhoPt, trailingPhoEta, true);      
+	}
+      else
+	{
+	  photonEffSF =
+            helper->getPhotonScaleFactor(leadPhoPt, leadPhoEta) *
+            helper->getPhotonScaleFactor(trailingPhoPt, trailingPhoEta);
+	}
+      
       if (isFastsimSMS) {
 	photonEffSF *= helper->getPhotonFastsimToFullsimScaleFactor(leadPhoPt, leadPhoEta) * 
 	  helper->getPhotonFastsimToFullsimScaleFactor(trailingPhoPt, trailingPhoEta);
