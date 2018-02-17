@@ -40,7 +40,7 @@ class RazorHelper {
         double getEleGSFTrackScaleFactor(float pt, float eta, bool isReconstructed);
 
 	//get photon eff scale factor
-        double getPhotonScaleFactor(float pt, float eta);
+        double getPhotonScaleFactor(float pt, float eta, bool invert = false);
 	double getPhotonFastsimToFullsimScaleFactor(float pt, float eta);
 
         // multiply the variables sf,sfUp,...sfFastsimDown by the appropriate lepton efficiency scale factors
