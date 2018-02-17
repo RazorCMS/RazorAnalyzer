@@ -1586,7 +1586,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
                                 if ( _debug ) std::cout << "[DEBUG]: both photons failed PT > 40 GeV" << std::endl; 
                                continue;
                             }
-                                 
+                                
 	      
 	      //need diphoton mass between > 100 GeV as in AN (April 1st)
 	      double diphotonMass = (pho1.photon + pho2.photon).M();
@@ -2409,10 +2409,10 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  
 	  if( !isCSVL(i) ) continue;
 	  
-	  //GoodBJets.push_back(thisJet);
-	  //GoodBJetsIsCVSL.push_back(isCSVL(i));
-	  //GoodBJetsIsCVSM.push_back(isCSVM(i));
-	  //GoodBJetsIsCVST.push_back(isCSVT(i));
+	  GoodBJets.push_back(thisJet);
+	  GoodBJetsIsCVSL.push_back(isCSVL(i));
+	  GoodBJetsIsCVSM.push_back(isCSVM(i));
+	  GoodBJetsIsCVST.push_back(isCSVT(i));
 	  n_BJets++;
 	  
 	  //Filling bjet Candidate
@@ -2428,7 +2428,17 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  if( isCSVM(i) ) nMediumBTaggedJets++;
 	  
         }//end of loop over jet for b-jet
-     
+      
+      for ( int iBJet = 0; iBJet < int(GoodBJets.size()) ; iBJet++ ) {
+	jet_E[iBJet] = GoodBJets[iBJet].E();
+	jet_Pt[iBJet] = GoodBJets[iBJet].Pt();
+	jet_Eta[iBJet] = GoodBJets[iBJet].Eta();
+	jet_Phi[iBJet] = GoodBJets[iBJet].Phi();
+	bjetIsCSVL[iBJet] = GoodBJetsIsCVSL[iBJet];
+	bjetIsCSVM[iBJet] = GoodBJetsIsCVSM[iBJet];
+	bjetIsCSVT[iBJet] = GoodBJetsIsCVST[iBJet];
+      }
+    
        
       //----------------
       //High-pt category
