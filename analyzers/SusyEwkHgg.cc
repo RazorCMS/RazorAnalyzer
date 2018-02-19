@@ -1465,13 +1465,13 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  TVector3 vec;
 	  vec.SetPtEtaPhi( pho_pt_corr, phoEta[i], phoPhi[i] );
 	
-	  
+	 /* 
            if ( phoPt[i] < 20.0 )
 	    {
 	      if ( _phodebug ) std::cout << "[DEBUG]: failed pt" << std::endl;
 	      continue;
 	    }
-	   
+	  */ 
 
 	  if ( fabs(pho_superClusterEta[i]) > 1.4442 && fabs(pho_superClusterEta[i]) < 1.566 )
 	    {
@@ -1579,14 +1579,14 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 			    << "\n[DEBUG]: pho2->" << pho2.photon.Pt() 
 			    << std::endl;
 		}
-              
+              /*
                     //need one photon in the pair to have pt > 40 GeV
                            if ( pho1.photon.Pt() < 40.0 && pho2.photon.Pt() < 40.0 )
                            {
                                 if ( _debug ) std::cout << "[DEBUG]: both photons failed PT > 40 GeV" << std::endl; 
                                continue;
                             }
-                                
+               */                 
 	      
 	      //need diphoton mass between > 100 GeV as in AN (April 1st)
 	      double diphotonMass = (pho1.photon + pho2.photon).M();
@@ -1639,12 +1639,11 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //---------------------------------------
       //bestCand[0] is the leading photon
       //bestCand[1] is the subleading photon
-     /* 
+      
       if( bestCand[0].photon.Pt()/HiggsCandidate.M() < 1./3. ) continue;
-      //if( bestCand[1].photon.Pt()/HiggsCandidate.M() < 1./4. ) continue;
-      if( bestCand[1].photon.Pt()/HiggsCandidate.M() < 1./5. ) continue;
+      if( bestCand[1].photon.Pt()/HiggsCandidate.M() < 1./4. ) continue;
       if ( _phodebug ) std::cout << "pho PT :  " << bestCand[0].photon.Pt() << " and  " << bestCand[1].photon.Pt() << " Mgg : " << HiggsCandidate.M() << " pt1/Mgg = "   << bestCand[0].photon.Pt()/HiggsCandidate.M() << " pt2/Mgg = " << bestCand[1].photon.Pt()/HiggsCandidate.M() << std::endl;
-      */
+      
       
       phoSelectedCand.push_back(bestCand[0]);
       phoSelectedCand.push_back(bestCand[1]);
