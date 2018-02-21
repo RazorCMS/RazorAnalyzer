@@ -5,6 +5,7 @@
 #include "JetCorrectionUncertainty.h"
 #include "BTagCalibrationStandalone.h"
 #include "EnergyScaleCorrection_class.hh"
+#include "EnergyScaleCorrection_class_2017.hh"
 //C++ INCLUDES
 #include <map>
 #include <fstream>
@@ -39,15 +40,16 @@ struct PhotonCandidate
   TLorentzVector photonSC;
   float scEta;
   float scPhi;
-  float SigmaIetaIeta;                                                                        
-  float R9;                                                                                  
-  float HoverE;                                                                        
-  float sumChargedHadronPt;                                                                
+  float SigmaIetaIeta;
+  float R9;                                                              
+  float HoverE;                                                           
+  float sumChargedHadronPt;                                              
   float sumNeutralHadronEt;                                                     
   float sumPhotonEt;                                            
   float sigmaEOverE;
   bool  _passEleVeto;
   bool  _passIso;
+  float scale;
 };
 
 struct MuonCandidate
@@ -100,7 +102,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   //*****************************************************************************
   TRandom3 random(3003);
   bool doPhotonScaleCorrection = true;
-
+  //bool doPhotonScaleCorrection = false;
   string analysisTag = "Razor2016_MoriondRereco";
   //string analysisTag = "Razor2016_80X";
   if ( label != "") analysisTag = label;
@@ -206,6 +208,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
    if ( cmsswPath != NULL ) photonCorrectionPath = string(cmsswPath) + "/src/RazorAnalyzer/data/PhotonCorrections/";
 
   EnergyScaleCorrection_class *photonCorrector = 0;
+  EnergyScaleCorrection_class_2017 *photonCorrector_2017 = 0;
+
   if (analysisTag == "Razor2015_76X") {
     photonCorrector = new EnergyScaleCorrection_class(Form("%s/76X_16DecRereco_2015", photonCorrectionPath.c_str()));
   } else if (analysisTag == "Razor2016_80X") {
@@ -213,17 +217,37 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   } else if (analysisTag == "Razor2016_MoriondRereco") {
     photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
   } else if (analysisTag == "Razor2017_92X") {
-    photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
+    photonCorrector_2017 = new EnergyScaleCorrection_class_2017(Form("%s/Run2017_17Nov2017_v1_ele_unc", photonCorrectionPath.c_str()));
+    //photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
   }
 
-  if(!isData) {
-    photonCorrector->doScale = false; 
-    photonCorrector->doSmearings = true;
-  } else {
-    photonCorrector->doScale = true; 
-    photonCorrector->doSmearings = false;
-  }
-
+  
+  if ( analysisTag != "Razor2017_92X" )
+    {
+      if(!isData) 
+	{
+	  photonCorrector->doScale = false; 
+	  photonCorrector->doSmearings = true;
+	}
+      else 
+	{
+	  photonCorrector->doScale = true; 
+	  photonCorrector->doSmearings = false;
+	}
+    }
+  else
+    {
+      if(!isData) 
+	{
+	  photonCorrector_2017->doScale = false; 
+	  photonCorrector_2017->doSmearings = true;
+	}
+      else 
+	{
+	  photonCorrector_2017->doScale = true; 
+	  photonCorrector_2017->doSmearings = false;
+	}
+    }
   //--------------------------------
   //Including Jet Energy Corrections
   //--------------------------------
@@ -396,7 +420,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   float lep1GenMetMT = -999;
 
   //selected photon variables
-  float Pho_E[2], Pho_Pt[2], Pho_Eta[2], Pho_Phi[2], Pho_SigmaIetaIeta[2], Pho_R9[2], Pho_HoverE[2];
+  float Pho_E[2], Pho_scale[2], Pho_Pt[2], Pho_Eta[2], Pho_Phi[2], Pho_SigmaIetaIeta[2], Pho_R9[2], Pho_HoverE[2];
   float PhoSC_E[2], PhoSC_Pt[2], PhoSC_Eta[2], PhoSC_Phi[2];
   float Pho_sumChargedHadronPt[2], Pho_sumNeutralHadronEt[2], Pho_sumPhotonEt[2], Pho_sigmaEOverE[2];
   bool  Pho_passEleVeto[2], Pho_passIso[2];
@@ -575,6 +599,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   razorTree->Branch("lep1GenMetMT", &lep1GenMetMT, "lep1GenMetMT/F");
       
   razorTree->Branch("pho1E", &Pho_E[0], "pho1E/F");
+  razorTree->Branch("pho1scale", &Pho_scale[0], "pho1scale/F");
   razorTree->Branch("pho1Pt", &Pho_Pt[0], "pho1Pt/F");
   razorTree->Branch("pho1Eta", &Pho_Eta[0], "pho1Eta/F");
   razorTree->Branch("pho1Phi", &Pho_Phi[0], "pho1Phi/F");
@@ -594,6 +619,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   razorTree->Branch("pho1MotherID", &Pho_motherID[0], "pho1MotherID/I");
       
   razorTree->Branch("pho2E", &Pho_E[1], "pho2E/F");
+  razorTree->Branch("pho2scale", &Pho_scale[1], "pho2scale/F");
   razorTree->Branch("pho2Pt", &Pho_Pt[1], "pho2Pt/F");
   razorTree->Branch("pho2Eta", &Pho_Eta[1], "pho2Eta/F");
   razorTree->Branch("pho2Phi", &Pho_Phi[1], "pho2Phi/F");
@@ -609,7 +635,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   razorTree->Branch("pho2sumPhotonEt", &Pho_sumPhotonEt[1], "pho2sumPhotonEt/F");
   razorTree->Branch("pho2sigmaEOverE", &Pho_sigmaEOverE[1], "pho2sigmaEOverE/F");
   razorTree->Branch("pho2passEleVeto", &Pho_passEleVeto[1], "pho2passEleVeto/O");
-  razorTree->Branch("pho2passIso", &Pho_passIso[1], "pho2passIso/O)");
+  razorTree->Branch("pho2passIso", &Pho_passIso[1], "pho2passIso/O");
   razorTree->Branch("pho2MotherID", &Pho_motherID[1], "pho2MotherID/I");
       
   razorTree->Branch("mbbZ", &mbbZ, "mbbZ/F");
@@ -1365,43 +1391,54 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	       ) {
 	    Flag_hasEcalGainSwitch = true;
 	  }
-	 
+	  
           if( phoR9[i] < 0.5 ) continue;
 	  if ( _phodebug ) std::cout << " pho_P9: " << phoR9[i] << std::endl;
-
-	  double scale = 1;
-	  double smear = 0;
-	  if (analysisTag != "Razor2017_92X") {
-	    scale = photonCorrector->ScaleCorrection(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]));
-	    smear = photonCorrector->getSmearingSigma(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]), 0., 0.); 
-	  }
-
+	  
+	  
 	  //ID cuts -- apply isolation after candidate pair selection
 	  if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] << std::endl;
-	  if (doRequireID) {
-	    if ( !photonPassLooseIDWithoutEleVeto(i) ) {
-	      if ( _phodebug ) std::cout << "[DEBUG]: failed run2 ID" << std::endl;
-	      continue;
+	  //--loose ID (default)--
+	  if (doRequireID)
+	    {
+	      if (analysisTag != "Razor2017_92X")
+		{
+		  if ( !photonPassLooseIDWithoutEleVeto(i) ) 
+		    {
+		      if ( _phodebug ) std::cout << "[DEBUG]: failed run2 ID" << std::endl;
+		      continue;
+		    }
+		}
+	      else
+		{
+		  if ( !photonPassLooseIDWithoutEleVeto_2017(i) ) 
+		    {
+		      if ( _phodebug ) std::cout << "[DEBUG]: failed run2 ID" << std::endl;
+		      continue;
+		    }
+		}
 	    }
-	  }
-	  if (doRequireTightID) {
-	        if (analysisTag != "Razor2017_92X") 
-                {
-                        if ( !photonPassTightIDWithoutEleVeto(i) ) 
-                        {
-	                        if ( _phodebug ) std::cout << "[DEBUG]: failed run2 Tight ID" << std::endl;
-	                        continue;
-	                } 
-                } 
-                else 
-                {
-                        if ( !photonPassTightIDWithoutEleVeto_2017(i) ) 
-                        {
-	                        if ( _phodebug ) std::cout << "[DEBUG]: failed 92X Tight ID" << std::endl;
-	                        continue;
-	                } 
-                }
-	  }
+	  
+	  //--tight ID--
+	  if (doRequireTightID) 
+	    {
+	      if (analysisTag != "Razor2017_92X") 
+		{
+		  if ( !photonPassTightIDWithoutEleVeto(i) ) 
+		    {
+		      if ( _phodebug ) std::cout << "[DEBUG]: failed run2 Tight ID" << std::endl;
+		      continue;
+		    } 
+		} 
+	      else 
+		{
+		  if ( !photonPassTightIDWithoutEleVeto_2017(i) ) 
+		    {
+		      if ( _phodebug ) std::cout << "[DEBUG]: failed 92X Tight ID" << std::endl;
+		      continue;
+		    } 
+		}
+	    }
 	  
 	  //*****************************************************************************
 	  //Photons must be separated from any selected leptons
@@ -1409,59 +1446,87 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           //Remove overlaps
           bool overlapm = false;
           for(int j = 0; j < int(GoodMuons.size()); j++){
-                  TLorentzVector mu = GoodMuons.at(j);
-                  if (RazorAnalyzer::deltaR(phoEta[i],phoPhi[i],mu.Eta(),mu.Phi()) < 0.5)  overlapm = true;
-                  //if (RazorAnalyzer::deltaR(phoEta[i],phoPhi[i],mu.Eta(),mu.Phi()) < 0.4)  overlapm = true;
+	    TLorentzVector mu = GoodMuons.at(j);
+	    if (RazorAnalyzer::deltaR(phoEta[i],phoPhi[i],mu.Eta(),mu.Phi()) < 0.5)  overlapm = true;
+	    //if (RazorAnalyzer::deltaR(phoEta[i],phoPhi[i],mu.Eta(),mu.Phi()) < 0.4)  overlapm = true;
           }
           if (overlapm) continue;
           bool overlape = false;
           for(int k = 0; k < int(GoodElectrons.size()); k++){
-                  TLorentzVector ele = GoodElectrons.at(k);
-                  if (RazorAnalyzer::deltaR(phoEta[i],phoPhi[i],ele.Eta(),ele.Phi()) < 1.0) overlape = true;
-                  //if (RazorAnalyzer::deltaR(phoEta[i],phoPhi[i],ele.Eta(),ele.Phi()) < 0.4) overlape = true;
+	    TLorentzVector ele = GoodElectrons.at(k);
+	    if (RazorAnalyzer::deltaR(phoEta[i],phoPhi[i],ele.Eta(),ele.Phi()) < 1.0) overlape = true;
+	    //if (RazorAnalyzer::deltaR(phoEta[i],phoPhi[i],ele.Eta(),ele.Phi()) < 0.4) overlape = true;
           }
-
+	  
 	  if( doEleVeto && overlape ) continue;
-
+	  
 	  //**********************************************************
 	  //Isolation, electron veto, and Barrel requirements are introduced here 
 	  //if we want to use the "regular" selection sequence
 	  //**********************************************************
 	  if (!(fabs(pho_superClusterEta[i]) < 1.4442 )) continue;
-	  if (doEleVeto) {
-	    if (!(pho_passEleVeto[i])) continue;
-	  }
-	  if (doRequireIso) {
-	        if (analysisTag != "Razor2017_92X")
-                {
-	                if (!(photonPassLooseIso(i))) continue;
-                }
-                else
-                {
-	                if (!(photonPassLooseIso_2017(i))) continue;
-                } 
-	  }
-	  if (doRequireTightIso) {
-	        if (analysisTag != "Razor2017_92X")
-                {
-	                if (!(photonPassTightIso(i))) continue;
-                }
-                else
-                {
-	                if (!(photonPassTightIso_2017(i))) continue;
-                } 
-	  }	  	  	  
-
-	  //Defining Corrected Photon momentum
-	  float pho_pt_corr = phoPt[i];
-	  if (doPhotonScaleCorrection) {
-	    if (isData) {
-	      pho_pt_corr = phoPt[i]*scale; 
-	      if (_phodebug) std::cout << "[DEBUG] : Photon Energy Scale Corrections: " << phoPt[i] << " * " << scale << " --> " << pho_pt_corr << "\n";
-	    } else {
-	      pho_pt_corr = phoPt[i]*(1+smear*random.Gaus());
+	  // --ele Veto--
+	  if (doEleVeto)
+	    {
+	      if (!(pho_passEleVeto[i])) continue;
 	    }
-	  }
+	  //--loose isolation--
+	  if (doRequireIso) 
+	    {
+	      if (analysisTag != "Razor2017_92X")
+		{
+		  if (!(photonPassLooseIso(i))) continue;
+		}
+	      else
+		{
+		  if (!(photonPassLooseIso_2017(i))) continue;
+		} 
+	    }
+	  //--tight isolation
+	  if (doRequireTightIso) 
+	    {
+	      if (analysisTag != "Razor2017_92X")
+		{
+		  if (!(photonPassTightIso(i))) continue;
+		}
+	      else
+		{
+		  if (!(photonPassTightIso_2017(i))) continue;
+		} 
+	    }	  	  	  
+	  
+	  //----------------------------------------------
+	  //Get Scale and Define Corrected Photon momentum
+	  //----------------------------------------------
+	  float pho_pt_corr = phoPt[i];
+	  double scale = 1;
+	  double smear = 0;
+	  if ( doPhotonScaleCorrection )
+	    {
+	      if ( analysisTag != "Razor2017_92X" )
+		{
+		  scale = photonCorrector->ScaleCorrection(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]));
+		  smear = photonCorrector->getSmearingSigma(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]), 0., 0.); 
+		}
+	      else
+		{
+		  scale = photonCorrector_2017->ScaleCorrection(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]));
+		  smear = photonCorrector_2017->getSmearingSigma(run, (fabs(pho_superClusterEta[i]) < 1.5), phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]), 0, 0., 0.);
+		}
+	      
+	      if (isData) 
+		{
+		  pho_pt_corr = phoPt[i]*scale; 
+		  if (_phodebug && scale != 1.0 ) std::cout << "[DEBUG] : Photon Energy Scale Corrections: " << phoPt[i] << " * " << scale << " --> " << pho_pt_corr << "\n";
+		}
+	      else 
+		{
+		  pho_pt_corr = phoPt[i]*(1+smear*random.Gaus());
+		}
+	    }
+	  //----------------------
+	  //Set Corrected Momentum
+	  //----------------------
 	  TVector3 vec;
 	  vec.SetPtEtaPhi( pho_pt_corr, phoEta[i], phoPhi[i] );
 	
@@ -1527,6 +1592,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  tmp_phoCand.sumPhotonEt = pho_pfIsoPhotonIso[i];
 	  tmp_phoCand.sigmaEOverE = pho_RegressionEUncertainty[i]/pho_RegressionE[i];
 	  tmp_phoCand._passEleVeto = pho_passEleVeto[i];
+	  tmp_phoCand.scale = scale;
 	  if (analysisTag != "Razor2017_92X") tmp_phoCand._passIso = photonPassLooseIso(i);
           else tmp_phoCand._passIso = photonPassLooseIso_2017(i);
 	  phoCand.push_back( tmp_phoCand );
@@ -1580,13 +1646,13 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 			    << std::endl;
 		}
               
-                    //need one photon in the pair to have pt > 40 GeV
-                           if ( pho1.photon.Pt() < 40.0 && pho2.photon.Pt() < 40.0 )
-                           {
-                                if ( _debug ) std::cout << "[DEBUG]: both photons failed PT > 40 GeV" << std::endl; 
-                               continue;
-                            }
-                                
+	      //need one photon in the pair to have pt > 40 GeV
+	      if ( pho1.photon.Pt() < 40.0 && pho2.photon.Pt() < 40.0 )
+		{
+		  if ( _debug ) std::cout << "[DEBUG]: both photons failed PT > 40 GeV" << std::endl; 
+		  //continue;
+		}
+	      
 	      
 	      //need diphoton mass between > 100 GeV as in AN (April 1st)
 	      double diphotonMass = (pho1.photon + pho2.photon).M();
@@ -1639,13 +1705,11 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //---------------------------------------
       //bestCand[0] is the leading photon
       //bestCand[1] is the subleading photon
-     /* 
-      if( bestCand[0].photon.Pt()/HiggsCandidate.M() < 1./3. ) continue;
-      //if( bestCand[1].photon.Pt()/HiggsCandidate.M() < 1./4. ) continue;
-      if( bestCand[1].photon.Pt()/HiggsCandidate.M() < 1./5. ) continue;
-      if ( _phodebug ) std::cout << "pho PT :  " << bestCand[0].photon.Pt() << " and  " << bestCand[1].photon.Pt() << " Mgg : " << HiggsCandidate.M() << " pt1/Mgg = "   << bestCand[0].photon.Pt()/HiggsCandidate.M() << " pt2/Mgg = " << bestCand[1].photon.Pt()/HiggsCandidate.M() << std::endl;
-      */
       
+      if( bestCand[0].photon.Pt()/HiggsCandidate.M() < 1./3. ) continue;
+      if( bestCand[1].photon.Pt()/HiggsCandidate.M() < 1./4. ) continue;
+      if ( _phodebug ) std::cout << "pho PT :  " << bestCand[0].photon.Pt() << " and  " << bestCand[1].photon.Pt() << " Mgg : " << HiggsCandidate.M() << " pt1/Mgg = "   << bestCand[0].photon.Pt()/HiggsCandidate.M() << " pt2/Mgg = " << bestCand[1].photon.Pt()/HiggsCandidate.M() << std::endl;
+            
       phoSelectedCand.push_back(bestCand[0]);
       phoSelectedCand.push_back(bestCand[1]);
       
@@ -1676,7 +1740,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  Pho_sigmaEOverE[_pho_index]        = tmpPho.sigmaEOverE;
 	  Pho_passEleVeto[_pho_index]        = tmpPho._passEleVeto;
 	  Pho_passIso[_pho_index]            = tmpPho._passIso;
-
+	  Pho_scale[_pho_index]            = tmpPho.scale;
 	  _pho_index++;
 	}
     
