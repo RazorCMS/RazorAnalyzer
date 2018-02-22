@@ -68,6 +68,15 @@ struct ElectronCandidate
   int isTightElectron;
 };
 
+struct JetCandidate
+{                                                  
+  int   Index;
+  TLorentzVector jet;
+  bool isCSVL;
+  bool isCSVM;
+  bool isCSVT;
+};
+
 struct BjetCandidate
 {                                                  
   int   Index;
@@ -102,7 +111,6 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   //*****************************************************************************
   TRandom3 random(3003);
   bool doPhotonScaleCorrection = true;
-  //bool doPhotonScaleCorrection = false;
   string analysisTag = "Razor2016_MoriondRereco";
   //string analysisTag = "Razor2016_80X";
   if ( label != "") analysisTag = label;
@@ -218,7 +226,6 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
     photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
   } else if (analysisTag == "Razor2017_92X") {
     photonCorrector_2017 = new EnergyScaleCorrection_class_2017(Form("%s/Run2017_17Nov2017_v1_ele_unc", photonCorrectionPath.c_str()));
-    //photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
   }
 
   
@@ -430,7 +437,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   int n_Jets, n_BJets, nLooseBTaggedJets, nMediumBTaggedJets;
   int n_Jets_JESUp, n_Jets_JESDown; 
   float jet_E[50], jet_Pt[50], jet_Eta[50], jet_Phi[50];
-  //bool jetIsCSVL[50], jetIsCSVM[50], jetIsCSVT[50];
+  bool jetIsCSVL[50], jetIsCSVM[50], jetIsCSVT[50];
   float bjet_E[50], bjet_Pt[50], bjet_Eta[50], bjet_Phi[50];
   bool bjetIsCSVL[50], bjetIsCSVM[50], bjetIsCSVT[50];
 
@@ -599,7 +606,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   razorTree->Branch("lep1GenMetMT", &lep1GenMetMT, "lep1GenMetMT/F");
       
   razorTree->Branch("pho1E", &Pho_E[0], "pho1E/F");
-  razorTree->Branch("pho1scale", &Pho_scale[0], "pho1scale/F");
+  //razorTree->Branch("pho1scale", &Pho_scale[0], "pho1scale/F");//only used for debugging
   razorTree->Branch("pho1Pt", &Pho_Pt[0], "pho1Pt/F");
   razorTree->Branch("pho1Eta", &Pho_Eta[0], "pho1Eta/F");
   razorTree->Branch("pho1Phi", &Pho_Phi[0], "pho1Phi/F");
@@ -619,7 +626,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   razorTree->Branch("pho1MotherID", &Pho_motherID[0], "pho1MotherID/I");
       
   razorTree->Branch("pho2E", &Pho_E[1], "pho2E/F");
-  razorTree->Branch("pho2scale", &Pho_scale[1], "pho2scale/F");
+  //razorTree->Branch("pho2scale", &Pho_scale[1], "pho2scale/F");//only used for debugging
   razorTree->Branch("pho2Pt", &Pho_Pt[1], "pho2Pt/F");
   razorTree->Branch("pho2Eta", &Pho_Eta[1], "pho2Eta/F");
   razorTree->Branch("pho2Phi", &Pho_Phi[1], "pho2Phi/F");
@@ -652,17 +659,17 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   razorTree->Branch("jet_Pt", jet_Pt, "jet_Pt[n_Jets]/F");
   razorTree->Branch("jet_Eta", jet_Eta, "jet_Eta[n_Jets]/F");
   razorTree->Branch("jet_Phi", jet_Phi, "jet_Phi[n_Jets]/F");
-  //razorTree->Branch("jetIsCSVL", jetIsCSVL, "jetIsCSVL[n_Jets]/O");
-  //razorTree->Branch("jetIsCSVM", jetIsCSVM, "jetIsCSVM[n_Jets]/O");
-  //razorTree->Branch("jetIsCSVT", jetIsCSVT, "jetIsCSVT[n_Jets]/O");
+  razorTree->Branch("jetIsCSVL", jetIsCSVL, "jetIsCSVL[n_Jets]/O");
+  razorTree->Branch("jetIsCSVM", jetIsCSVM, "jetIsCSVM[n_Jets]/O");
+  razorTree->Branch("jetIsCSVT", jetIsCSVT, "jetIsCSVT[n_Jets]/O");
   razorTree->Branch("n_BJets", &n_BJets, "n_BJets/I");
-  razorTree->Branch("bjet_E", bjet_E, "bjet_E[n_BJets]/F");
-  razorTree->Branch("bjet_Pt", bjet_Pt, "bjet_Pt[n_BJets]/F");
-  razorTree->Branch("bjet_Eta", bjet_Eta, "bjet_Eta[n_BJets]/F");
-  razorTree->Branch("bjet_Phi", bjet_Phi, "bjet_Phi[n_BJets]/F");
-  razorTree->Branch("bjetIsCSVL", bjetIsCSVL, "bjetIsCSVL[n_BJets]/O");
-  razorTree->Branch("bjetIsCSVM", bjetIsCSVM, "bjetIsCSVM[n_BJets]/O");
-  razorTree->Branch("bjetIsCSVT", bjetIsCSVT, "bjetIsCSVT[n_BJets]/O");
+  //razorTree->Branch("bjet_E", bjet_E, "bjet_E[n_BJets]/F");
+  //razorTree->Branch("bjet_Pt", bjet_Pt, "bjet_Pt[n_BJets]/F");
+  //razorTree->Branch("bjet_Eta", bjet_Eta, "bjet_Eta[n_BJets]/F");
+  //razorTree->Branch("bjet_Phi", bjet_Phi, "bjet_Phi[n_BJets]/F");
+  //razorTree->Branch("bjetIsCSVL", bjetIsCSVL, "bjetIsCSVL[n_BJets]/O");
+  //razorTree->Branch("bjetIsCSVM", bjetIsCSVM, "bjetIsCSVM[n_BJets]/O");
+  //razorTree->Branch("bjetIsCSVT", bjetIsCSVT, "bjetIsCSVT[n_BJets]/O");
   razorTree->Branch("n_Jets_JESUp", &n_Jets_JESUp, "n_Jets_JESUp/I");
   razorTree->Branch("n_Jets_JESDown", &n_Jets_JESDown, "n_Jets_JESDown/I");
   razorTree->Branch("HLTDecision", HLTDecision, "HLTDecision[300]/O");
@@ -843,17 +850,14 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //jets
       for ( int i = 0; i < 50; i++ )
 	{
-	  jet_E[i]   = -99.;
-	  jet_Pt[i]  = -99.;
-	  jet_Eta[i] = -99.;
-	  jet_Phi[i] = -99.;
-	  //jetIsCSVL[i] = 0;  
-	  //jetIsCSVM[i] = 0;  
-	  //jetIsCSVT[i] = 0;  
-	  bjet_E[i]   = -99.;
-	  bjet_Pt[i]  = -99.;
-	  bjet_Eta[i] = -99.;
-	  bjet_Phi[i] = -99.;
+	  jet_E[i]      = -99.;
+	  jet_Pt[i]     = -99.;
+	  jet_Eta[i]    = -99.;
+	  jet_Phi[i]    = -99.;
+	  bjet_E[i]     = -99.;
+	  bjet_Pt[i]    = -99.;
+	  bjet_Eta[i]   = -99.;
+	  bjet_Phi[i]   = -99.;
 	  bjetIsCSVL[i] = 0;  
 	  bjetIsCSVM[i] = 0;  
 	  bjetIsCSVT[i] = 0;  
@@ -1358,7 +1362,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  tmp_eleCand.Index = i;
 	  tmp_eleCand.electron = thisElectron;
 	  tmp_eleCand.eleCharge = eleCharge[i];
-	  tmp_eleCand.isTightElectron = isTightElectron(i);
+	  //tmp_eleCand.isTightElectron = isTightElectron(i);
+	  tmp_eleCand.isTightElectron = (passMVALooseElectronID(i) && passMVANonTrigVetoElectronIso(i) && fabs(ele_ip3dSignificance[i]) < 4);//mvaLooseID + IP cut
           eleCand.push_back( tmp_eleCand );
 	}
 
@@ -1366,12 +1371,13 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //-------------
       //tau selection
       //-------------
-      for( int i = 0; i < nTaus; i++ )
+      //Don't mess with Taus
+      /*for( int i = 0; i < nTaus; i++ )
 	{
 	  if( !isTightTau(i) ) continue; 
 	  nTightTaus++;
 	}
-      
+      */
     
       //------------------
       //good photon selection
@@ -1419,7 +1425,9 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 		}
 	    }
 	  
-	  //--tight ID--
+	  //---------------
+	  //----tight ID---
+	  //---------------
 	  if (doRequireTightID) 
 	    {
 	      if (analysisTag != "Razor2017_92X") 
@@ -1464,13 +1472,20 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  //Isolation, electron veto, and Barrel requirements are introduced here 
 	  //if we want to use the "regular" selection sequence
 	  //**********************************************************
+	  //---------------
+	  //ONLY EB photons
+	  //---------------
 	  if (!(fabs(pho_superClusterEta[i]) < 1.4442 )) continue;
+	  //-------------
 	  // --ele Veto--
+	  //-------------
 	  if (doEleVeto)
 	    {
 	      if (!(pho_passEleVeto[i])) continue;
 	    }
+	  //-------------------
 	  //--loose isolation--
+	  //-------------------
 	  if (doRequireIso) 
 	    {
 	      if (analysisTag != "Razor2017_92X")
@@ -1482,7 +1497,9 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 		  if (!(photonPassLooseIso_2017(i))) continue;
 		} 
 	    }
-	  //--tight isolation
+	  //--------------------
+	  //--tight isolation---
+	  //--------------------
 	  if (doRequireTightIso) 
 	    {
 	      if (analysisTag != "Razor2017_92X")
@@ -1517,7 +1534,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	      if (isData) 
 		{
 		  pho_pt_corr = phoPt[i]*scale; 
-		  if (_phodebug && scale != 1.0 ) std::cout << "[DEBUG] : Photon Energy Scale Corrections: " << phoPt[i] << " * " << scale << " --> " << pho_pt_corr << "\n";
+		  if (_phodebug && scale != 1.0 ) std::cout << "[DEBUG] : Photon Energy Scale Corrections: " 
+							    << phoPt[i] << " * " << scale << " --> " << pho_pt_corr << "\n";
 		}
 	      else 
 		{
@@ -1530,13 +1548,6 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  TVector3 vec;
 	  vec.SetPtEtaPhi( pho_pt_corr, phoEta[i], phoPhi[i] );
 	
-	  
-           if ( phoPt[i] < 20.0 )
-	    {
-	      if ( _phodebug ) std::cout << "[DEBUG]: failed pt" << std::endl;
-	      continue;
-	    }
-	   
 
 	  if ( fabs(pho_superClusterEta[i]) > 1.4442 && fabs(pho_superClusterEta[i]) < 1.566 )
 	    {
@@ -1547,7 +1558,10 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 
 	  //photon passes
 	  if( phoPt[i] > 40.0 ) nPhotonsAbove40GeV++;
+	  
+	  //-------------------------------------------
 	  //setting up photon 4-momentum with zero mass
+	  //-------------------------------------------
 	  TLorentzVector thisPhoton;
 	  thisPhoton.SetVectM( vec, .0 );
 
@@ -1645,14 +1659,6 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 			    << "\n[DEBUG]: pho2->" << pho2.photon.Pt() 
 			    << std::endl;
 		}
-              
-	      //need one photon in the pair to have pt > 40 GeV
-	      if ( pho1.photon.Pt() < 40.0 && pho2.photon.Pt() < 40.0 )
-		{
-		  if ( _debug ) std::cout << "[DEBUG]: both photons failed PT > 40 GeV" << std::endl; 
-		  //continue;
-		}
-	      
 	      
 	      //need diphoton mass between > 100 GeV as in AN (April 1st)
 	      double diphotonMass = (pho1.photon + pho2.photon).M();
@@ -1709,7 +1715,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       if( bestCand[0].photon.Pt()/HiggsCandidate.M() < 1./3. ) continue;
       if( bestCand[1].photon.Pt()/HiggsCandidate.M() < 1./4. ) continue;
       if ( _phodebug ) std::cout << "pho PT :  " << bestCand[0].photon.Pt() << " and  " << bestCand[1].photon.Pt() << " Mgg : " << HiggsCandidate.M() << " pt1/Mgg = "   << bestCand[0].photon.Pt()/HiggsCandidate.M() << " pt2/Mgg = " << bestCand[1].photon.Pt()/HiggsCandidate.M() << std::endl;
-            
+
       phoSelectedCand.push_back(bestCand[0]);
       phoSelectedCand.push_back(bestCand[1]);
       
@@ -1740,7 +1746,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  Pho_sigmaEOverE[_pho_index]        = tmpPho.sigmaEOverE;
 	  Pho_passEleVeto[_pho_index]        = tmpPho._passEleVeto;
 	  Pho_passIso[_pho_index]            = tmpPho._passIso;
-	  Pho_scale[_pho_index]            = tmpPho.scale;
+	  Pho_scale[_pho_index]              = tmpPho.scale;
 	  _pho_index++;
 	}
     
@@ -1783,6 +1789,10 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	trailingPhoPt = Pho_Pt[0];
 	trailingPhoEta= Pho_Eta[0];
       }
+
+      //------------------------------
+      //trigger efficiencies
+      //------------------------------
       double triggerEffLeadingLeg = helper->getDiphotonTrigLeadingLegEff( leadPhoPt, leadPhoEta );
       double triggerEffTrailingLeg = helper->getDiphotonTrigTrailingLegEff( trailingPhoPt, trailingPhoEta );
       triggerEffWeight = triggerEffLeadingLeg*triggerEffTrailingLeg;
@@ -1806,10 +1816,11 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
             helper->getPhotonScaleFactor(trailingPhoPt, trailingPhoEta);
 	}
       
-      if (isFastsimSMS) {
-	photonEffSF *= helper->getPhotonFastsimToFullsimScaleFactor(leadPhoPt, leadPhoEta) * 
-	  helper->getPhotonFastsimToFullsimScaleFactor(trailingPhoPt, trailingPhoEta);
-      }
+      if (isFastsimSMS) 
+	{
+	  photonEffSF *= helper->getPhotonFastsimToFullsimScaleFactor(leadPhoPt, leadPhoEta) * 
+	    helper->getPhotonFastsimToFullsimScaleFactor(trailingPhoPt, trailingPhoEta);
+	}
       
       //***********************************************************
       //get mother ID of photons
@@ -2106,7 +2117,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 				    << "\n[DEBUG]: mu->" << mu.muon.Pt()
 				    << std::endl;
 			}
-		      // need dilepton mass between [76, 106] GeV
+		      // don't need dilepton mass between [76, 106] GeV
 		      double dileptonMass = (mu.muon + ele.electron).M();
 		      if ( _debug )
 			{
@@ -2502,21 +2513,11 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  
         }//end of loop over jet for b-jet
       
-      for ( int iBJet = 0; iBJet < int(GoodBJets.size()) ; iBJet++ ) {
-	jet_E[iBJet] = GoodBJets[iBJet].E();
-	jet_Pt[iBJet] = GoodBJets[iBJet].Pt();
-	jet_Eta[iBJet] = GoodBJets[iBJet].Eta();
-	jet_Phi[iBJet] = GoodBJets[iBJet].Phi();
-	bjetIsCSVL[iBJet] = GoodBJetsIsCVSL[iBJet];
-	bjetIsCSVM[iBJet] = GoodBJetsIsCVSM[iBJet];
-	bjetIsCSVT[iBJet] = GoodBJetsIsCVST[iBJet];
-      }
-    
-       
+
       //----------------
       //High-pt category
       //----------------
-      if( ( razorbox == None ) && HiggsCandidate.Pt() > 110. && ( muCand.size() == 0 ) && ( eleCand.size() == 0 ) ) razorbox = HighPt;
+      if( razorbox == None && HiggsCandidate.Pt() > 110. ) razorbox = HighPt;
       if ( _phodebug ) std::cout << "pho PT :  " << bestCand[0].photon.Pt() << " and  " << bestCand[1].photon.Pt() << " Mgg : " << HiggsCandidate.M() << " pt1/Mgg = "   << bestCand[0].photon.Pt()/HiggsCandidate.M() << " pt2/Mgg = " << bestCand[1].photon.Pt()/HiggsCandidate.M() << std::endl;
       if ( _phodebug ) std::cout << "Higgs PT :  " << HiggsCandidate.Pt() << "  razorbox : " << razorbox << std::endl;
 
@@ -2525,11 +2526,10 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       TLorentzVector HbbZbbCandidate(0,0,0,0);
       std::vector< BjetCandidate > bjetSelectedCand;
       BjetCandidate bestBjetCandHbb[2];
-      BjetCandidate bestBjetCandZbb[2];
       //------------
       //Hbb category
       //------------
-      if( ( razorbox == None ) && ( muCand.size() == 0 ) && ( eleCand.size() == 0 ) ) 
+      if( razorbox == None ) 
 	{
 	  //if there are two or more loose b-tags and one medium b-tag, look for b-bbar resonances
 	  if( nLooseBTaggedJets > 1 && nMediumBTaggedJets > 0 )
@@ -2572,7 +2572,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //Zbb category
       //------------
       HbbZbbCandidate.SetPxPyPzE(0,0,0,0);
-      if( ( razorbox == None ) && ( muCand.size() == 0 ) && ( eleCand.size() == 0 ) ) 
+      BjetCandidate bestBjetCandZbb[2];
+      if( razorbox == None ) 
 	{
 	  //make sure container is empty before start.
 	  bjetSelectedCand.clear();
@@ -2594,8 +2595,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 			{
 			  mbbZ = mbb; 
 			  pTbbZ = pTbb;
-			  bestBjetCandHbb[0] = bjet1;  
-			  bestBjetCandHbb[1] = bjet2;  
+			  bestBjetCandZbb[0] = bjet1;  
+			  bestBjetCandZbb[1] = bjet2;  
 			  HbbZbbCandidate = bjet1.bjet + bjet2.bjet;
 			}
 		    }
@@ -2606,8 +2607,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 		  razorbox = Zbb;
 		  mbbZ     = HbbZbbCandidate.M();
 		  pTbbZ    = HbbZbbCandidate.Pt();
-		  bjetSelectedCand.push_back(bestBjetCandHbb[0]);
-		  bjetSelectedCand.push_back(bestBjetCandHbb[1]);
+		  bjetSelectedCand.push_back(bestBjetCandZbb[0]);
+		  bjetSelectedCand.push_back(bestBjetCandZbb[1]);
 		}
 	    }
 	}//end Zbb category
@@ -2622,6 +2623,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       float MetYCorr_JESDown = 0;
     
       vector<TLorentzVector> GoodJets;
+      std::vector< JetCandidate > jetCand;
       //vector<bool> GoodJetsIsCVSL;
       //vector<bool> GoodJetsIsCVSM;
       //vector<bool> GoodJetsIsCVST;
@@ -2673,10 +2675,13 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  
           if(overlapbjj) continue;
       
+	  JetCandidate  tmp_jetCand;
+	  tmp_jetCand.jet    = thisJet;
+	  tmp_jetCand.isCSVL = isCSVL(i);
+	  tmp_jetCand.isCSVM = isCSVM(i);
+	  tmp_jetCand.isCSVT = isCSVT(i);
+          jetCand.push_back( tmp_jetCand );
 	  GoodJets.push_back(thisJet);
-	  //GoodJetsIsCVSL.push_back(isCSVL(i));
-	  //GoodJetsIsCVSM.push_back(isCSVM(i));
-	  //GoodJetsIsCVST.push_back(isCSVT(i));
 	  n_Jets++;
 
 	  double jetCorrPt = thisJet.Pt();
@@ -2717,16 +2722,32 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	    }
 	} //loop over jets
       
-      for ( int iJet = 0; iJet < int(GoodJets.size()) ; iJet++ ) {
-	jet_E[iJet] = GoodJets[iJet].E();
-	jet_Pt[iJet] = GoodJets[iJet].Pt();
-	jet_Eta[iJet] = GoodJets[iJet].Eta();
-	jet_Phi[iJet] = GoodJets[iJet].Phi();
-	//jetIsCSVL[iJet] = GoodJetsIsCVSL[iJet];
-	//jetIsCSVM[iJet] = GoodJetsIsCVSM[iJet];
-	//jetIsCSVT[iJet] = GoodJetsIsCVST[iJet];
-      }
-    
+      for ( int iJet = 0; iJet < int(jetCand.size()) ; iJet++ ) 
+	{
+	  jet_E[iJet]     = jetCand[iJet].jet.E();
+	  jet_Pt[iJet]    = jetCand[iJet].jet.Pt();
+	  jet_Eta[iJet]   = jetCand[iJet].jet.Eta();
+	  jet_Phi[iJet]   = jetCand[iJet].jet.Phi();
+	  jetIsCSVL[iJet] = jetCand[iJet].isCSVL;
+	  jetIsCSVM[iJet] = jetCand[iJet].isCSVM;
+	  jetIsCSVT[iJet] = jetCand[iJet].isCSVT;
+	}
+      
+      //----------------------------------------------------------
+      //Add Hbb/Zbb candiates to jet collection stored in the Tree
+      //----------------------------------------------------------
+      for ( auto bjet : bjetSelectedCand )
+	{
+	  jet_E[n_Jets]     = bjet.bjet.E();
+	  jet_Pt[n_Jets]    = bjet.bjet.Pt();
+	  jet_Eta[n_Jets]   = bjet.bjet.Eta();
+	  jet_Phi[n_Jets]   = bjet.bjet.Phi();
+	  jetIsCSVL[n_Jets] = bjet.isCSVL;
+	  jetIsCSVM[n_Jets] = bjet.isCSVM;
+	  jetIsCSVT[n_Jets] = bjet.isCSVT;
+	  n_Jets++;
+	}
+      
       //Compute the razor variables using the selected jets and the diphoton system
       HT = Pho_Pt[0] + Pho_Pt[1]; //HT = sum of photon pT  + jet pT
       vector<TLorentzVector> ObjectCandidates;
