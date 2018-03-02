@@ -70,14 +70,15 @@ void MakePileupReweight(int option = 0) {
   // file = TFile::Open("PileupReweight_Summer16_2016_36p2ifb.root", "UPDATE");
 
   //For 2017 Data
-  pileupSourceFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupSource_MC80X_Summer16.root", "READ");
-  if (option == 0) pileupTargetFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupTarget_2017_29p0.root", "READ");
-  else if (option == 1) pileupTargetFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupTarget_2016_36p2ifb_SysUp.root", "READ");
-  else if (option == 2) pileupTargetFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupTarget_2016_36p2ifb_SysDown.root", "READ");
+  pileupSourceFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupSource_MC_Fall2017.root", "READ");
+  // /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/data/PileupWeights/PileupSource_MC_Fall2017.root
+  if (option == 0) pileupTargetFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupTarget_2017_41p2ifb.root", "READ");
+  else if (option == 1) pileupTargetFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupTarget_2017_41p2ifb_SysUp.root", "READ");
+  else if (option == 2) pileupTargetFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupTarget_2017_41p2ifb_SysDown.root", "READ");
   else {
     return;
   }
-  file = TFile::Open("PileupReweight_Summer16_2017_29p0ifb.root", "UPDATE");
+  file = TFile::Open("PileupReweight_2017_41p2ifb.root", "UPDATE");
 
 
   TH1F *pileupTargetHist = (TH1F*)pileupTargetFile->Get("pileup");
@@ -85,7 +86,8 @@ void MakePileupReweight(int option = 0) {
   std::cout << "pileupTargetHist " << pileupTargetHist->Integral() << std::endl;
 
   //TH1F *pileupSourceHist = (TH1F*)pileupSourceFile->Get("PileupSourceHist");
-  TH1F *pileupSourceHist = (TH1F*)pileupSourceFile->Get("PUMean"); 
+  //TH1F *pileupSourceHist = (TH1F*)pileupSourceFile->Get("PUMean"); 
+  TH1F *pileupSourceHist = (TH1F*)pileupSourceFile->Get("PUMean_Razor2017_92X"); 
   assert(pileupSourceHist);
   std::cout << "pileupSourceFile " << pileupSourceHist->Integral() << std::endl;
   std::cout << "FILES RETRIEVED" << std::endl;
