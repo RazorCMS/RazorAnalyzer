@@ -566,7 +566,7 @@ void RazorHelper::loadPileup_Razor2016_MoriondRereco() {
     std::cout << "RazorHelper: loading pileup weight histograms" << std::endl;
 
     if (!isFastsim) {
-      pileupWeightFile = TFile::Open("PileupReweight_Summer16_2016_36p2ifb.root");
+      pileupWeightFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/PileupWeights/PileupReweight_Summer16_2016_36p2ifb.root");
       pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
       pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
       pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
@@ -1412,10 +1412,8 @@ void RazorHelper::loadTrigger_Razor2016G_SUSYUnblind() {
 //  2017 PromptReco
 ////////////////////////////////////////////////
 void RazorHelper::loadTag_Razor2017_92X() {
-  //loadPileup_Razor2016_MoriondRereco();
   loadPileup_Razor2017_92X();
   loadLepton_Razor2016_MoriondRereco();
-  //loadPhoton_Razor2016_MoriondRereco();
   loadPhoton_Razor2017_94X();
   loadBTag_Razor2016_MoriondRereco();
   loadTrigger_Razor2017_92X();
@@ -1428,17 +1426,18 @@ void RazorHelper::loadPileup_Razor2017_92X() {
     std::cout << "RazorHelper: loading pileup weight histograms" << std::endl;
 
     if (!isFastsim) {
-      pileupWeightFile = TFile::Open("PileupReweight_Summer16_2016_36p2ifb.root");
+      pileupWeightFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/PileupWeights/PileupReweight_2017_41p2ifb.root");
       pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
       pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
       pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
-      std::cout << "PileupReweight_Summer16_2016_36p2ifb.root\n";
+      std::cout << "PileupReweight_2017_41p2ifb.root\n";
     } else {
-      pileupWeightFile = TFile::Open("PileupReweight_Summer16_2017_29p0ifb.root");
+      // Will do something for Fastsim in the future
+      pileupWeightFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/PileupWeights/PileupReweight_2017_41p2ifb.root");
       pileupWeightHist = (TH1F*)pileupWeightFile->Get("PileupReweight");
       pileupWeightSysUpHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysUp");
       pileupWeightSysDownHist = (TH1F*)pileupWeightFile->Get("PileupReweightSysDown");
-      std::cout << "PileupReweight_Summer16_2017_29p0ifb.root\n";
+      std::cout << "PileupReweight_2017_41p2ifb.root\n";
     }
 
 
