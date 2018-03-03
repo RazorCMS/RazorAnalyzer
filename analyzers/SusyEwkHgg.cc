@@ -202,12 +202,12 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   //--------------------------------
   //Initialize helper
   //--------------------------------
-  RazorHelper *helper = 0;
-  if (analysisTag == "Razor2015_76X") helper = new RazorHelper("Razor2015_76X", isData, isFastsimSMS);
-  else if (analysisTag == "Razor2016_80X") helper = new RazorHelper("Razor2016_80X", isData, isFastsimSMS);
-  else if (analysisTag == "Razor2017_92X") helper = new RazorHelper("Razor2017_92X", isData, isFastsimSMS);
-  else helper = new RazorHelper(analysisTag, isData, isFastsimSMS);
-  
+  /* Available tag relevant for this analysis are:
+    Razor2015_76X
+    Razor2016_MoriondRereco
+    Razor2017_92X
+  */
+  RazorHelper *helper =  new RazorHelper(analysisTag, isData, isFastsimSMS);;
 
   //--------------------------------
   //Photon Energy Scale and Resolution Corrections
@@ -1352,6 +1352,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           //TLorentzVector for this electron
           TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
 	  if( !isVetoElectron(i) ) continue; 
+	  if ( !( passMVALooseElectronID(i) && passMVANonTrigVetoElectronIso(i) && fabs(ele_ip3dSignificance[i]) < 4. ) ) continue;//Only for electron WP test
 	  if( elePt[i] < 20 ) continue;
 	  if( abs(eleEta[i]) > 2.5 ) continue;
 	  nLooseElectrons++;
@@ -1534,6 +1535,9 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	      if (isData) 
 		{
 		  pho_pt_corr = phoPt[i]*scale; 
+		  std::cout << run << " " << (fabs(pho_superClusterEta[i]) < 1.5) << " " <<  phoR9[i] << " " 
+			    << pho_superClusterEta[i] << " " <<  phoE[i]/cosh(pho_superClusterEta[i]) << " "
+			    << scale << std::endl;
 		  if (_phodebug && scale != 1.0 ) std::cout << "[DEBUG] : Photon Energy Scale Corrections: " 
 							    << phoPt[i] << " * " << scale << " --> " << pho_pt_corr << "\n";
 		}

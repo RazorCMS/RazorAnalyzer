@@ -1412,10 +1412,8 @@ void RazorHelper::loadTrigger_Razor2016G_SUSYUnblind() {
 //  2017 PromptReco
 ////////////////////////////////////////////////
 void RazorHelper::loadTag_Razor2017_92X() {
-  //loadPileup_Razor2016_MoriondRereco();
   loadPileup_Razor2017_92X();
   loadLepton_Razor2016_MoriondRereco();
-  //loadPhoton_Razor2016_MoriondRereco();
   loadPhoton_Razor2017_94X();
   loadBTag_Razor2016_MoriondRereco();
   loadTrigger_Razor2017_92X();
