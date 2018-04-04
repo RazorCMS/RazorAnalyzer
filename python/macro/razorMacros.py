@@ -617,7 +617,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
             nsigmaFitData = get2DNSigmaHistogram(hists[dataName][("MR","Rsq")], bins, fitToyFiles, boxName, btags, btagsMax, debugLevel)
         makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
                 nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, unrollBins=unrollBins, useMCFitSys=False, printdir=printdir)
-        makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=None,
+        makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
                 nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, unrollBins=unrollBins, printdir=printdir, listAllMC=True)
 
     #print histograms
@@ -838,7 +838,7 @@ def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", 
                 mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], 
                 boxName=boxName, btags=btags, unrollBins=unrollBins, 
                 useMCFitSys=False, printdir=printdir, emptyBinErrs=emptyBinErrsByProcess)
-        makeRazor2DTable(pred=fitForTable,obs=None,
+        makeRazor2DTable(pred=fitForTable,obs=dataForTable,
                 mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], 
                 boxName=boxName, btags=btags, unrollBins=unrollBins, printdir=printdir, 
                 emptyBinErrs=emptyBinErrsByProcess, listAllMC=True)

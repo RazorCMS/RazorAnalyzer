@@ -1,6 +1,9 @@
 #! /usr/bin/env python
+import sys
 import os
 import glob
+
+from limits.SMSConfig import sms_models
 
 razorSignalDirs = {
         "Razor2016_MoriondRereco": "/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_05Oct2017/SignalFastsim/"
@@ -35,3 +38,17 @@ def gchipairs(model, tag='Razor2016_MoriondRereco'):
         model = 'T1ttbb'
     signalDir = razorSignalDirs[tag].replace('root://eoscms://','')
     return getGChiPairs(signalDir, model)
+
+
+if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        model = sys.argv[1]
+        print("GChiPairs found for model {}:".format(model))
+        sms = sms_models[model]
+        if sms.submodels is not None:
+            pairs = [pair for submodel in sms.submodels
+                    for pair in gchipairs(submodel)]
+        else:
+            pairs = gchipairs(model)
+        for pair in pairs:
+            print "{} {}".format(pair[0], pair[1])

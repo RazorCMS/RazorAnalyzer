@@ -216,6 +216,9 @@ def get(model, tag, sms, no_smooth=False, do_combined=False,
         if no_smooth:
             command.append('--no-smooth')
         do_command(command, no_exec)
+        if model == 'T2qq':
+            # need extra 8x degenerate squark curve
+            do_command(command+['--degen', '8'], no_exec)
 
 def get_box_str(box):
     if 'Lepton' not in box:
@@ -250,6 +253,9 @@ def write_plot_config(model, box, blind=True, preliminary=True,
     if not blind:
         text += "OBSERVED {} Obs_{} ObsPlus_{} ObsMinus_{} kBlack kBlue-9\n".format(
                 results_file, name, name, name)
+        if model == 'T2qq':
+            text += "OBSERVEDEXTRA {} Obs_{} ObsPlus_{} ObsMinus_{} kBlack kBlue-9\n".format(results_file.replace('.root', '_EXTRA.root'), name, name, name)
+            text += "EXPECTEDEXTRA {} Exp_{} ExpPlus_{} ExpMinus_{} kRed kOrange\n".format(results_file.replace('.root', '_EXTRA.root'), name, name, name)
     text += "PRELIMINARY"
     if preliminary:
         text += " preliminary\n"
