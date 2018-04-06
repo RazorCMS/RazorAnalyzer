@@ -23,6 +23,8 @@ def adjustFilenameForOptions(fName, args):
         fName = fName.replace('.root', 'Sideband.root')
     if args.noBoostCuts:
         fName = fName.replace('.root', 'NoBoostCuts.root')
+    if args.super_region:
+        fName = fName.replace('.root', 'Super.root')
     return fName
 
 if __name__ == "__main__":
