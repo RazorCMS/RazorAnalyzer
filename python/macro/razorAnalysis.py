@@ -852,6 +852,13 @@ razorBinning["SingleLeptonForSignal"] = {
         "Rsq": razorBinning["SingleLepton"]["Rsq"],
         }
 
+# Obligatory super regions
+for box in ['DiJet', 'MultiJet', 'SevenJet', 'LeptonMultiJet', 'LeptonSevenJet']:
+    razorBinning['Super'+box] = {
+            'MR' : [900, 1600, 4000],
+            'Rsq': [0.2, 0.3, 1.5]
+            }
+
 ### Add 2D razor binning to each region
 for region,binning in razorBinning.iteritems():
     if "MR" in binning and "Rsq" in binning:
@@ -1204,6 +1211,17 @@ colsSignal["GJetsInv"]["0B"] = [
 for box in ['LooseLeptonMultiJet','LooseLeptonDiJet']:
     xbinsSignal[box] = xbinsSignal[box.replace('LooseLepton','')]
     colsSignal[box] = colsSignal[box.replace('LooseLepton','')]
+
+for box in ['DiJet', 'MultiJet', 'SevenJet', 'LeptonMultiJet', 'LeptonSevenJet']:
+    rsqMin = 0.3
+    if 'Lepton' in box:
+        rsqMin = 0.2
+    xbinsSignal['Super'+box] = [900, 1600, 4000]
+    colsSignal['Super'+box] = [
+            [rsqMin, 1.5],
+            [0.2, 1.5],
+            ]
+
 
 class Analysis:
     """Class to hold analysis cuts, binning, input files, and trigger info"""

@@ -62,6 +62,8 @@ def makeSignalRegionParser():
             help='Process sideband instead of extrapolation region')
     parser.add_argument('--zoom', action='store_true',
             help='Draw restricted range on ratio plot')
+    parser.add_argument('--super-region', action='store_true',
+            help='Run on aggregated super analysis regions')
     return parser
 
 def getDirSuffix(args):
@@ -84,6 +86,9 @@ def getDirSuffix(args):
         dirSuffix += 'Sideband'
     if args.noBoostCuts:
         dirSuffix += 'NoBoostCuts'
+    if args.super_region:
+        dirSuffix += 'Super'
+
     return dirSuffix
 
 def getPlotOpts(args, analysis):
@@ -267,6 +272,10 @@ def applyAnalysisOptions(analysis, args, boxName=None):
         del analysis.filenames['Data']
     if boxName is not None:
         adjustCuts(analysis, boxName, sideband=args.sideband)
+        if args.super_region:
+            analysis.binning = razor.razorBinning['Super'+boxName]
+            analysis.unrollBins = (razor.xbinsSignal['Super'+boxName],
+                    razor.colsSignal['Super'+boxName])
 
 def getScaleFactorHistsForBox(sfHists, boxName, btags):
     sfHistsToUse = sfHists.copy()

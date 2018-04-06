@@ -185,12 +185,13 @@ if __name__ == '__main__':
                 limits.append(max(0.0,limit.limit))
             else:
                 limits.append(refXsec*(1.e-3)*limit.limit)
+                print limit.limit
             entry = elist.Next()
         tFile.cd()
         tFile.Close()
             
         limits.reverse()
-        print limits
+        #print limits
         
         if doSignificance:
             sigHist.SetBinContent(sigHist.FindBin(mg,mchi), limits[0])
@@ -201,6 +202,6 @@ if __name__ == '__main__':
     if doSignificance:
         plotSignificance(boxInput, model, sigHist, directory)
     elif doHybridNew:
-        os.system("hadd -f %s/xsecUL_HybridNew_%s.root %s"%(directory,boxInput," ".join(haddOutputs)))
+        os.system("hadd -f -k %s/xsecUL_HybridNew_%s.root %s"%(directory,boxInput," ".join(haddOutputs)))
     else:
-        os.system("hadd -f %s/xsecUL_Asymptotic_%s.root %s"%(directory,boxInput," ".join(haddOutputs)))
+        os.system("hadd -f -k %s/xsecUL_Asymptotic_%s.root %s"%(directory,boxInput," ".join(haddOutputs)))

@@ -2,8 +2,8 @@ import copy
 
 VERSION = '18Dec2017'
 #VERSION = '18Dec2017_NoBoostCuts'
-BOOST_LIMIT_DIR = "/eos/user/j/jkarancs/RazorBoost/datacards/2017_12_26/"
-BOOST_LOCAL_DIR = "syst_results/run_2017_11_13_syst/cards"
+BOOST_LIMIT_DIR = "/eos/user/j/jkarancs/RazorBoost/datacards/2018_03_24/"
+BOOST_LOCAL_DIR = "syst_results/run_2018_03_24_syst/cards"
 
 DISP_OFFSET = 12.5 # Extra offset needed for display purposes
 
@@ -17,7 +17,7 @@ class SMS(object):
 
     def __init__(self, mgMin, mgMax, mchiMin, mchiMax,
             binWidth=25, nRebins=0, xsecMin=1.e-3, xsecMax=10., 
-            diagonalOffset=25, smoothing=50, fixLSP0=False,
+            diagonalOffset=25, smoothing=50, epsilon=5, fixLSP0=False,
             boxes=ALL_BOXES, isGluino=True, submodels=None):
         """
         Struct to hold all info associated with one SMS.
@@ -28,6 +28,7 @@ class SMS(object):
             xsecMin, xsecMax: z range on limit plot
             diagonalOffset: where the diagonal should be located
             smoothing: RBF smoothing parameter for interpolation
+            epsilon: RBF smoothing parameter for interpolation
             fixLSP0: set to True to avoid smoothing away limit
                 behavior at low LSP mass
             boxes: analysis boxes to use for this model
@@ -44,6 +45,7 @@ class SMS(object):
         self.xsecMax = xsecMax
         self.diagonalOffset = diagonalOffset + DISP_OFFSET
         self.smoothing = smoothing
+        self.epsilon = epsilon
         self.fixLSP0 = fixLSP0
         self.boxes = boxes
         self.isGluino = isGluino
@@ -56,7 +58,8 @@ sms_models = {
             diagonalOffset=225),
         'T1tttt':SMS(600, 2300, 0, 1650, boxes=GLUINO_BOXES,
             diagonalOffset=225),
-        'T5ttcc':SMS(600, 2300, 0, 1650, boxes=GLUINO_BOXES),
+        'T5ttcc':SMS(600, 2300, 0, 1650, boxes=GLUINO_BOXES,
+            diagonalOffset=110),
         'T1qqqq':SMS(600, 2300, 0, 1650, boxes=HADRONIC_BOXES),
         'T5qqqqVV':SMS(600, 2300, 0, 1650, boxes=GLUINO_BOXES),
         'T2bb':SMS(100, 1500, 0, 800, boxes=HADRONIC_BOXES,
@@ -70,7 +73,7 @@ sms_models = {
                 'T2tt_mStop-350to400',
                 'T2tt_mStop-400to1200',
                 ]),
-        'T2qq':SMS(100, 1500, 0, 800, boxes=HADRONIC_BOXES,
-            isGluino=False),
+        'T2qq':SMS(300, 1700, 0, 1300, boxes=HADRONIC_BOXES,
+            isGluino=False, smoothing=50, epsilon=5),
         }
 

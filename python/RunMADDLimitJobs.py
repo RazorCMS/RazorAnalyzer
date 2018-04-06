@@ -52,7 +52,7 @@ def writeBashScript(tag, box, model, mg, mchi, submitDir,
     script += "mkdir -p $TWD\n"
     script += "cd $TWD\n"
     script += 'pwd\n'
-    script += 'git clone https://github.com/RazorCMS/RazorAnalyzer.git\n'
+    script += 'git clone git://github.com/RazorCMS/RazorAnalyzer.git\n'
     script += 'cd RazorAnalyzer\n'
     script += 'git checkout -b Limits LimitsMADD20180104\n' 
     script += 'make\n'
