@@ -13,10 +13,11 @@ from SMSTemplates import makeSMSTemplates, signalShapeUncerts, SMSOpts
 from DustinTuples2DataCard import uncorrelate, uncorrelateSFs, uncorrelateSFs1D, writeDataCard_th1
 from framework import Config
 from SignalRegionMacro import adjustForFineGrainedMCPred, getSubprocs
+from SignalRegionPlotMacro import adjustShapes
 import BTagClosureTestMacro as bclosure
 import CheckSignalContamination as contam
 
-BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016_18Dec2017"
+BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016_08Apr2018"
 
 def getModelName(model, mass1, mass2):
     return "SMS-%s_%d_%d"%(model, mass1, mass2)
@@ -182,6 +183,7 @@ if __name__ == "__main__":
         sfFileNameBClosure = 'data/ScaleFactors/RazorMADD2015/RazorBTagScaleFactors_%s.root'%(args.tag)
         sfFileBClosure = rt.TFile.Open(sfFileNameBClosure)
         sfHistsForUncorrSFs1D = {}
+        sfHistsForUncorrSFs1DMR = {}
         jets = 'MultiJet'
         if curBox in ['DiJet', 'LeptonJet']:
             jets = 'DiJet'
@@ -190,8 +192,12 @@ if __name__ == "__main__":
         for name in ['TTJets1L', 'TTJets2L', 'WJets']:
             sfHistsForUncorrSFs1D[name] = sfFileBClosure.Get("Rsq{}0B".format(jets))
             assert(sfHistsForUncorrSFs1D[name])
+            sfHistsForUncorrSFs1DMR[name] = sfFileBClosure.Get("MR{}0B".format(jets))
+            assert(sfHistsForUncorrSFs1DMR[name])
         sfHistsForUncorrSFs1D['ZInv'] = sfFileBClosure.Get("RsqInv{}0B".format(jets))
         assert(sfHistsForUncorrSFs1D['ZInv'])
+        sfHistsForUncorrSFs1DMR['ZInv'] = sfFileBClosure.Get("MRInv{}0B".format(jets))
+        assert(sfHistsForUncorrSFs1DMR['ZInv'])
 
         # assess signal contamination in control regions
         contamHists = None
@@ -283,14 +289,17 @@ if __name__ == "__main__":
         # do not correlate closure test uncertainties between
         # boxes with different numbers of jets
         jet_closure_uncs = ['btagcrosscheckrsq', 'btaginvcrosscheck',
-                'qcdnorm', 'ttcrosscheck', 'vetolepetacrosscheck',
+                'qcdnorm', 'qcdbtag', 'ttcrosscheck', 'vetolepetacrosscheck',
                 'vetolepptcrosscheck', 'vetotauetacrosscheck',
-                'vetotauptcrosscheck', 'zllcrosscheckmr', 'zllcrosscheckrsq']
+                'vetotauptcrosscheck', 'zllcrosscheckmr', 'zllcrosscheckrsq',
+                'sfstatttjetsNJetsTTJets', 'sfstatwjetsNJetsWJets',
+                'sfstatzinvNJetsInv']
         for unc in jet_closure_uncs:
             hists = addHistSuffix(hists, unc, jets)
 
         # treat appropriate uncertainties as uncorrelated bin to bin
-        toUncorrelate = ['stat'+curBox+sample for sample in samples]
+        toUncorrelate = ['stat'+curBox+sample for sample in samples
+                if sample != 'QCD']
         for sys in toUncorrelate:
             if 'stat' in sys:
                 if args.noStat: continue
@@ -310,6 +319,18 @@ if __name__ == "__main__":
         toUncorrelateSF1D = ['btaginvcrosscheck', 'btagcrosscheckrsq']
         for sys in toUncorrelateSF1D:
             uncorrelateSFs1D(hists, sys, sfHistsForUncorrSFs1D, unrollBins)
+        toUncorrelateSF1DMR = ['sfstatttjetsMR', 'sfstatwjetsMR', 
+                'sfstatzinvMRInv']
+        for sys in toUncorrelateSF1DMR:
+            uncorrelateSFs1D(hists, sys, sfHistsForUncorrSFs1DMR, unrollBins,
+                    useRsq=False)
+        # two uncertainties that are only binned in nbtags
+        dummyHist = rt.TH1F("tmp", "tmp", 1, 0, 4000)
+        dummyHistDict = {'QCD': dummyHist, 'ZInv': dummyHist}
+        toUncorrelateSF1DBtag = ['qcdbtag', 'sfstatzinvNBTagsInv']
+        for sys in toUncorrelateSF1DBtag:
+            uncorrelateSFs1D(hists, sys, dummyHistDict, 
+                    unrollBins, xInclusive=True)
 
         # write histograms to ROOT file
         cardName = getCardName(modelName, curBox, outDir)
@@ -317,6 +338,7 @@ if __name__ == "__main__":
         outFile = rt.TFile(outFileName, 'recreate')
         sortedKeys = sorted(hists.keys())
         for key in sortedKeys:
+            print "Writing", key
             hists[key].Write()
         outFile.Close()
 

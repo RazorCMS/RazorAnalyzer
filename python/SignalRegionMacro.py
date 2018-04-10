@@ -12,6 +12,7 @@ commonShapeErrors = [
         ('singletopnorm',"SingleTop"),
         ('othernorm',"Other"),
         ('qcdnorm','QCD'),
+        ('qcdbtag','QCD'),
         'btag', 'bmistag', 'pileup', 'facscale', 'renscale', 'facrenscale',
         ('btaginvcrosscheck',['ZInv']),
         ('btagcrosscheckrsq',['TTJets1L','TTJets2L','WJets']),
@@ -431,6 +432,14 @@ def adjustForFineGrainedMCPred(analysis, sfHists, auxSFs, shapes, plotOpts):
     newShapes = makeFineGrainedShapeErrors(shapes)
     return analysis, newSFHists, newAuxSFs, newShapes, plotOpts
 
+def getAllAuxSFs(analysis):
+    auxSFs = razorWeights.getNJetsSFs(analysis, jetName='nSelectedJets')
+    auxSFs = razorWeights.addBTagSFs(analysis, auxSFs)
+    auxSFs = razorWeights.addBTagSFs(analysis, auxSFs, gjets=True)
+    auxSFs = razorWeights.addBTagDoubleRatioSFs(analysis, auxSFs)
+    return auxSFs
+
+
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
     parser = makeSignalRegionParser()
@@ -468,10 +477,7 @@ if __name__ == "__main__":
         boxName = region.replace(dirSuffix,'')[:-2]
         btags = int(region.replace(dirSuffix,'')[-2])
         shapesToUse = copy.copy(shapes[boxName])
-        auxSFs = razorWeights.getNJetsSFs(analysis,jetName='nSelectedJets')
-        auxSFs = razorWeights.addBTagSFs(analysis, auxSFs)
-        auxSFs = razorWeights.addBTagSFs(analysis, auxSFs, gjets=True)
-        auxSFs = razorWeights.addBTagDoubleRatioSFs(analysis, auxSFs)
+        auxSFs = getAllAuxSFs(analysis)
         dataDrivenQCD = True
         blindBins = [(x,y) for x in range(1,len(analysis.binning["MR"])+1) 
                 for y in range(1,len(analysis.binning["Rsq"])+1)]

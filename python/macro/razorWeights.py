@@ -29,17 +29,18 @@ def getQCDExtrapolationFactor(mrlow, mrhigh, rsqlow, rsqhigh, nbtags,
     integral = fun.Integral(mrlow, mrhigh, rsqlow, rsqhigh)
     sf = norm*integral/area
 
-    print area, integral, sf, norm
     if errorOpt is not None:
-        sfErr = integral_error(fun, mean, cov, 
+        sfErr = norm * integral_error(fun, mean, cov, 
                 mrlow, mrhigh, rsqlow, rsqhigh) / area
-        normErr = btagHist.GetBinError(btagBin)
-        sfErr = ((sfErr*norm)**2 + (sf/norm*normErr)**2)**(0.5)
-        print errorOpt, sfErr
+        normErr = btagHist.GetBinError(btagBin) * integral / area
         if errorOpt == 'qcdnormUp':
             return sf + sfErr
         elif errorOpt == 'qcdnormDown':
             return max(0., sf - sfErr)
+        elif errorOpt == 'qcdbtagUp':
+            return sf + normErr
+        elif errorOpt == 'qcdbtagDown':
+            return max(0., sf - normErr)
 
     return sf
 
@@ -730,6 +731,7 @@ def splitShapeErrorsByType(shapeErrors):
         'singletopnorm':True,
         'othernorm':True,
         'qcdnorm':True,
+        'qcdbtag':True,
         'sfsysttjets':True,
         'sfsyswjets':True,
         'sfsyszinv':True,
