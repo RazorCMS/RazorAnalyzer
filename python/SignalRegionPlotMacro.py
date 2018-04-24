@@ -23,7 +23,34 @@ def adjustFilenameForOptions(fName, args):
         fName = fName.replace('.root', 'Sideband.root')
     if args.noBoostCuts:
         fName = fName.replace('.root', 'NoBoostCuts.root')
+    if args.super_region:
+        fName = fName.replace('.root', 'Super.root')
     return fName
+
+def adjustShapes(analysis, shapeNames):
+    """
+    Add additional shape uncertainty names as needed.
+    (e.g. for scale factor stat uncertainties)
+    """
+    auxSFs = sig.getAllAuxSFs(analysis)
+    newShapes = {}
+    for shape in shapeNames:
+        sys = shape[0]
+        if sys.startswith('sfstat'):
+            procs = shape[1]
+            for proc in procs:
+                if proc not in auxSFs:
+                    continue
+                for auxSF in auxSFs[proc]:
+                    newShapeName = sys+auxSF # ex: sfstatttjetsNJetsTTJets
+                    if newShapeName not in newShapes:
+                        newShapes[newShapeName] = [proc]
+                    else:
+                        newShapes[newShapeName].append(proc)
+    newShapes = [(name, procs) for name, procs in newShapes.iteritems()]
+    print "Using additional shape uncertainties:"
+    print newShapes
+    return shapeNames + newShapes
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
@@ -51,6 +78,7 @@ if __name__ == "__main__":
     if args.unblind: blindBins = None
 
     shapesToUse = copy.copy(sig.shapes[box])
+    shapesToUse = adjustShapes(analysis, shapesToUse)
 
     if args.noSFs:
         print "Ignoring all uncertainties from scale factor cross checks."

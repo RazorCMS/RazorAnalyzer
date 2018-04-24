@@ -125,7 +125,20 @@ def uncorrelateSFs(hists, sysName, referenceHists, cfg, box, unrollBins=None):
     """Same as uncorrelate(), but treats bins as correlated if they lie inside the same bin in the reference histogram.
     Needs a config and a box name, to get the correct bin configuration for the razor histogram"""
     #get all histograms that match the input string
-    toUncorrelate = [name for name in hists if sysName in name]
+    toUncorrelate_tmp = [name for name in hists if sysName in name]
+    # VERY AD HOC
+    # to exclude uncertainties with overlapping names
+    toUncorrelate = []
+    badStrs = ['MR', 'NJets', 'NBTags']
+    for name in toUncorrelate_tmp:
+        ok = True
+        for s in badStrs:
+            if s in name:
+                print "Excluding {} because its name contains {}".format(
+                        name, s)
+                ok = False
+        if ok: 
+            toUncorrelate.append(name)
     print "Uncorrelate SFs:",sysName
     print("Treating the following distributions as uncorrelated: ")
     for name in toUncorrelate: print name
@@ -272,9 +285,9 @@ def uncorrelateSFs1D(hists, sysName, referenceHists, unrollBins,
                 ibin += 1
                 newHistName = makeNewHistogramForUncorrelateSFs(name, centerName, systName, ibin, hists)
                 matchedAtLeastOneBin = False
+            if xInclusive:
+                ibin = 0
             for bz in range(len(unrollBins)):
-                if xInclusive:
-                    ibin = 0
                 if not bInclusive:
                     ibin += 1
                     newHistName = makeNewHistogramForUncorrelateSFs(name, centerName, systName, ibin, hists)
@@ -336,7 +349,8 @@ def writeDataCard_th1(box,txtfileName,hists,bkgs):
     #20% normalization uncertainty on rare backgrounds
     for bkg in bkgs:
         if bkg.lower() in ['ttjets', 'ttjets1l', 'ttjets2l', 
-                'wjets', 'dyjets', 'zinv', 'qcd']: continue
+                'wjets', 'dyjets', 'zinv', 'qcd', 
+                'singletop', 'other']: continue
         mcErrs[bkg] = [1.00]
         mcErrs[bkg] += [1.00 + 0.20*(bkg==bkg1) for bkg1 in bkgs]
             

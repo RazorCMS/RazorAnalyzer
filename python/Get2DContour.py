@@ -77,12 +77,14 @@ def fix_hist_byhand(hist, model, box, clsType):
             if hist.GetBinContent(hist.FindBin(mg,mchi))==0:
                 if (mg,mchi) not in toFix:                
                     toFix.append((mg,mchi))
-            elif obs<expPlus2 or obs>expMinus2:
-                #hist.SetBinContent(hist.FindBin(mg,mchi),exp)
-                #if (mg,mchi) not in toFix:
-                #    toFix.append((mg,mchi))
-                pass
-
+            elif model == 'T2qq': # this one is unstable for some mass points
+                if obs<expPlus2 or obs>expMinus2:
+                    if obs < expPlus2:
+                        hist.SetBinContent(hist.FindBin(mg, mchi), expPlus2)
+                    elif obs > expMinus2:
+                        hist.SetBinContent(hist.FindBin(mg, mchi), expMinus2)
+                    if (mg,mchi) not in toFix:
+                        toFix.append((mg,mchi))
                         
 def set_palette(name="default", ncontours=255):
     # For the canvas:
@@ -201,6 +203,7 @@ if __name__ == '__main__':
                   help="Input directory")
     parser.add_option('--no-smooth', dest='noSmooth', action='store_true', 
                   help='Draw grid without interpolation')
+    parser.add_option('--degen', type=int, help='Degeneracy of SUSY states (for T2qq limits)', default=1)
     
     (options,args) = parser.parse_args()
     
@@ -231,6 +234,7 @@ if __name__ == '__main__':
     xsecMax = sms.xsecMax
     diagonalOffset = sms.diagonalOffset
     smoothing = sms.smoothing
+    epsilon = sms.epsilon
     fixLSP0 = sms.fixLSP0
 
     if model=="T1bri":
@@ -250,7 +254,10 @@ if __name__ == '__main__':
 
     smooth = {}
     for clsType in clsTypes:
-        smooth[clsType] = smoothing
+        if 'Obs' in clsType:
+            smooth[clsType] = smoothing
+        else:
+            smooth[clsType] = 50
     
     titleMap = {"Exp":"Expected","ExpMinus":"Expected-1#sigma","ExpPlus":"Expected+1#sigma",
                 "ExpMinus2":"Expected-2#sigma","ExpPlus2":"Expected+2#sigma",
@@ -277,7 +284,7 @@ if __name__ == '__main__':
                 for line in open(refXsecFile,'r'):
                     line = line.replace('\n','')
                     if str(mg)==line.split(',')[0]:
-                        thyXsec[mg,mchi] = float(line.split(',')[1]) #pb
+                        thyXsec[mg,mchi] = options.degen * float(line.split(',')[1]) #pb
                         thyXsecErr[mg,mchi] = 0.01*float(line.split(',')[2])               
     else: 
         print "ERROR: no xsec file; exiting"
@@ -330,7 +337,11 @@ if __name__ == '__main__':
         rebinXsecUL[clsType] = rt.swissCrossInterpolate(xsecUL[clsType],"NE")
 
         # do scipy multi-quadratic interpolation in log domain
-        rebinXsecUL[clsType] = interpolate2D(rebinXsecUL[clsType],epsilon=5,smooth=smooth[clsType],diagonalOffset=diagonalOffset,fixLSP0=fixLSP0)
+        if 'Obs' in clsType:
+            this_eps = epsilon
+        else:
+            this_eps = 5
+        rebinXsecUL[clsType] = interpolate2D(rebinXsecUL[clsType],epsilon=this_eps,smooth=smooth[clsType],diagonalOffset=diagonalOffset,fixLSP0=fixLSP0)
 
         # do swiss cross rebin + average in real domain (should be log??)
         for i in xrange(0,nRebins):
@@ -339,7 +350,7 @@ if __name__ == '__main__':
         # only for display purposes of underlying heat map: do swiss cross average then scipy interpolation 
         if not options.noSmooth:
             xsecUL[clsType] = rt.swissCrossInterpolate(xsecUL[clsType],"NE")
-            xsecUL[clsType] = interpolate2D(xsecUL[clsType], epsilon=5,smooth=smooth[clsType],diagonalOffset=diagonalOffset,fixLSP0=fixLSP0)
+            xsecUL[clsType] = interpolate2D(xsecUL[clsType], epsilon=this_eps,smooth=smooth[clsType],diagonalOffset=diagonalOffset,fixLSP0=fixLSP0)
 
         # fix axes
         xsecUL[clsType].GetXaxis().SetRangeUser(xsecUL[clsType].GetXaxis().GetBinCenter(1),xsecUL[clsType].GetXaxis().GetBinCenter(xsecUL[clsType].GetNbinsX()))
@@ -410,8 +421,10 @@ if __name__ == '__main__':
         
         c.SetLogz(1)
         c.Print("%s/%s_INTERP_%s_%s.pdf"%(directory,model,box,clsType))
-
-    outFile = rt.TFile.Open("%s/%s_%s_results.root"%(directory,model,box),"recreate")
+    outName = "%s/%s_%s_results.root"%(directory,model,box)
+    if options.degen != 1:
+        outName = outName.replace('.root', '_EXTRA.root')
+    outFile = rt.TFile.Open(outName,"recreate")
     for clsType in clsTypes:
         contourFinal[clsType].Write()
         xsecUL[clsType].Write()

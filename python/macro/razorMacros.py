@@ -593,6 +593,10 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
     #directly to the central histograms.
     if exportShapeErrs:
         hists['Sys'] = shapeHists
+        for proc in hists['Sys']:
+            print proc
+            for sys in hists['Sys'][proc]:
+                print "   ",sys
     else:
         macro.propagateShapeSystematics(hists, samples, bins, shapeHists, shapeErrors, miscErrors, boxName, debugLevel=debugLevel)
 
@@ -617,7 +621,7 @@ def makeControlSampleHists(regionName="TTJetsSingleLepton", filenames={}, sample
             nsigmaFitData = get2DNSigmaHistogram(hists[dataName][("MR","Rsq")], bins, fitToyFiles, boxName, btags, btagsMax, debugLevel)
         makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
                 nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, unrollBins=unrollBins, useMCFitSys=False, printdir=printdir)
-        makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=None,
+        makeRazor2DTable(pred=hists["Fit"][("MR","Rsq")], obs=dataForTable,
                 nsigma=nsigmaFitData, mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], boxName=boxName, btags=btags, unrollBins=unrollBins, printdir=printdir, listAllMC=True)
 
     #print histograms
@@ -741,12 +745,11 @@ def postprocessQCDHists(hists, shapeHists,
                 makeQCDExtrapolation(qcd2DHist, 
                 wHists, region, btags, debugLevel))
         if 'QCD' in shapeHists and 'qcdnormUp' in shapeHists['QCD']:
-            shapeHists['QCD']['qcdnormUp'][var] = (
-                    makeQCDExtrapolation(qcd2DHist, wHists, region, 
-                        btags, debugLevel, errOpt='qcdnormUp'))
-            shapeHists['QCD']['qcdnormDown'][var] = (
-                    makeQCDExtrapolation(qcd2DHist, wHists, region, 
-                        btags, debugLevel, errOpt='qcdnormDown'))
+            for errType in ['qcdnormUp', 'qcdnormDown', 
+                    'qcdbtagUp', 'qcdbtagDown']:
+                shapeHists['QCD'][errType][var] = (
+                        makeQCDExtrapolation(qcd2DHist, wHists, region, 
+                            btags, debugLevel, errOpt=errType))
 
 def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", samples=[], plotOpts={}, lumiMC=1, lumiData=3000, dataName="Data", boxName=None, btags=-1, blindBins=None, debugLevel=0, printdir=".", plotDensity=True, unrollBins=(None,None), shapeErrors=[], doEmptyBinErrs=False):
     """Loads the output of makeControlSampleHists from a file and creates plots"""
@@ -838,7 +841,7 @@ def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", 
                 mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], 
                 boxName=boxName, btags=btags, unrollBins=unrollBins, 
                 useMCFitSys=False, printdir=printdir, emptyBinErrs=emptyBinErrsByProcess)
-        makeRazor2DTable(pred=fitForTable,obs=None,
+        makeRazor2DTable(pred=fitForTable,obs=dataForTable,
                 mcNames=samples, mcHists=[hists[s][("MR","Rsq")] for s in samples], 
                 boxName=boxName, btags=btags, unrollBins=unrollBins, printdir=printdir, 
                 emptyBinErrs=emptyBinErrsByProcess, listAllMC=True)
@@ -1358,6 +1361,83 @@ def makeVetoLeptonCorrectionHist(hists={}, var=("MR","Rsq"), dataName="Data", lu
 ### PREPARE HISTOGRAMS FOR LIMIT SETTING
 #########################################
 
+def unrollAndStitchOne(hists, unrollBins, suffix=""):
+    """
+    One-physics-process version of unrollAndStitch.
+    """
+    # Note that each histogram is assumed to have its 
+    # own set of unroll bins
+    unrolled = [plotting.unroll2DHistograms(
+            [h], xbins, cols, suffix=suffix+str(i))[0]
+            for i, (h, (xbins, cols)) in enumerate(
+                zip(hists, unrollBins))]
+    return macro.stitch(unrolled)
+
+def doQCDStatUnc(qcdHists, unrollBins, boxName):
+    """
+    The QCD prediction is made by applying transfer factors to the
+    high dPhi event yields, which are counted inclusively in
+    the number of b-tags.  Thus, QCD statistical uncertainties
+    in different b-tag bins in the same box are correlated.
+    This function returns a dictionary containing appropriately
+    correlated QCD stat uncertainty histograms.
+    """
+    def getHistBaseName(box, bx, by):
+        return 'QCD_stat{}QCD{}x{}y'.format(
+                box, bx, by)
+    qcdStatHists = {}
+    notUsed = {}
+    refHist = qcdHists[0] # use this to count bins
+    for refbx in range(1, refHist.GetNbinsX()+1):
+        for refby in range(1, refHist.GetNbinsY()+1):
+            histBaseName = getHistBaseName(boxName, refbx, refby)
+            notUsed[histBaseName] = True
+            for updown in ['Up', 'Down']:
+                histName = histBaseName + updown
+                qcdStatHists[histName] = unrollAndStitchOne(
+                    qcdHists, unrollBins, 
+                    suffix='qcdstat{}x{}y'.format(refbx, refby))
+                qcdStatHists[histName].Reset()
+                # Now we have an empty unrolled hist
+    ix = 0 # cumulative bin number
+    for hist, (xbins, cols) in zip(qcdHists, unrollBins):
+        for i, xdo in enumerate(xbins[:-1]):
+            xup = xbins[i+1]
+            for j, ydo in enumerate(cols[i][:-1]):
+                yup = cols[i][j+1]
+                ix += 1
+                for xbin in range(1, hist.GetNbinsX()+1):
+                    for ybin in range(1, hist.GetNbinsY()+1):
+                        centerX = hist.GetXaxis().GetBinCenter(xbin)
+                        centerY = hist.GetYaxis().GetBinCenter(ybin)
+                        if not (centerX > xdo and centerX < xup
+                                and centerY > ydo and centerY < yup):
+                            continue
+                        histBaseName = getHistBaseName(
+                                boxName, xbin, ybin)
+                        # If reference bin is current bin,
+                        # update with up/down variation.
+                        # Otherwise, use the nominal counts
+                        for name, h in qcdStatHists.iteritems():
+                            curContent = h.GetBinContent(ix)
+                            newContent = (curContent 
+                                    + hist.GetBinContent(xbin, ybin))
+                            if name.startswith(histBaseName):
+                                if histBaseName in notUsed:
+                                    del notUsed[histBaseName]
+                                err = hist.GetBinError(xbin, ybin)
+                                if name.endswith('Up'):
+                                    newContent += err
+                                else:
+                                    newContent -= err
+                                    newContent = max(newContent, 0.)
+                            h.SetBinContent(ix, newContent)
+    for name in notUsed:
+        print "Not using histogram {}".format(name)
+        del qcdStatHists[name+'Up']
+        del qcdStatHists[name+'Down']
+    return qcdStatHists
+
 def getMaxBtags(boxName):
     maxBtags = 3
     if boxName in ['DiJet','LeptonJet']:
@@ -1507,6 +1587,8 @@ def stitchEmptyBinErrs(emptyBinErrs):
 
 def addStatUncertainty(histsForDataCard, boxName, samples, emptyBinErrs=None):
     for sample in samples:
+        if sample == 'QCD':
+            continue # QCD stat errors are handled by doQCDStatUnc()
         print "Adding stat uncertainty for {}".format(sample)
         histsForDataCard[sample+'_stat'+boxName+sample+'Up'] = (
                 histsForDataCard[sample].Clone())
@@ -1562,6 +1644,11 @@ def unrollAndStitch(hists, boxName, samples=[], var=('MR','Rsq'),
     if addStatUnc:
         addStatUncertainty(histsForDataCard, boxName, samples,
                 emptyBinErrs=emptyBinErrs)
+        if 'QCD' in samples:
+            qcdStatHists = doQCDStatUnc(
+                    [h['QCD'][('MR', 'Rsq')] for h in hists], 
+                    unrollBins, boxName)
+            histsForDataCard.update(qcdStatHists)
 
     #set names on histograms
     if 'data_obs' in histsForDataCard:

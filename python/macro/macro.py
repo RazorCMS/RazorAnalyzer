@@ -629,6 +629,8 @@ def basicFill(tree, hists={}, weight=1.0, sysErrSquaredHists={}, sysErr=0.0, err
     Ex: hists['MR'] should be the histogram you want to fill with MR values.
     A key that is a tuple of variables (ex: ('MR','Rsq')) should be paired with a multidimensional histogram.
     In this case, the given variables will be used to fill the histogram."""
+    # if true, fill each systematic uncertainty separately
+    splitSysErrs = isinstance(sysErr, dict) 
     #make additional cuts 
     if additionalCuts is not None:
         additionalCutsBool = eval(additionalCuts)
@@ -646,19 +648,37 @@ def basicFill(tree, hists={}, weight=1.0, sysErrSquaredHists={}, sysErr=0.0, err
                 varValue =  getattr(tree, varName)
             hist.Fill(varValue, weight)
             if debugLevel > 1: print "Filling",varName,"=",varValue,"with weight",weight
-            if varName in sysErrSquaredHists: #for propagating systematic errors on the variables
+            if splitSysErrs:
+                # each uncertainty goes into its own histogram
+                for sf, err in sysErr.iteritems():
+                    if sf not in sysErrSquaredHists:
+                        continue
+                    sysErrSquared = weight * weight * err * err
+                    sysErrSquaredHists[sf][varName].Fill(
+                            varValue, sysErrSquared)
+            elif varName in sysErrSquaredHists: 
+                # there is only one uncertainty to fill
                 sysErrSquared = weight*weight*sysErr*sysErr
                 sysErrSquaredHists[varName].Fill(varValue, sysErrSquared)
                 if debugLevel > 1: print "Sys. Error =",sysErr,"; Filling (w*sysErr)^2 histogram with",sysErrSquared
         else: #treat it as a tuple of variables that should be filled
             #transform each variable
             if errorOpt is not None: varName = tuple([transformVarString(tree, v, errorOpt, debugLevel=debugLevel) for v in varName])
-            toFill = [formulas[v].EvalInstance() if v in formulas else getattr(tree, v) for v in varName]+[weight]
+            toFillBase = [formulas[v].EvalInstance() if v in formulas
+                    else getattr(tree, v) for v in varName]
+            toFill = toFillBase+[weight]
             if debugLevel > 1: print "Filling",varName,":",toFill
             hist.Fill(*toFill)
-            if varName in sysErrSquaredHists:
+            if splitSysErrs:
+                for sf, err in sysErr.iteritems():
+                    if sf not in sysErrSquaredHists:
+                        continue
+                    sysErrSquared = weight * weight * err * err
+                    toFillErr = toFillBase + [sysErrSquared]
+                    sysErrSquaredHists[sf][varName].Fill(*toFillErr)
+            elif varName in sysErrSquaredHists:
                 sysErrSquared = weight*weight*sysErr*sysErr
-                toFillErr = [formulas[v].EvalInstance() if v in formulas else getattr(tree, v) for v in varName]+[sysErrSquared]
+                toFillErr = toFillBase+[sysErrSquared]
                 sysErrSquaredHists[varName].Fill(*toFillErr)
                 if debugLevel > 1: print "Sys. Error =",sysErr,"; Filling (w*sysErr)^2 histogram with",sysErrSquared
 
@@ -882,6 +902,17 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
             sysErrSquaredHists[name] = hists[name].Clone(hists[name].GetName()+"SFERRORS")
             sysErrSquaredHists[name].Reset()
             if debugLevel > 0: print "Created temp histogram",sysErrSquaredHists[name].GetName(),"to hold systematic errors from",sfVars,"scale factors"
+        # If scale factor uncertainties will be saved for further
+        # processing, we have to make a separate histogram for each
+        # uncertainty source.
+        if not propagateScaleFactorErrs:
+            sysErrSquaredHists = {'': sysErrSquaredHists}
+            for sf in auxSFs:
+                sysErrSquaredHists[sf] = {}
+                for name in hists:
+                    sysErrSquaredHists[sf][name] = hists[name].Clone(
+                            hists[name].GetName()+"SFERRORS"+sf)
+                    sysErrSquaredHists[sf][name].Reset()
     count = 0
     sumweight = 0.0
     if not noFill:
@@ -907,17 +938,22 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
                 sf, err = getScaleFactorAndError(tree, sfHist, sfVars, formulas, debugLevel=debugLevel)
                 #apply scale factor to event weight
                 w *= sf
+                if not propagateScaleFactorErrs:
+                    err = {'': err} # keep track of each unc source separately
             for name in auxSFs: #apply misc scale factors (e.g. veto lepton correction)
                 if auxSFForms[name].EvalInstance(): #check if this event should be reweighted
                     auxSF, auxErr = getScaleFactorAndError(tree, auxSFHists[name], sfVars=auxSFs[name][0], formulas=formulas, debugLevel=debugLevel)
                     w *= auxSF
-                    err = (err*err + auxErr*auxErr)**(0.5)
+                    if propagateScaleFactorErrs:
+                        err = (err*err + auxErr*auxErr)**(0.5)
+                    else:
+                        err[name] = auxErr
             #protection for case of infinite-weight events
             if math.isinf(w):
                 if debugLevel > 0: 
                     print "Warning: infinite-weight event encountered!"
                 continue
-            if math.isnan(err):
+            if propagateScaleFactorErrs and math.isnan(err):
                 print "Error: err is nan!"
             #fill with weight
             fillF(tree, hists, w, sysErrSquaredHists, err, errorOpt, additionalCuts=None, formulas=formulas, debugLevel=debugLevel)
@@ -956,15 +992,32 @@ def loopTree(tree, weightF, cuts="", hists={}, weightHists={}, sfHist=None, scal
 
             sumweight += w
             count += 1
-    #propagate systematics to each histogram
-    if 'sfstatttjets' in shapeNames:
-        propagateScaleFactorStatErrors(sysErrSquaredHists, upHists=shapeHists['sfstatttjetsUp'], downHists=shapeHists['sfstatttjetsDown'], debugLevel=debugLevel)
-    elif 'sfstatwjets' in shapeNames:
-        propagateScaleFactorStatErrors(sysErrSquaredHists, upHists=shapeHists['sfstatwjetsUp'], downHists=shapeHists['sfstatwjetsDown'], debugLevel=debugLevel)
-    elif 'sfstatzinv' in shapeNames:
-        propagateScaleFactorStatErrors(sysErrSquaredHists, upHists=shapeHists['sfstatzinvUp'], downHists=shapeHists['sfstatzinvDown'], debugLevel=debugLevel)
-    elif propagateScaleFactorErrs:
+    if propagateScaleFactorErrs:
+        # directly add systematic error in quadrature with statistical
         addToTH2ErrorsInQuadrature(hists, sysErrSquaredHists, debugLevel)
+    else:
+        # propagate systematics to each histogram separately
+        knownSFErrs = ['sfstatttjets', 'sfstatwjets', 'sfstatzinv']
+        for unc in knownSFErrs:
+            if unc not in shapeNames: 
+                continue
+            # create all the necessary histograms
+            for sf in sysErrSquaredHists:
+                if sf == '': 
+                    continue # already have this one
+                for updown in ['Up', 'Down']:
+                    shapeHists[unc+sf+updown] = {n: h.Clone(
+                                h.GetName().replace(unc, unc+sf))
+                            for n, h in shapeHists[
+                                unc+updown].iteritems()}
+                    for _, h in shapeHists[unc+sf+updown].iteritems():
+                        h.SetDirectory(0)
+            # propagate
+            for sf, hs in sysErrSquaredHists.iteritems():
+                propagateScaleFactorStatErrors(
+                        hs, upHists=shapeHists[unc+sf+'Up'], 
+                        downHists=shapeHists[unc+sf+'Down'], 
+                        debugLevel=debugLevel)
     print "Sum of weights for this sample:",sumweight
     return sumweight
 
@@ -1083,6 +1136,9 @@ def loopTrees(treeDict, weightF, cuts="", hists={}, weightHists={}, sfHists={}, 
             print shapeNamesToUse
 
         sumweights += loopTree(treeDict[name], weightF, cutsToUse, hists[name], weightHistsToUse, sfHistToUse, scale, fillF, sfVarsToUse, statErrOnly, weightOptsToUse, errorOpt, process=name+"_"+boxName, auxSFs=auxSFsToUse, auxSFHists=auxSFHists, shapeHists=shapeHistsToUse, shapeNames=shapeNamesToUse, shapeSFHists=shapeSFHists, shapeAuxSFs=shapeAuxSFsToUse, shapeAuxSFHists=shapeAuxSFHists, noFill=noFill, propagateScaleFactorErrs=propagateScaleFactorErrs, debugLevel=debugLevel)
+        # deal with the case where loopTree creates new histograms
+        for sf in shapeHistsToUse:
+            shapeHists[name][sf] = shapeHistsToUse[sf]
     print "Sum of event weights for all processes:",sumweights
 
 def correctScaleFactorUncertaintyForSignalContamination(centralHist, upHist, downHist, sfHist, contamHist, debugLevel=0):
