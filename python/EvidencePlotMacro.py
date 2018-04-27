@@ -13,27 +13,21 @@ import macro.razorAnalysis as razor
 import SignalRegionMacro as signal
 import SMSTemplates as sms
 
-BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016_13Nov2017"
+BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016_08Apr2018"
 
 if __name__ == "__main__":
     rt.gROOT.SetBatch()
 
     #parse args
     parser = argparse.ArgumentParser()
-    parser.add_argument("-v", "--verbose", help="display detailed output messages",
-                                action="store_true")
-    parser.add_argument("-d", "--debug", help="display excruciatingly detailed output messages",
-                                action="store_true")
     parser.add_argument('--box', help="choose a box", required=True)
     parser.add_argument('--dir', help="output directory", default="SignalRegionPlots", dest='outDir')
     parser.add_argument('-m','--model', default="T1bbbb", help="signal model name")
     parser.add_argument('--mGluino',default=-1,type=int, help="mass of gluino")
     parser.add_argument('--mStop',default=-1,type=int, help="mass of stop")
     parser.add_argument('--mLSP',default=-1,type=int, help="mass of LSP")
-    parser.add_argument('--unblind', action='store_true')
 
     args = parser.parse_args()
-    debugLevel = args.verbose + 2*args.debug
     outDir = args.outDir
     box = args.box
     boxList = box.split('_') #interpret box1_box2_... as a list of boxes to combine
@@ -86,8 +80,8 @@ if __name__ == "__main__":
 
         #make combined unrolled histograms for background
         makeRazorBinEvidencePlots(curBox, samples=samples, 
-                inDir=BACKGROUND_DIR, outDir=outDir, unblind=args.unblind,
-                signalHist=signalHist, unrollBins=unrollBins, debugLevel=debugLevel, zmin=1e-3)
+                inDir=BACKGROUND_DIR, outDir=outDir, unblind=True,
+                signalHist=signalHist, unrollBins=unrollBins, zmin=1e-3)
         #draw signal and background in unrolled format
         if args.model == 'T2tt':
             signalString = 'pp #rightarrow #tilde{t}#tilde{t}, #mu = 1.0, #tilde{t} #rightarrow t#tilde{#chi}^{0}_{1}'
@@ -98,6 +92,7 @@ if __name__ == "__main__":
             signalString = "Signal"
         makeRazorMCTotalPlusSignalPlot(curBox, samples, 
                 inDir=BACKGROUND_DIR, signalHist = signalHist, 
-                outDir=outDir, unrollBins=unrollBins, signalString=signalString, modelName=modelName, 
-                debugLevel=debugLevel)
+                outDir=outDir, unrollBins=unrollBins, signalString=signalString, 
+                modelName=modelName, unblind=True) 
+                
 

@@ -6,7 +6,7 @@ import glob
 from limits.SMSConfig import sms_models
 
 razorSignalDirs = {
-        "Razor2016_MoriondRereco": "/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_05Oct2017/SignalFastsim/"
+        "Razor2016_MoriondRereco": "/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2016/V3p15_27Nov2017/SignalFastsim/"
         }
 
 def parsePair(f):

@@ -20,6 +20,32 @@ def integral_error(fun, mean, cov, *coords):
     fun.SetParameters(mean)
     return toys.std()
 
+def makeQCDBtagSysHists(hists, whists, region, nbtags):
+    """
+    Make new up/down shape histograms with QCD varied up/down
+    according to the b-tag extrapolation uncertainty
+    """
+    region = region.lower()
+    btag_bin = min(4, nbtags+1)
+    sf_central = whists['qcdbtags'+region].GetBinContent(btag_bin)
+    sf_unc = whists['qcdbtags'+region+'sys'].GetBinContent(btag_bin)
+    hists['Sys']['QCD']['qcdbtagsysUp'] = {}
+    hists['Sys']['QCD']['qcdbtagsysDown'] = {}
+    for var in hists['QCD']:
+        center_hist = hists['QCD'][var]
+        up_hist = center_hist.Clone(
+                center_hist.GetName()+'qcdbtagsysUp')
+        down_hist = center_hist.Clone(
+                center_hist.GetName()+'qcdbtagsysDown')
+        sf_up = (sf_central + sf_unc) / sf_central
+        sf_down = max(0, sf_central - sf_unc) / sf_central
+        print "Scaling qcdbtagsysUp hist by",sf_up
+        print "Scaling qcdbtagsysDown hist by",sf_down
+        up_hist.Scale(sf_up)
+        down_hist.Scale(sf_down)
+        hists['Sys']['QCD']['qcdbtagsysUp'][var] = up_hist
+        hists['Sys']['QCD']['qcdbtagsysDown'][var] = down_hist
+
 def getQCDExtrapolationFactor(mrlow, mrhigh, rsqlow, rsqhigh, nbtags,
         fun, mean, cov, btagHist, errorOpt, debugLevel):
     """Get QCD extrapolation factor as a function of MR and Rsq"""

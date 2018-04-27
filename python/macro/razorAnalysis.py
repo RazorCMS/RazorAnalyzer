@@ -61,6 +61,10 @@ razorWeightHists["Razor2016"].update({
     "qcdbtags{}".format(box):(
         "data/ScaleFactors/RazorMADD2015/RazorQCDBTagScaleFactors_Razor2016_MoriondRereco.root",
         "{}btags".format(box)) for box in ['dijet', 'multijet', 'sevenjet']})
+razorWeightHists["Razor2016"].update({
+    "qcdbtags{}sys".format(box):(
+        "data/ScaleFactors/RazorMADD2015/RazorQCDBTagScaleFactors_Razor2016_MoriondRereco.root",
+        "{}btagssys".format(box)) for box in ['dijet', 'multijet', 'sevenjet']})
 razorWeightHists["Razor2016G_SUSYUnblind_80X"] = {}
 razorWeightHists["Razor2016_MoriondRereco"] = copy.copy(razorWeightHists['Razor2016'])
 razorWeightHists["Razor2016_80X"] = {}

@@ -35,12 +35,12 @@ def plotSignificance(boxInput, model, sigHist, outDir):
         xtitle='m_{stop}'
     else:
         xtitle='m_{gluino}'
-    ytitle='m_LSP'
-    commentstr=boxInput.replace('_',' ')
+    commentstr='{} significance ({})'.format(
+            model, boxInput.replace('_',' + '))
     printstr='_'.join(['RazorSignificance',model,boxInput])
-    draw2DHist(c, sigHist, xtitle=xtitle, ytitle=ytitle, ztitle="Significance", printstr=printstr,
-            logx=False, logy=False, logz=False, lumistr="2.3 fb^{-1}", 
-            commentstr=commentstr, dotext=False, palette='FF', printdir=outDir)
+    draw2DHist(c, sigHist, xtitle=xtitle, ytitle='', ztitle="Significance", printstr=printstr,
+            logx=False, logy=False, logz=False, lumistr="36 fb^{-1}", 
+            commentstr=commentstr, dotext=True, palette='FF', printdir=outDir, drawCMSPreliminary=False, zmin=-3, zmax=3, textSize=0.8, commentX=0.25)
 
 if __name__ == '__main__':
 
@@ -96,7 +96,9 @@ if __name__ == '__main__':
     #significance histogram
     sigHist = None
     if doSignificance:
-        sigHist = rt.TH2F('sigHist','sigHist',56,600,2000,72,0,1800)
+        sms = sms_models[model]
+        sigHist = rt.TH2F('sigHist','sigHist',50,sms.mgMin,sms.mgMax,
+               50,sms.mchiMin,sms.mchiMax)
 
     #get combine results
     submodels = sms_models[model].submodels

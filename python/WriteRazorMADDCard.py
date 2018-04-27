@@ -231,7 +231,8 @@ if __name__ == "__main__":
                 samples=samples, inDir=args.bkgDir,
                 outDir=outDir, unrollBins=unrollBins, noSys=args.noSys, 
                 addStatUnc=(not args.noStat), doEmptyBinErrs=doEmptyBinErrs,
-                addMCVsFit=args.addMCVsFit, debugLevel=debugLevel)
+                addMCVsFit=args.addMCVsFit, debugLevel=debugLevel,
+                weightHists=analyses[0].weightHists)
 
         # get file name for signal input
         signalDir = razorSignalDirs[args.tag]
@@ -289,7 +290,8 @@ if __name__ == "__main__":
         # do not correlate closure test uncertainties between
         # boxes with different numbers of jets
         jet_closure_uncs = ['btagcrosscheckrsq', 'btaginvcrosscheck',
-                'qcdnorm', 'qcdbtag', 'ttcrosscheck', 'vetolepetacrosscheck',
+                'qcdnorm', 'qcdbtag', 'qcdbtagsys', 
+                'ttcrosscheck', 'vetolepetacrosscheck',
                 'vetolepptcrosscheck', 'vetotauetacrosscheck',
                 'vetotauptcrosscheck', 'zllcrosscheckmr', 'zllcrosscheckrsq',
                 'sfstatttjetsNJetsTTJets', 'sfstatwjetsNJetsWJets',
