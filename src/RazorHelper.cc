@@ -1,7 +1,7 @@
 #include "RazorHelper.h"
 
 // Constructor
-RazorHelper::RazorHelper(std::string tag_, bool isData_, bool isFastsim_): 
+RazorHelper::RazorHelper(std::string tag_, bool isData_, bool isFastsim_):
         tag(tag_), isData(isData_), isFastsim(isFastsim_) {
     std::cout << "RazorHelper initializing with tag " << tag << std::endl;
 
@@ -135,7 +135,7 @@ RazorHelper::~RazorHelper() {
       if (JetCorrector[i]) delete JetCorrector[i];
       if (JetResolutionParameters[i]) delete JetResolutionParameters[i];
       if (JetResolutionCalculator[i]) delete JetResolutionCalculator[i];
-    }  
+    }
     if (btagcalib) delete btagcalib;
     if (btagreader) delete btagreader;
     if (btagreader_up) delete btagreader_up;
@@ -214,19 +214,19 @@ void RazorHelper::loadTag_Null() {
     // single lepton trigger scale factors
     eleTrigSFFile = 0;
     eleTrigSFHist = 0;
-    muTrigSFFile = 0; 
+    muTrigSFFile = 0;
     muTrigSFHist = 0;
 
     // single lepton trigger efficiencies
     eleTrigEffFile = 0;
     eleTrigEffHist = 0;
-    muTrigEffFile = 0; 
+    muTrigEffFile = 0;
     muTrigEffHist = 0;
 
 }
 
 ////////////////////////////////////////////////
-//  2015 
+//  2015
 ////////////////////////////////////////////////
 
 void RazorHelper::loadTag_Razor2015() {
@@ -251,7 +251,7 @@ void RazorHelper::loadLepton_Razor2015(){
     // electron efficiencies and scale factors
     std::cout << "RazorHelper: loading electron efficiency histograms" << std::endl;
     // For 2015 the lepton efficiency histograms for tight and veto IDs in fullsim are both
-    // stored in the fastsim-to-fullsim scale factor files. 
+    // stored in the fastsim-to-fullsim scale factor files.
     eleTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/ElectronEffFastsimToFullsimCorrectionFactors.2015.root");
     eleVetoEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/ElectronEffFastsimToFullsimCorrectionFactors.2015.root");
     eleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_TightElectronSelectionEffDenominatorReco_2015Final_Golden.root");
@@ -270,11 +270,11 @@ void RazorHelper::loadLepton_Razor2015(){
     // muon efficiencies and scale factors
     std::cout << "RazorHelper: loading muon efficiency histograms" << std::endl;
     // For 2015 the lepton efficiency histograms for tight and veto IDs in fullsim are both
-    // stored in the fastsim-to-fullsim scale factor files. 
+    // stored in the fastsim-to-fullsim scale factor files.
     muTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/MuonEffFastsimToFullsimCorrectionFactors.2015.root");
     muVetoEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/MuonEffFastsimToFullsimCorrectionFactors.2015.root");
-    muEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_TightMuonSelectionEffDenominatorReco_2015Final_Golden.root"); 
-    vetoMuEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_VetoMuonSelectionEffDenominatorReco_2015Final_Golden.root"); 
+    muEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_TightMuonSelectionEffDenominatorReco_2015Final_Golden.root");
+    vetoMuEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_VetoMuonSelectionEffDenominatorReco_2015Final_Golden.root");
     muTightEfficiencyHist = (TH2D*)muTightEfficiencyFile->Get("MuonEff_Tight_Fullsim");
     muVetoEfficiencyHist = (TH2D*)muVetoEfficiencyFile->Get("MuonEff_Veto_Fullsim");
     muTightEffFastsimSFHist = (TH2D*)muTightEfficiencyFile->Get("MuonTight_FastsimScaleFactor");
@@ -303,9 +303,9 @@ void RazorHelper::loadJECs_Razor2015() {
     jecUnc = std::vector<JetCorrectionUncertainty*>();
     JetResolutionCalculator = std::vector<SimpleJetResolution*>();
     JetCorrectionsIOV = std::vector<std::pair<int,int> >();
-    
+
     if (isData) {
-      
+
       std::vector<JetCorrectorParameters> correctionParametersTemp = std::vector<JetCorrectorParameters> ();
       correctionParametersTemp.push_back(JetCorrectorParameters(
                   Form("%s/Summer15_25nsV6_DATA_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
@@ -401,9 +401,9 @@ void RazorHelper::loadBTag_Razor2015() {
     // Fastsim
     // btagcalibfastsim = new BTagCalibration("csvv2", Form("%s/CSV_13TEV_Combined_20_11_2015.csv",bTagPathname.c_str()));
     btagcalibfastsim = new BTagCalibration("csvv2", "./CSV_13TEV_Combined_20_11_2015.csv");
-    btagreaderfastsim = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "central"); 
-    btagreaderfastsim_up = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "up");  
-    btagreaderfastsim_do = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "down");  
+    btagreaderfastsim = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "central");
+    btagreaderfastsim_up = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "up");
+    btagreaderfastsim_do = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "down");
 }
 
 void RazorHelper::loadTrigger_Razor2015() {
@@ -411,12 +411,12 @@ void RazorHelper::loadTrigger_Razor2015() {
     std::cout << "RazorHelper: loading trigger efficiency histograms" << std::endl;
     eleTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2015Final_Golden.root");
     eleTrigSFHist = (TH2D*)eleTrigSFFile->Get("ScaleFactor_EleTriggerEleCombinedEffDenominatorTight");
-    muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2015Final_Golden.root"); 
+    muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2015_Final_Golden_2093/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2015Final_Golden.root");
     muTrigSFHist = (TH2D*)muTrigSFFile->Get("ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight");
 
     eleTrigEffFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/Spring15MC/SingleElectronTriggerEfficiencyFromFullsim.root");
     eleTrigEffHist = (TH2D*)eleTrigEffFile->Get("hEffEtaPt");
-    muTrigEffFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/Spring15MC/SingleMuonTriggerEfficiencyFromFullsim.root"); 
+    muTrigEffFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/Spring15MC/SingleMuonTriggerEfficiencyFromFullsim.root");
     muTrigEffHist = (TH2D*)muTrigEffFile->Get("hEffEtaPt");
 
     //get trigger numbers
@@ -462,7 +462,7 @@ void RazorHelper::loadPhoton_Razor2015_76X(){
     // photon efficiency scale factors
     std::cout << "RazorHelper: loading photon efficiency scale factor histograms" << std::endl;
     phoEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2015/efficiency_results_PhoLooseEffDenominatorReco_2015.root");
-    phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("ScaleFactor_PhoLooseEffDenominatorReco");    
+    phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("ScaleFactor_PhoLooseEffDenominatorReco");
 }
 
 void RazorHelper::loadJECs_Razor2015_76X() {
@@ -528,7 +528,7 @@ void RazorHelper::loadJECs_Razor2015_76X() {
       correctionParametersTemp.push_back(JetCorrectorParameters(
                   Form("%s/Fall15_25nsV2_MC_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
       correctionParametersTemp.push_back(JetCorrectorParameters(
-                  Form("%s/Fall15_25nsV2_MC_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));  
+                  Form("%s/Fall15_25nsV2_MC_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
       JetCorrectorParameters *JetResolutionParametersTemp = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",jecPathname.c_str()));
       FactorizedJetCorrector *JetCorrectorTemp = new FactorizedJetCorrector(correctionParametersTemp);
       std::string jecUncPath = jecPathname+"/Fall15_25nsV2_MC_Uncertainty_AK4PFchs.txt";
@@ -587,8 +587,8 @@ void RazorHelper::loadLepton_Razor2016_MoriondRereco(){
     // electron efficiencies and scale factors
     // LAST UPDATED: 18 October 2016
     std::cout << "RazorHelper: loading 2016 electron efficiency histograms" << std::endl;
-    eleTightEfficiencyFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root"); 
-    eleVetoEfficiencyFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root"); 
+    eleTightEfficiencyFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
+    eleVetoEfficiencyFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
     eleEffSFFile = TFile::Open("efficiency_results_TightElectronSelectionEffDenominatorGen_2016_Rereco_Golden.root");
     vetoEleEffSFFile = TFile::Open("efficiency_results_VetoElectronSelectionEffDenominatorGen_2016_Rereco_Golden.root");
     eleGSFTrackEffSFFile = TFile::Open("efficiencySF_muEleTracking_2016_average.root");
@@ -612,17 +612,17 @@ void RazorHelper::loadLepton_Razor2016_MoriondRereco(){
     // muon efficiencies and scale factors
     // LAST UPDATED: 18 October 2016
     std::cout << "RazorHelper: loading 2016 muon efficiency histograms" << std::endl;
-    muTightEfficiencyFile = TFile::Open("MuonEffFastsimToFullsimCorrectionFactors.2016.root"); 
-    muVetoEfficiencyFile = TFile::Open("MuonEffFastsimToFullsimCorrectionFactors.2016.root"); 
-    muEffSFFile = TFile::Open("efficiency_results_TightMuonSelectionEffDenominatorGen_2016_Rereco_Golden.root"); 
-    vetoMuEffSFFile = TFile::Open("efficiency_results_VetoMuonSelectionEffDenominatorGen_2016_Rereco_Golden.root"); 
+    muTightEfficiencyFile = TFile::Open("MuonEffFastsimToFullsimCorrectionFactors.2016.root");
+    muVetoEfficiencyFile = TFile::Open("MuonEffFastsimToFullsimCorrectionFactors.2016.root");
+    muEffSFFile = TFile::Open("efficiency_results_TightMuonSelectionEffDenominatorGen_2016_Rereco_Golden.root");
+    vetoMuEffSFFile = TFile::Open("efficiency_results_VetoMuonSelectionEffDenominatorGen_2016_Rereco_Golden.root");
     muTrackEffSFFile = TFile::Open("efficiencySF_muEleTracking_2016_average.root");
     muTrackEffFile = TFile::Open("Efficiency_PromptMuon_TTJets_25ns_Reco_Fullsim.root");
     muTightEffFastsimSFFile = TFile::Open("MuonEffFastsimToFullsimCorrectionFactors.2016.root");
     muVetoEffFastsimSFFile = TFile::Open("MuonEffFastsimToFullsimCorrectionFactors.2016.root");
 
     muTightEfficiencyHist = (TH2D*)muTightEfficiencyFile->Get("MuonEff_Tight_Fullsim");
-    muVetoEfficiencyHist = (TH2D*)muVetoEfficiencyFile->Get("MuonEff_Veto_Fullsim"); 
+    muVetoEfficiencyHist = (TH2D*)muVetoEfficiencyFile->Get("MuonEff_Veto_Fullsim");
     // We don't have ID scale factors for Fastsim yet.
     muTightEffFastsimSFHist = (TH2D*)muTightEffFastsimSFFile->Get("MuonTight_FastsimScaleFactor");
     muVetoEffFastsimSFHist = (TH2D*)muVetoEffFastsimSFFile->Get("MuonVeto_FastsimScaleFactor");
@@ -646,10 +646,10 @@ void RazorHelper::loadPhoton_Razor2016_MoriondRereco(){
     // photon efficiency scale factors
     std::cout << "RazorHelper: loading photon efficiency scale factor histograms" << std::endl;
     phoEffSFFile = TFile::Open("efficiency_results_PhoLooseEffDenominatorReco_2016_Rereco.root");
-    phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("ScaleFactor_PhoLooseEffDenominatorReco");   
+    phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("ScaleFactor_PhoLooseEffDenominatorReco");
 
     phoEffFastsimSFFile = TFile::Open("PhotonEffFastsimToFullsimCorrectionFactors.2016.root");
-    phoLooseEffFastsimSFHist = (TH2D*)phoEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor"); 
+    phoLooseEffFastsimSFHist = (TH2D*)phoEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor");
 }
 
 
@@ -677,9 +677,9 @@ void RazorHelper::loadBTag_Razor2016_MoriondRereco() {
 
     // Fastsim
     btagcalibfastsim = new BTagCalibration("csvv2", "./fastsim_csvv2_ttbar_26_1_2017.csv");
-    btagreaderfastsim = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "central"); 
-    btagreaderfastsim_up = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "up");  
-    btagreaderfastsim_do = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "down");  
+    btagreaderfastsim = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "central");
+    btagreaderfastsim_up = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "up");
+    btagreaderfastsim_do = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "down");
 }
 
 void RazorHelper::loadTrigger_Razor2016_MoriondRereco() {
@@ -689,9 +689,9 @@ void RazorHelper::loadTrigger_Razor2016_MoriondRereco() {
     eleTrigSFFile = TFile::Open("efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2016_Rereco_Golden.root");
     eleTrigSFHist = (TH2D*)eleTrigSFFile->Get("ScaleFactor_EleTriggerEleCombinedEffDenominatorTight");
 
-    muTrigSFFile = TFile::Open("efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2016_Rereco_Golden.root"); 
+    muTrigSFFile = TFile::Open("efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2016_Rereco_Golden.root");
     muTrigSFHist = (TH2D*)muTrigSFFile->Get("ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight");
-    
+
     eleTrigEffFile = TFile::Open("SingleElectronTriggerEfficiency_2016_Rereco_Golden.root");
     eleTrigEffHist = (TH2D*)eleTrigEffFile->Get("hEffEtaPt");
 
@@ -699,14 +699,14 @@ void RazorHelper::loadTrigger_Razor2016_MoriondRereco() {
     muTrigEffHist = (TH2D*)muTrigEffFile->Get("hEffEtaPt");
 
     //diphoton trigger scale factors
-    diphotonTrigLeadingLegEffFile = TFile::Open("PhoHLTLeadingLegEffDenominatorLoose_2016_Rereco.root"); 
+    diphotonTrigLeadingLegEffFile = TFile::Open("PhoHLTLeadingLegEffDenominatorLoose_2016_Rereco.root");
     diphotonTrigLeadingLegEffHist = (TH2D*)diphotonTrigLeadingLegEffFile->Get("hEffEtaPt");
-    diphotonTrigTrailingLegEffFile = TFile::Open("PhoHLTTrailingLegEffDenominatorLoose_2016_Rereco.root"); 
+    diphotonTrigTrailingLegEffFile = TFile::Open("PhoHLTTrailingLegEffDenominatorLoose_2016_Rereco.root");
     diphotonTrigTrailingLegEffHist = (TH2D*)diphotonTrigTrailingLegEffFile->Get("hEffEtaPt");
 
-    diphotonTrigLeadingLegEffSFFile = TFile::Open("efficiency_results_PhoHLTLeadingLegEffDenominatorLoose_2016_Rereco.root"); 
+    diphotonTrigLeadingLegEffSFFile = TFile::Open("efficiency_results_PhoHLTLeadingLegEffDenominatorLoose_2016_Rereco.root");
     diphotonTrigLeadingLegEffSFHist = (TH2D*)diphotonTrigLeadingLegEffSFFile->Get("ScaleFactor_PhoHLTLeadingLegEffDenominatorLoose");
-    diphotonTrigTrailingLegEffSFFile = TFile::Open("efficiency_results_PhoHLTTrailingLegEffDenominatorLoose_2016_Rereco.root"); 
+    diphotonTrigTrailingLegEffSFFile = TFile::Open("efficiency_results_PhoHLTTrailingLegEffDenominatorLoose_2016_Rereco.root");
     diphotonTrigTrailingLegEffSFHist = (TH2D*)diphotonTrigTrailingLegEffSFFile->Get("ScaleFactor_PhoHLTTrailingLegEffDenominatorLoose");
 
     //get trigger numbers
@@ -726,7 +726,7 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
     jecUnc = std::vector<JetCorrectionUncertainty*>();
     JetResolutionCalculator = std::vector<SimpleJetResolution*>();
     JetCorrectionsIOV = std::vector<std::pair<int,int> >();
- 
+
     if (isData) {
       //IOV: 2016BCD
       std::vector<JetCorrectorParameters> correctionParametersBCD = std::vector<JetCorrectorParameters> ();
@@ -865,7 +865,7 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
       jecUnc.push_back(jecUncMC);
       JetCorrectionsIOV.push_back( std::pair<int,int>( -1, 99999999 ));
     }
-  
+
 }
 
 void RazorHelper::loadAK8JetTag_Razor2016_MoriondRereco() {
@@ -894,10 +894,10 @@ void RazorHelper::loadPhoton_Razor2016(){
     // photon efficiency scale factors
     std::cout << "RazorHelper: loading photon efficiency scale factor histograms" << std::endl;
     phoEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/efficiency_results_PhoLooseEffDenominatorReco_2016_ICHEP.root");
-    phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("ScaleFactor_PhoLooseEffDenominatorReco");    
+    phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("ScaleFactor_PhoLooseEffDenominatorReco");
 
     phoEffFastsimSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/PhotonEffFastsimToFullsimCorrectionFactors.2016.root");
-    phoLooseEffFastsimSFHist = (TH2D*)phoEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor"); 
+    phoLooseEffFastsimSFHist = (TH2D*)phoEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor");
 }
 
 
@@ -925,9 +925,9 @@ void RazorHelper::loadBTag_Razor2016() {
 
     // Fastsim
     btagcalibfastsim = new BTagCalibration("csvv2", "./fastsim_csvv2_ttbar_26_1_2017.csv");
-    btagreaderfastsim = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "central"); 
-    btagreaderfastsim_up = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "up");  
-    btagreaderfastsim_do = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "down");  
+    btagreaderfastsim = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "central");
+    btagreaderfastsim_up = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "up");
+    btagreaderfastsim_do = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "down");
 }
 
 void RazorHelper::loadJECs_Razor2016() {
@@ -1078,7 +1078,7 @@ void RazorHelper::loadJECs_Razor2016() {
       jecUnc.push_back(jecUncMC);
       JetCorrectionsIOV.push_back( std::pair<int,int>( 1, 99999999 ));
     }
- 
+
 }
 
 ////////////////////////////////////////////////
@@ -1109,7 +1109,7 @@ void RazorHelper::loadLepton_Razor2016_ICHEP(){
     // electron efficiencies and scale factors
     // LAST UPDATED: 18 October 2016
     std::cout << "RazorHelper: loading 2016 ICHEP electron efficiency histograms" << std::endl;
-    eleTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptElectron_TTJets_25ns_Tight_Fullsim.root"); 
+    eleTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptElectron_TTJets_25ns_Tight_Fullsim.root");
     eleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightElectronSelectionEffDenominatorReco_2016_ICHEP_Golden.root");
     eleGSFTrackEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden_12p9_ICHEP/efficiencySF_GsfTracking_2016ICHEP_Golden.root");
     eleGSFTrackEffFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptElectron_TTJets_25ns_Reco_Fullsim.root");
@@ -1131,8 +1131,8 @@ void RazorHelper::loadLepton_Razor2016_ICHEP(){
     // muon efficiencies and scale factors
     // LAST UPDATED: 18 October 2016
     std::cout << "RazorHelper: loading 2016 ICHEP muon efficiency histograms" << std::endl;
-    muTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptMuon_TTJets_25ns_Tight_Fullsim.root"); 
-    muEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightMuonSelectionEffDenominatorReco_2016_ICHEP_Golden.root"); 
+    muTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptMuon_TTJets_25ns_Tight_Fullsim.root");
+    muEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightMuonSelectionEffDenominatorReco_2016_ICHEP_Golden.root");
     muTrackEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden_12p9_ICHEP/efficiencySF_TrackReconstruction_2016ICHEP.root");
     muTrackEffFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptMuon_TTJets_25ns_Reco_Fullsim.root");
 
@@ -1140,7 +1140,7 @@ void RazorHelper::loadLepton_Razor2016_ICHEP(){
     muTightEffSFHist = (TH2D*)muEffSFFile->Get("ScaleFactor_TightMuonSelectionEffDenominatorReco");
     // We did not produce veto electron efficiencies or scale factors for this run period
     muVetoEfficiencyFile = 0;
-    muVetoEfficiencyHist = 0; 
+    muVetoEfficiencyHist = 0;
     vetoMuEffSFFile = 0;
     muVetoEffSFHist = 0;
     // We don't have any fastsim scale factors for this run period
@@ -1163,7 +1163,7 @@ void RazorHelper::loadTrigger_Razor2016_ICHEP() {
     std::cout << "RazorHelper: loading 2016 ICHEP trigger efficiency histograms" << std::endl;
     eleTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2016_ICHEP_Golden.root");
     eleTrigSFHist = (TH2D*)eleTrigSFFile->Get("ScaleFactor_EleTriggerEleCombinedEffDenominatorTight");
-    muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2016_ICHEP_Golden.root"); 
+    muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2016_ICHEP_Golden.root");
     muTrigSFHist = (TH2D*)muTrigSFFile->Get("ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight");
 
     eleTrigEffFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleElectronTriggerEfficiency_2016_ICHEP_Golden.root");
@@ -1173,9 +1173,9 @@ void RazorHelper::loadTrigger_Razor2016_ICHEP() {
     muTrigEffHist = (TH2D*)muTrigEffFile->Get("hEffEtaPt");
 
     //diphoton trigger scale factors
-    diphotonTrigLeadingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose_2016_ICHEP.root"); 
+    diphotonTrigLeadingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose_2016_ICHEP.root");
     diphotonTrigLeadingLegEffHist = (TH2D*)diphotonTrigLeadingLegEffFile->Get("hEffEtaPt");
-    diphotonTrigTrailingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose_2016_ICHEP.root"); 
+    diphotonTrigTrailingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose_2016_ICHEP.root");
     diphotonTrigTrailingLegEffHist = (TH2D*)diphotonTrigTrailingLegEffFile->Get("hEffEtaPt");
 
     //get trigger numbers
@@ -1214,8 +1214,8 @@ void RazorHelper::loadLepton_Razor2016G(){
     // electron efficiencies and scale factors
     // LAST UPDATED: 18 October 2016
     std::cout << "RazorHelper: loading 2016G electron efficiency histograms" << std::endl;
-    eleTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptElectron_TTJets_25ns_Tight_Fullsim.root"); 
-    eleVetoEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptElectron_TTJets_25ns_Veto_Fullsim.root"); 
+    eleTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptElectron_TTJets_25ns_Tight_Fullsim.root");
+    eleVetoEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptElectron_TTJets_25ns_Veto_Fullsim.root");
     eleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightElectronSelectionEffDenominatorReco_2016G_Golden.root");
     vetoEleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_VetoElectronSelectionEffDenominatorReco_2016G_Golden.root");
 
@@ -1233,12 +1233,12 @@ void RazorHelper::loadLepton_Razor2016G(){
     // muon efficiencies and scale factors
     // LAST UPDATED: 18 October 2016
     std::cout << "RazorHelper: loading 2016G muon efficiency histograms" << std::endl;
-    muTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptMuon_TTJets_25ns_Tight_Fullsim.root"); 
-    muVetoEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptMuon_TTJets_25ns_Veto_Fullsim.root"); 
-    muEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightMuonSelectionEffDenominatorReco_2016G_Golden.root"); 
-    vetoMuEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_VetoMuonSelectionEffDenominatorReco_2016G_Golden.root"); 
+    muTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptMuon_TTJets_25ns_Tight_Fullsim.root");
+    muVetoEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptMuon_TTJets_25ns_Veto_Fullsim.root");
+    muEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightMuonSelectionEffDenominatorReco_2016G_Golden.root");
+    vetoMuEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_VetoMuonSelectionEffDenominatorReco_2016G_Golden.root");
     muTightEfficiencyHist = (TH2D*)muTightEfficiencyFile->Get("Efficiency_PtEta");
-    muVetoEfficiencyHist = (TH2D*)muVetoEfficiencyFile->Get("Efficiency_PtEta"); 
+    muVetoEfficiencyHist = (TH2D*)muVetoEfficiencyFile->Get("Efficiency_PtEta");
     // We don't have any fastsim scale factors for this run period
     muTightEffFastsimSFHist = 0;
     muVetoEffFastsimSFHist = 0;
@@ -1261,7 +1261,7 @@ void RazorHelper::loadTrigger_Razor2016G() {
     std::cout << "RazorHelper: loading 2016G trigger efficiency histograms" << std::endl;
     eleTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2016G_Golden.root");
     eleTrigSFHist = (TH2D*)eleTrigSFFile->Get("ScaleFactor_EleTriggerEleCombinedEffDenominatorTight");
-    muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2016G_Golden.root"); 
+    muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2016G_Golden.root");
     muTrigSFHist = (TH2D*)muTrigSFFile->Get("ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight");
 
     eleTrigEffFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleElectronTriggerEfficiency_2016G_Golden.root");
@@ -1271,9 +1271,9 @@ void RazorHelper::loadTrigger_Razor2016G() {
     muTrigEffHist = (TH2D*)muTrigEffFile->Get("hEffEtaPt");
 
     //diphoton trigger scale factors
-    diphotonTrigLeadingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose_2016_ICHEP.root"); 
+    diphotonTrigLeadingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose_2016_ICHEP.root");
     diphotonTrigLeadingLegEffHist = (TH2D*)diphotonTrigLeadingLegEffFile->Get("hEffEtaPt");
-    diphotonTrigTrailingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose_2016_ICHEP.root"); 
+    diphotonTrigTrailingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose_2016_ICHEP.root");
     diphotonTrigTrailingLegEffHist = (TH2D*)diphotonTrigTrailingLegEffFile->Get("hEffEtaPt");
 
     //get trigger numbers
@@ -1290,7 +1290,7 @@ void RazorHelper::loadTag_Razor2016G_SUSYUnblind_80X() {
     loadPileup_Razor2016G_SUSYUnblind();
     loadLepton_Razor2016G_SUSYUnblind();
     loadPhoton_Razor2016_MoriondRereco(); // same as 2016 inclusive
-    loadBTag_Razor2016G_SUSYUnblind(); 
+    loadBTag_Razor2016G_SUSYUnblind();
     loadTrigger_Razor2016G_SUSYUnblind();
     loadJECs_Razor2016_MoriondRereco(); // same as 2016 inclusive
 }
@@ -1310,8 +1310,8 @@ void RazorHelper::loadLepton_Razor2016G_SUSYUnblind(){
     // electron efficiencies and scale factors
     // LAST UPDATED: 3 November 2016
     std::cout << "RazorHelper: loading 2016G_SUSYUnblind electron efficiency histograms" << std::endl;
-    eleTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptElectron_TTJets_25ns_Tight_Fullsim.root"); 
-    eleVetoEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptElectron_TTJets_25ns_Veto_Fullsim.root"); 
+    eleTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptElectron_TTJets_25ns_Tight_Fullsim.root");
+    eleVetoEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptElectron_TTJets_25ns_Veto_Fullsim.root");
     eleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightElectronSelectionEffDenominatorGen_2016G_Rereco_SUSYUnblind_Golden.root");
     vetoEleEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_VetoElectronSelectionEffDenominatorGen_2016G_Rereco_SUSYUnblind_Golden.root");
 
@@ -1329,12 +1329,12 @@ void RazorHelper::loadLepton_Razor2016G_SUSYUnblind(){
     // muon efficiencies and scale factors
     // LAST UPDATED: 18 October 2016
     std::cout << "RazorHelper: loading 2016G_SUSYUnblind muon efficiency histograms" << std::endl;
-    muTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptMuon_TTJets_25ns_Tight_Fullsim.root"); 
-    muVetoEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptMuon_TTJets_25ns_Veto_Fullsim.root"); 
-    muEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightMuonSelectionEffDenominatorGen_2016G_Rereco_SUSYUnblind_Golden.root"); 
-    vetoMuEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_VetoMuonSelectionEffDenominatorGen_2016G_SUSYUnblind_Golden.root"); 
+    muTightEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptMuon_TTJets_25ns_Tight_Fullsim.root");
+    muVetoEfficiencyFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptMuon_TTJets_25ns_Veto_Fullsim.root");
+    muEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightMuonSelectionEffDenominatorGen_2016G_Rereco_SUSYUnblind_Golden.root");
+    vetoMuEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_VetoMuonSelectionEffDenominatorGen_2016G_SUSYUnblind_Golden.root");
     muTightEfficiencyHist = (TH2D*)muTightEfficiencyFile->Get("Efficiency_PtEta");
-    muVetoEfficiencyHist = (TH2D*)muVetoEfficiencyFile->Get("Efficiency_PtEta"); 
+    muVetoEfficiencyHist = (TH2D*)muVetoEfficiencyFile->Get("Efficiency_PtEta");
     // We don't have any fastsim scale factors for this run period
     muTightEffFastsimSFHist = 0;
     muVetoEffFastsimSFHist = 0;
@@ -1375,9 +1375,9 @@ void RazorHelper::loadBTag_Razor2016G_SUSYUnblind() {
 
     // Fastsim
     btagcalibfastsim = new BTagCalibration("csvv2", "./fastsim_csvv2_ttbar_26_1_2017.csv");
-    btagreaderfastsim = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "central"); 
-    btagreaderfastsim_up = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "up");  
-    btagreaderfastsim_do = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "down");  
+    btagreaderfastsim = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "central");
+    btagreaderfastsim_up = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "up");
+    btagreaderfastsim_do = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "down");
 }
 
 void RazorHelper::loadTrigger_Razor2016G_SUSYUnblind() {
@@ -1386,7 +1386,7 @@ void RazorHelper::loadTrigger_Razor2016G_SUSYUnblind() {
     std::cout << "RazorHelper: loading 2016G_SUSYUnblind trigger efficiency histograms" << std::endl;
     eleTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2016G_Rereco_SUSYUnblind_Golden.root");
     eleTrigSFHist = (TH2D*)eleTrigSFFile->Get("ScaleFactor_EleTriggerEleCombinedEffDenominatorTight");
-    muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2016G_Rereco_SUSYUnblind_Golden.root"); 
+    muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2016G_Rereco_SUSYUnblind_Golden.root");
     muTrigSFHist = (TH2D*)muTrigSFFile->Get("ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight");
 
     eleTrigEffFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleElectronTriggerEfficiency_2016G_Rereco_SUSYUnblind_Golden.root");
@@ -1396,9 +1396,9 @@ void RazorHelper::loadTrigger_Razor2016G_SUSYUnblind() {
     muTrigEffHist = (TH2D*)muTrigEffFile->Get("hEffEtaPt");
 
     //diphoton trigger scale factors
-    diphotonTrigLeadingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose_2016_ICHEP.root"); 
+    diphotonTrigLeadingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose_2016_ICHEP.root");
     diphotonTrigLeadingLegEffHist = (TH2D*)diphotonTrigLeadingLegEffFile->Get("hEffEtaPt");
-    diphotonTrigTrailingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose_2016_ICHEP.root"); 
+    diphotonTrigTrailingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose_2016_ICHEP.root");
     diphotonTrigTrailingLegEffHist = (TH2D*)diphotonTrigTrailingLegEffFile->Get("hEffEtaPt");
 
     //get trigger numbers
@@ -1414,7 +1414,7 @@ void RazorHelper::loadTrigger_Razor2016G_SUSYUnblind() {
 void RazorHelper::loadTag_Razor2017_92X() {
   loadPileup_Razor2017_92X();
   loadLepton_Razor2016_MoriondRereco();
-  loadPhoton_Razor2017_94X();
+  loadPhoton_Razor2017_92X();
   loadBTag_Razor2016_MoriondRereco();
   loadTrigger_Razor2017_92X();
   loadJECs_Razor2016_MoriondRereco();
@@ -1450,9 +1450,9 @@ void RazorHelper::loadTrigger_Razor2017_92X() {
     eleTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2016_Rereco_Golden.root");
     eleTrigSFHist = (TH2D*)eleTrigSFFile->Get("ScaleFactor_EleTriggerEleCombinedEffDenominatorTight");
 
-    muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2016_Rereco_Golden.root"); 
+    muTrigSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2016_Rereco_Golden.root");
     muTrigSFHist = (TH2D*)muTrigSFFile->Get("ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight");
-    
+
     eleTrigEffFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleElectronTriggerEfficiency_2016_Rereco_Golden.root");
     eleTrigEffHist = (TH2D*)eleTrigEffFile->Get("hEffEtaPt");
 
@@ -1460,14 +1460,14 @@ void RazorHelper::loadTrigger_Razor2017_92X() {
     muTrigEffHist = (TH2D*)muTrigEffFile->Get("hEffEtaPt");
 
     //diphoton trigger scale factors
-    diphotonTrigLeadingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose_2016_Rereco.root"); 
+    diphotonTrigLeadingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose_2016_Rereco.root");
     diphotonTrigLeadingLegEffHist = (TH2D*)diphotonTrigLeadingLegEffFile->Get("hEffEtaPt");
-    diphotonTrigTrailingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose_2016_Rereco.root"); 
+    diphotonTrigTrailingLegEffFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose_2016_Rereco.root");
     diphotonTrigTrailingLegEffHist = (TH2D*)diphotonTrigTrailingLegEffFile->Get("hEffEtaPt");
 
-    diphotonTrigLeadingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/efficiency_results_PhoHLTLeadingLegEffDenominatorLoose_2016_Rereco.root"); 
+    diphotonTrigLeadingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/efficiency_results_PhoHLTLeadingLegEffDenominatorLoose_2016_Rereco.root");
     diphotonTrigLeadingLegEffSFHist = (TH2D*)diphotonTrigLeadingLegEffSFFile->Get("ScaleFactor_PhoHLTLeadingLegEffDenominatorLoose");
-    diphotonTrigTrailingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/efficiency_results_PhoHLTTrailingLegEffDenominatorLoose_2016_Rereco.root"); 
+    diphotonTrigTrailingLegEffSFFile = TFile::Open("root://eoscms:///store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/efficiency_results_PhoHLTTrailingLegEffDenominatorLoose_2016_Rereco.root");
     diphotonTrigTrailingLegEffSFHist = (TH2D*)diphotonTrigTrailingLegEffSFFile->Get("ScaleFactor_PhoHLTTrailingLegEffDenominatorLoose");
 
     //get trigger index numbers
@@ -1478,16 +1478,16 @@ void RazorHelper::loadTrigger_Razor2017_92X() {
 }
 
 
-void RazorHelper::loadPhoton_Razor2017_94X(){
+void RazorHelper::loadPhoton_Razor2017_92X(){
     // photon efficiency scale factors
-    // use avaerage results for run 2017BCDEF for now 
+    // use avaerage results for run 2017BCDEF for now
     std::cout << "RazorHelper: loading photon efficiency scale factor histograms" << std::endl;
     phoEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2017/efficiency_results_PhoLooseEffDenominatorReco_2017BCDEF_94X.root");
-    phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("EGamma_SF2D");   
+    phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("EGamma_SF2D");
 
-    // results for 2017MC is not available yet, use 2016 version for now 
+    // results for 2017MC is not available yet, use 2016 version for now
     phoEffFastsimSFFile = TFile::Open("PhotonEffFastsimToFullsimCorrectionFactors.2016.root");
-    phoLooseEffFastsimSFHist = (TH2D*)phoEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor"); 
+    phoLooseEffFastsimSFHist = (TH2D*)phoEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor");
 }
 
 
@@ -1537,7 +1537,7 @@ double RazorHelper::lookupPtEtaScaleFactor(TH2D *hist, double pt, double eta, do
       if( useAbsEta ) {
 	etaToUse = fabs(eta);
 	  }
-      
+
       return hist->GetBinContent(
 				 hist->GetXaxis()->FindFixBin( fmax( fmin(pt,ptmax), ptmin ) ),
 				 hist->GetYaxis()->FindFixBin( etaToUse )
@@ -1609,11 +1609,11 @@ double RazorHelper::getPassOrFailScaleFactor(double eff, double sf, bool passes)
 
 // Helper function for computing scale factors from histograms
 // The smear parameter is used to add a fractional uncertainty in quadrature with the one from the histogram
-// Returns a vector of five scale factors: 
+// Returns a vector of five scale factors:
 // 1) central value of scale factor
 // 2,3) scale factor plus/minus uncertainty from fullsim scale factor
 // 4,5) scale factor plus/minus uncertainty from fastsim scale factor
-std::vector<double> RazorHelper::getLeptonScaleFactors(TH2D *effHist, TH2D *sfHist, 
+std::vector<double> RazorHelper::getLeptonScaleFactors(TH2D *effHist, TH2D *sfHist,
         TH2D *fastsimHist, double pt, double eta, bool passes, double smear) {
 
     double eff = lookupPtEtaScaleFactor( effHist, pt, eta );
@@ -1622,7 +1622,7 @@ std::vector<double> RazorHelper::getLeptonScaleFactors(TH2D *effHist, TH2D *sfHi
     if (isFastsim) { //correct efficiency for Fastsim
         double sf = lookupPtEtaScaleFactor( fastsimHist, pt, eta );
         double sfErr = lookupPtEtaScaleFactorError( fastsimHist, pt, eta );
-        eff *= sf; 
+        eff *= sf;
         eff_fastsimUp *= (sf + sfErr);
         eff_fastsimDown *= (sf - sfErr);
     }
@@ -1643,10 +1643,10 @@ std::vector<double> RazorHelper::getLeptonScaleFactors(TH2D *effHist, TH2D *sfHi
     return out;
 }
 
-// This function updates the provided scale factor values in-place by multiplying them by the 
-// SFs corresponding to the provided values of pt and eta.  
-void RazorHelper::updateScaleFactors(TH2D *effHist, TH2D *sfHist, TH2D *fastsimHist, 
-        float pt, float eta, bool passes, float &sf, float &sfUp, float &sfDown, 
+// This function updates the provided scale factor values in-place by multiplying them by the
+// SFs corresponding to the provided values of pt and eta.
+void RazorHelper::updateScaleFactors(TH2D *effHist, TH2D *sfHist, TH2D *fastsimHist,
+        float pt, float eta, bool passes, float &sf, float &sfUp, float &sfDown,
         float &sfFastsimUp, float &sfFastsimDown, float smear) {
 
     //retrieve scale factors and deal correctly with passing/failing selection
@@ -1660,44 +1660,44 @@ void RazorHelper::updateScaleFactors(TH2D *effHist, TH2D *sfHist, TH2D *fastsimH
     sfFastsimDown *= scaleFactors[4]/scaleFactors[0];
 }
 
-void RazorHelper::updateTightMuonScaleFactors(float pt, float eta, bool isTight, 
+void RazorHelper::updateTightMuonScaleFactors(float pt, float eta, bool isTight,
         float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown) {
 
-    updateScaleFactors( muTightEfficiencyHist, muTightEffSFHist, muTightEffFastsimSFHist, 
+    updateScaleFactors( muTightEfficiencyHist, muTightEffSFHist, muTightEffFastsimSFHist,
             pt, eta, isTight, sf, sfUp, sfDown, sfFastsimUp, sfFastsimDown );
 
 }
 
-void RazorHelper::updateVetoMuonScaleFactors(float pt, float eta, bool isVeto, 
+void RazorHelper::updateVetoMuonScaleFactors(float pt, float eta, bool isVeto,
         float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown) {
-    updateScaleFactors( muVetoEfficiencyHist, muVetoEffSFHist, muVetoEffFastsimSFHist, 
+    updateScaleFactors( muVetoEfficiencyHist, muVetoEffSFHist, muVetoEffFastsimSFHist,
             fmax( pt, muVetoEffSFMinPt), eta, isVeto, sf, sfUp, sfDown, sfFastsimUp, sfFastsimDown );
 
 }
 
-void RazorHelper::updateTightElectronScaleFactors(float pt, float eta, bool isTight, 
+void RazorHelper::updateTightElectronScaleFactors(float pt, float eta, bool isTight,
         float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown) {
 
-    updateScaleFactors( eleTightEfficiencyHist, eleTightEffSFHist, eleTightEffFastsimSFHist, 
+    updateScaleFactors( eleTightEfficiencyHist, eleTightEffSFHist, eleTightEffFastsimSFHist,
             pt, eta, isTight, sf, sfUp, sfDown, sfFastsimUp, sfFastsimDown, 0.02 );
 
 }
 
-void RazorHelper::updateVetoElectronScaleFactors(float pt, float eta, bool isVeto, 
+void RazorHelper::updateVetoElectronScaleFactors(float pt, float eta, bool isVeto,
         float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown) {
-        
-    updateScaleFactors( eleVetoEfficiencyHist, eleVetoEffSFHist, eleVetoEffFastsimSFHist, 
+
+    updateScaleFactors( eleVetoEfficiencyHist, eleVetoEffSFHist, eleVetoEffFastsimSFHist,
             fmax( pt, eleVetoEffSFMinPt), eta, isVeto, sf, sfUp, sfDown, sfFastsimUp, sfFastsimDown, 0.02 );
 
 }
 
 // Computes a single lepton scale factor
-double RazorHelper::getLeptonScaleFactor(TH2D *effHist, TH2D *sfHist, TH2D *fastsimHist, 
+double RazorHelper::getLeptonScaleFactor(TH2D *effHist, TH2D *sfHist, TH2D *fastsimHist,
         double pt, double eta, bool passes) {
     double eff = lookupPtEtaScaleFactor( effHist, pt, eta );
     if (isFastsim) { //correct efficiency for Fastsim
         double sf = lookupPtEtaScaleFactor( fastsimHist, pt, eta );
-        eff *= sf; 
+        eff *= sf;
     }
     double effSF = lookupPtEtaScaleFactor( sfHist, pt, eta );
 
@@ -1748,7 +1748,7 @@ double RazorHelper::getPhotonScaleFactor(float pt, float eta, bool invert) {
 	}
       else
 	{
-	  sf = lookupPtEtaScaleFactor( phoLooseEffSFHist, pt, eta, 20.01, 99.9 ); 
+	  sf = lookupPtEtaScaleFactor( phoLooseEffSFHist, pt, eta, 20.01, 99.9 );
 	}
     }
   else { std::cout << "[WARNING] Could not load phoLooseEffSFHist.\n"; }
@@ -1757,15 +1757,15 @@ double RazorHelper::getPhotonScaleFactor(float pt, float eta, bool invert) {
 
 double RazorHelper::getPhotonFastsimToFullsimScaleFactor(float pt, float eta) {
   double sf = 1.0;
-  if (phoLooseEffFastsimSFHist) sf = lookupPtEtaScaleFactor( phoLooseEffFastsimSFHist, pt, eta, 20.01, 299.9 ); 
+  if (phoLooseEffFastsimSFHist) sf = lookupPtEtaScaleFactor( phoLooseEffFastsimSFHist, pt, eta, 20.01, 299.9 );
   else { std::cout << "[WARNING] Could not load phoLooseEffFastsimSFHist.\n"; }
   return sf;
 }
 
-// Returns the trigger scale factor corresponding to the given values of pt and eta.  
-// For fastsim events, the scale factor will be multiplied by the trigger efficiency 
+// Returns the trigger scale factor corresponding to the given values of pt and eta.
+// For fastsim events, the scale factor will be multiplied by the trigger efficiency
 // given in fastsimHist.
-double RazorHelper::getTriggerScaleFactor(TH2D *sfHist, TH2D *fastsimHist, float pt, float eta, 
+double RazorHelper::getTriggerScaleFactor(TH2D *sfHist, TH2D *fastsimHist, float pt, float eta,
         bool isTight, bool passedTrigger, float fastsimPtCut, float ptCut) {
     double trigSF = lookupPtEtaScaleFactor( sfHist, pt, eta, 199.9, ptCut );
     if (isFastsim) {
@@ -1778,7 +1778,7 @@ double RazorHelper::getTriggerScaleFactor(TH2D *sfHist, TH2D *fastsimHist, float
     return 1.0;
 }
 
-double RazorHelper::getTriggerEfficiency(TH2D *effHist, float pt, float eta, 
+double RazorHelper::getTriggerEfficiency(TH2D *effHist, float pt, float eta,
         bool isTight, bool passedTrigger, float ptCut) {
     double trigEff = lookupEtaPtScaleFactor( effHist, pt, eta, 199.9, ptCut );
     if (passedTrigger && isTight){
@@ -1788,7 +1788,7 @@ double RazorHelper::getTriggerEfficiency(TH2D *effHist, float pt, float eta,
 }
 
 double RazorHelper::getSingleMuTriggerScaleFactor(float pt, float eta, bool isTight, bool passedTrigger) {
-    return getTriggerScaleFactor( muTrigSFHist, muTrigEffHist, pt, eta, 
+    return getTriggerScaleFactor( muTrigSFHist, muTrigEffHist, pt, eta,
             isTight, passedTrigger, 15.01, 20.01 );
 }
 
@@ -1809,14 +1809,14 @@ double RazorHelper::getSingleEleTriggerEfficiency(float pt, float eta, bool isTi
 }
 
 double RazorHelper::getSingleEleTriggerScaleFactor(float pt, float eta, bool isTight, bool passedTrigger) {
-    return getTriggerScaleFactor( eleTrigSFHist, eleTrigEffHist, pt, eta, 
+    return getTriggerScaleFactor( eleTrigSFHist, eleTrigEffHist, pt, eta,
             isTight, passedTrigger, 25.01, 25.01 );
 }
 
-// Update the provided trigger scale factors in-place by multiplying them by the SFs 
+// Update the provided trigger scale factors in-place by multiplying them by the SFs
 // corresponding to the given values of pt and eta
-void RazorHelper::updateTriggerScaleFactors(TH2D *sfHist, TH2D *fastsimHist, 
-        float pt, float eta, bool isTight, bool passedTrigger, float &sf, float &sfUp, float &sfDown, 
+void RazorHelper::updateTriggerScaleFactors(TH2D *sfHist, TH2D *fastsimHist,
+        float pt, float eta, bool isTight, bool passedTrigger, float &sf, float &sfUp, float &sfDown,
         float fastsimPtCut, float extraSyst) {
     double trigSF = lookupPtEtaScaleFactor( sfHist, pt, eta );
     double trigSFErr = lookupPtEtaScaleFactorError( sfHist, pt, eta );
@@ -1832,44 +1832,44 @@ void RazorHelper::updateTriggerScaleFactors(TH2D *sfHist, TH2D *fastsimHist,
             // note that the fastsim trigger histograms have pt on the y-axis
             double trigSFFastsim = lookupEtaPtScaleFactor( fastsimHist, pt, eta, 999.9, fastsimPtCut );
             sf *= trigSFFastsim;
-        }		  
+        }
     }
 }
 
-void RazorHelper::updateSingleMuTriggerScaleFactors(float pt, float eta, bool isTight, 
+void RazorHelper::updateSingleMuTriggerScaleFactors(float pt, float eta, bool isTight,
         bool passedTrigger, float &sf, float &sfUp, float &sfDown) {
-    updateTriggerScaleFactors( muTrigSFHist, muTrigEffHist, pt, eta, isTight, 
+    updateTriggerScaleFactors( muTrigSFHist, muTrigEffHist, pt, eta, isTight,
             passedTrigger, sf, sfUp, sfDown, 15.01 );
 }
 
-void RazorHelper::updateSingleEleTriggerScaleFactors(float pt, float eta, bool isTight, 
+void RazorHelper::updateSingleEleTriggerScaleFactors(float pt, float eta, bool isTight,
         bool passedTrigger, float &sf, float &sfUp, float &sfDown) {
-    updateTriggerScaleFactors( eleTrigSFHist, eleTrigEffHist, pt, eta, isTight, 
+    updateTriggerScaleFactors( eleTrigSFHist, eleTrigEffHist, pt, eta, isTight,
             passedTrigger, sf, sfUp, sfDown, 25.01, 0.02 );
 }
 
 double RazorHelper::getDiphotonTrigLeadingLegEff(float pt, float eta) {
   double sf = 1.0;
-  if (diphotonTrigLeadingLegEffHist) sf = lookupEtaPtScaleFactor( diphotonTrigLeadingLegEffHist, pt, eta, 20.01, 99.9 ); 
-  return sf; 
+  if (diphotonTrigLeadingLegEffHist) sf = lookupEtaPtScaleFactor( diphotonTrigLeadingLegEffHist, pt, eta, 20.01, 99.9 );
+  return sf;
 }
 
 double RazorHelper::getDiphotonTrigLeadingLegEffSF(float pt, float eta) {
   double sf = 1.0;
-  if (diphotonTrigLeadingLegEffSFHist) sf = lookupPtEtaScaleFactor( diphotonTrigLeadingLegEffSFHist, pt, eta, 20.01, 99.9 ); 
-  return sf; 
+  if (diphotonTrigLeadingLegEffSFHist) sf = lookupPtEtaScaleFactor( diphotonTrigLeadingLegEffSFHist, pt, eta, 20.01, 99.9 );
+  return sf;
 }
 
 double RazorHelper::getDiphotonTrigTrailingLegEff(float pt, float eta) {
   double sf = 1.0;
-  if (diphotonTrigTrailingLegEffHist) sf = lookupEtaPtScaleFactor( diphotonTrigTrailingLegEffHist, pt, eta, 20.01, 99.9 ); 
-  return sf; 
+  if (diphotonTrigTrailingLegEffHist) sf = lookupEtaPtScaleFactor( diphotonTrigTrailingLegEffHist, pt, eta, 20.01, 99.9 );
+  return sf;
 }
 
 double RazorHelper::getDiphotonTrigTrailingLegEffSF(float pt, float eta) {
   double sf = 1.0;
-  if (diphotonTrigTrailingLegEffSFHist) sf = lookupPtEtaScaleFactor( diphotonTrigTrailingLegEffSFHist, pt, eta, 20.01, 99.9 ); 
-  return sf; 
+  if (diphotonTrigTrailingLegEffSFHist) sf = lookupPtEtaScaleFactor( diphotonTrigTrailingLegEffSFHist, pt, eta, 20.01, 99.9 );
+  return sf;
 }
 
 // Retrieve jet energy uncertainty as a function of pt and eta
@@ -1899,11 +1899,11 @@ double RazorHelper::getBTagScaleFactor(float pt, float eta, int flavor, bool isC
     if ( abs(flavor) == 5) {
         effMedium = lookupPtEtaScaleFactor( btagMediumEfficiencyHist, pt, eta );
         jetType = BTagEntry::FLAV_B;
-    } 
+    }
     else if ( abs(flavor) == 4) {
         effMedium = lookupPtEtaScaleFactor( btagMediumCharmEfficiencyHist, pt, eta );
         jetType = BTagEntry::FLAV_C;
-    } 
+    }
     else {
         effMedium = lookupPtEtaScaleFactor( btagMediumLightJetsEfficiencyHist, pt, eta );
         jetType = BTagEntry::FLAV_UDSG;
@@ -1913,7 +1913,7 @@ double RazorHelper::getBTagScaleFactor(float pt, float eta, int flavor, bool isC
     if (pt >= 670) pt = 669; //670 is the largest pt range listed in the CSV text file
     double jet_scalefactor = -1;
     if ( abs(flavor) == 5 || abs(flavor) == 4 ) {
-        jet_scalefactor = btagreader->eval(jetType, eta, pt); 
+        jet_scalefactor = btagreader->eval(jetType, eta, pt);
     }
     else {
         jet_scalefactor = 0.907317;
@@ -1921,7 +1921,7 @@ double RazorHelper::getBTagScaleFactor(float pt, float eta, int flavor, bool isC
 
     //correct efficiency for Fastsim
     //Do this only for b-jets for now
-    if (isFastsim && abs(flavor) == 5) { 
+    if (isFastsim && abs(flavor) == 5) {
         jet_scalefactor *= btagreaderfastsim->eval(jetType, eta, pt);
     }
 
@@ -1929,9 +1929,9 @@ double RazorHelper::getBTagScaleFactor(float pt, float eta, int flavor, bool isC
 }
 
 // Update the provided b-tag scale factors in-place by multiplying by the SFs corresponding
-// to the given values of pt, eta, and flavor.  
+// to the given values of pt, eta, and flavor.
 void RazorHelper::updateBTagScaleFactors(float pt, float eta, int flavor, bool isCSVM,
-        float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown, 
+        float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown,
         float &sfMistagUp, float &sfMistagDown) {
     // Get efficiency and jet flavor
     double effMedium = 0;
@@ -1939,11 +1939,11 @@ void RazorHelper::updateBTagScaleFactors(float pt, float eta, int flavor, bool i
     if ( abs(flavor) == 5) {
         effMedium = lookupPtEtaScaleFactor( btagMediumEfficiencyHist, pt, eta );
         jetType = BTagEntry::FLAV_B;
-    } 
+    }
     else if ( abs(flavor) == 4) {
         effMedium = lookupPtEtaScaleFactor( btagMediumCharmEfficiencyHist, pt, eta );
         jetType = BTagEntry::FLAV_C;
-    } 
+    }
     else {
         effMedium = lookupPtEtaScaleFactor( btagMediumLightJetsEfficiencyHist, pt, eta );
         jetType = BTagEntry::FLAV_UDSG;
@@ -1953,23 +1953,23 @@ void RazorHelper::updateBTagScaleFactors(float pt, float eta, int flavor, bool i
     if (pt >= 670) pt = 669; //670 is the largest pt range listed in the CSV text file
     double jet_scalefactor = -1;
     double jet_scalefactorUp = -1;
-    double jet_scalefactorDown = -1;  
+    double jet_scalefactorDown = -1;
     if ( abs(flavor) == 5 || abs(flavor) == 4 ) {
-        jet_scalefactor = btagreader->eval(jetType, eta, pt); 
+        jet_scalefactor = btagreader->eval(jetType, eta, pt);
         jet_scalefactorUp = btagreader_up->eval(jetType, eta, pt);
         jet_scalefactorDown = btagreader_do->eval(jetType, eta, pt);
     }
     else {
         jet_scalefactor = 0.907317;
-        jet_scalefactorUp = 1.257317;		  
-        jet_scalefactorDown = 0.557317;		
+        jet_scalefactorUp = 1.257317;
+        jet_scalefactorDown = 0.557317;
     }
     double jet_scalefactorFastsimUp = jet_scalefactor;
     double jet_scalefactorFastsimDown = jet_scalefactor;
 
     //correct efficiency for Fastsim
     //Do this only for b-jets for now
-    if (isFastsim && abs(flavor) == 5) { 
+    if (isFastsim && abs(flavor) == 5) {
         double jet_scalefactorFastsim = btagreaderfastsim->eval(jetType, eta, pt);
         jet_scalefactor *= jet_scalefactorFastsim;
         jet_scalefactorUp *= jet_scalefactorFastsim;
@@ -1986,7 +1986,7 @@ void RazorHelper::updateBTagScaleFactors(float pt, float eta, int flavor, bool i
         sfDown *= getPassOrFailScaleFactor( effMedium, jet_scalefactorDown, isCSVM ) / tmpSF;
         sfFastsimUp *= getPassOrFailScaleFactor( effMedium, jet_scalefactorFastsimUp, isCSVM ) / tmpSF;
         sfFastsimDown *= getPassOrFailScaleFactor( effMedium, jet_scalefactorFastsimDown, isCSVM ) / tmpSF;
-    } 
+    }
     else {
         sfMistagUp *= getPassOrFailScaleFactor( effMedium, jet_scalefactorUp, isCSVM ) / tmpSF;
         sfMistagDown *= getPassOrFailScaleFactor( effMedium, jet_scalefactorDown, isCSVM ) / tmpSF;
@@ -2000,7 +2000,7 @@ float RazorHelper::getTopPtWeight( float ptT, float ptTbar ) {
     if( ptTbar > 800 ) ptTbar = 800;
 
     // fit parameters recommended for 13 TeV data
-    float a = 0.0615; 
+    float a = 0.0615;
     float b = -0.0005;
 
     // weight from top
@@ -2158,7 +2158,7 @@ RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isDa
     // Loop over AK8 jets to count tags and update scale factors
     for (unsigned int iJet = 0; iJet < ra->nFatJets; iJet++) {
         // Baseline cuts on pt and eta
-        if ( ra->fatJetCorrectedPt[iJet] < AK8_PT_CUT ) continue; 
+        if ( ra->fatJetCorrectedPt[iJet] < AK8_PT_CUT ) continue;
         if ( fabs(ra->fatJetEta[iJet]) > AK8_ETA_CUT ) continue;
         if ( !ra->fatJetPassIDLoose[iJet] ) continue;
         if ( ra->matchesVetoLepton(ra->fatJetEta[iJet], ra->fatJetPhi[iJet], 0.8) ) continue;
@@ -2173,7 +2173,7 @@ RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isDa
                 ra->fatJetEta[iJet], ra->fatJetPhi[iJet]);
         bool matchesGenW = (genWIndex >= 0);
         // Note: only consider hadronic Ws
-        if (matchesGenW && ra->isHadronicDecay(genWIndex)) { 
+        if (matchesGenW && ra->isHadronicDecay(genWIndex)) {
             float genWPt = ra->gParticlePt[genWIndex];
             float eff = getWTagEfficiency(genWPt);
             jetInfo.wTagScaleFactor *= getPassOrFailScaleFactor(
@@ -2212,7 +2212,7 @@ RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isDa
         if ( ra->fatJetCorrectedPt[iJet] < TOP_TAG_PT_CUT ) continue;
         bool isTopTagged = isTopTaggedAK8Jet(ra, iJet);
         if ( isTopTagged ) {
-            jetInfo.nTopTags++;    
+            jetInfo.nTopTags++;
         }
         // Apply scale factor if it matches a gen top
         int genTopIndex = ra->getMatchingGenTopIndex(
@@ -2250,4 +2250,3 @@ RazorHelper::AK8JetInfo RazorHelper::CalcAK8JetInfo(RazorAnalyzer *ra, bool isDa
 
     return jetInfo;
 }
-
