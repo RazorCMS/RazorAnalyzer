@@ -48,6 +48,8 @@ def adjustShapes(analysis, shapeNames):
                     else:
                         newShapes[newShapeName].append(proc)
     newShapes = [(name, procs) for name, procs in newShapes.iteritems()]
+    if 'QCD' in analysis.samples:
+        newShapes.append(('qcdbtagsys', ['QCD']))
     print "Using additional shape uncertainties:"
     print newShapes
     return shapeNames + newShapes
@@ -105,4 +107,5 @@ if __name__ == "__main__":
 
     plotControlSampleHists(box, inFile, samples=samples, plotOpts=plotOpts, boxName=box, 
             btags=btags, blindBins=blindBins, debugLevel=debugLevel, printdir=dirName, lumiData=lumi, doEmptyBinErrs=True,
-            unrollBins=unrollBins, shapeErrors=shapesToUse)
+            unrollBins=unrollBins, shapeErrors=shapesToUse,
+            weightHists=analysis.weightHists)

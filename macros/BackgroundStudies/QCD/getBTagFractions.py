@@ -22,6 +22,28 @@ def print_hist(hist):
     hist.Draw("colztexte")
     c.Print('QCD_NBtags_{}.pdf'.format(name))
 
+def write_sys_hist(hist, f):
+    """
+    Computes a systematic uncertainty based on the spread
+    of the data in Rsq
+    """
+    syshist = rt.TH1F(hist.GetName().replace('lo', 'btags')
+            +'sys', '',
+            hist.GetNbinsY(), 0, hist.GetNbinsY()-1)
+    syshist.SetDirectory(0)
+    for btagbin in range(1, hist.GetNbinsY()+1):
+        minq = -1
+        maxq = -1
+        for rsqbin in range(1, hist.GetNbinsX()+1):
+            thisq = hist.GetBinContent(rsqbin, btagbin)
+            if minq == -1 or thisq < minq:
+                minq = thisq
+            if maxq == -1 or thisq > maxq:
+                maxq = thisq
+        syshist.SetBinContent(btagbin, maxq-minq)
+    f.cd()
+    syshist.Write()
+
 def write_hist(hist, f):
     f.cd()
     name = hist.GetName().replace('lo', 'btags')
@@ -54,6 +76,12 @@ if __name__ == '__main__':
         for region in regions:
             print "Doing {} {}".format(box, region)
             binning = get_binning(box, region)
+            # I am removing one bin division in Rsq
+            # to increase statistics
+            try:
+                binning['Rsq'].remove(0.28)
+            except ValueError:
+                pass
             binning['nBTaggedJets'] = btags
             hist_name = box+region
             hist = make_hist(hist_name, binning)
@@ -68,5 +96,7 @@ if __name__ == '__main__':
             if region == 'lo':
                 write_hist(hist, out_f)
             normalize_columns(hist)
+            if region == 'lo':
+                write_sys_hist(hist, out_f)
             print_hist(hist)
     out_f.Close()

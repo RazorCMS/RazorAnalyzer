@@ -15,29 +15,32 @@ set cmsswDir=$9
 set label=$10
 
 echo " "; echo "Initialize CMSSW"; echo " "
+#setenv KRB5CCNAME /home/sixie/.krb5/ticket
 set workDir=`pwd`
 
-setenv SCRAM_ARCH slc6_amd64_gcc481
+setenv SCRAM_ARCH slc6_amd64_gcc491
 cd    $cmsswDir
 eval `scramv1 runtime -csh`
 cd -
 
 pwd
+# env
 
+cp $CMSSW_BASE/src/RazorAnalyzer/RazorRun ./
 wget http://cmsdoc.cern.ch/~duanders/RazorRunAuxFiles_Expanded.tar.gz
-
-cp $CMSSW_BASE/src/RazorAnalyzer/RazorRun_NoAFS ./
-cp $CMSSW_BASE/src/RazorAnalyzer/bin/Run${analysisType} ./
-#eosdir="/eos/cms/store/group/phys_susy/razor/Run2Analysis/Analyzers/"
-#eos cp ${eosdir}/RazorRunAuxFiles_Expanded.tar.gz ./
-#eos cp ${eosdir}/RazorRun_NoAFS ./
-#eos cp ${eosdir}/Run${analysisType} ./
+tar vxzf RazorRunAuxFiles_Expanded.tar.gz
+cp RazorRunAuxFiles_Expanded/* .
+tar vxzf JEC_Summer16_23Sep2016V3.tgz
+tar vxzf Spring16_FastSimV1.tgz
 
 echo " "; echo "Show where we are"; echo " "
 hostname
 pwd
+## env
 
 klist
+
+#setenv STAGE_SVCCLASS cmsprod
 
 #Do Job splitting and make input file list
 cat $inputfilelist | awk "NR > ($jobnumber*$filePerJob) && NR <= (($jobnumber+1)*$filePerJob)" >! inputfilelistForThisJob_${jobnumber}.txt
@@ -48,28 +51,30 @@ cat inputfilelistForThisJob_${jobnumber}.txt
 echo "************************************"
 echo ""
 
+
+# Get ready to run in your home directory
 set datastring=""
 if (${isData} == 1) then
     set datastring="--isData "
 endif
 
-# Get ready to run in your home directory
 echo " "; echo "Starting razor run job now"; echo " ";
-echo ./RazorRun_NoAFS inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring}-f=${outputfile} -n=${option}
-./RazorRun_NoAFS inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring}-f=${outputfile} -n=${option} -l=${label} |& tee ${outputfile}.log
-
+echo $datastring
+echo ./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring} -f=${outputfile} -n=${option}
+./RazorRun inputfilelistForThisJob_${jobnumber}.txt ${analysisType} ${datastring} -f=${outputfile} -n=${option} -l=${label} |& tee ${outputfile}.log
+ 
 ls -ltr 
 
 echo $outputfile 
 echo $outputDirectory
 
 #Do below only for output to CERN EOS
-eos mkdir -p $outputDirectory
-eos cp $outputfile /eos/cms/$outputDirectory/
+mkdir -p /eos/cms/$outputDirectory
+cp -v $outputfile /eos/cms/$outputDirectory
 
 set tempOutputfile = `echo $outputfile | sed 's/.root//'`
 foreach f ( ${tempOutputfile}_*.root )
-   eos cp $f /eos/cms/$outputDirectory/
+   cp -v $f /eos/cms/$outputDirectory
 end
 
 set status=`echo $?`

@@ -262,6 +262,7 @@ def applyAnalysisOptions(analysis, args, boxName=None):
     print "Applying options to {}".format(boxName)
     if args.noQCD and 'QCD' in analysis.samples:
         analysis.samples.remove('QCD')
+        analysis.samplesReduced.remove('QCD')
     elif args.qcdMC:
         analysis.filenames['QCD'] = "Backgrounds/Signal/FullRazorInclusive_%s_QCD_1pb_weighted.root"%tag
     if args.nloZInv:

@@ -522,7 +522,7 @@ def plot_basic(c, mc=0, data=0, fit=0, leg=0, xtitle="", ytitle="Events", ymin=N
 
     pad1.Delete()
 
-def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, drawErrs=False, palette='RAINBOW', grayGraphs=None, saveroot=True, savepdf=True, savepng=True, savec=True, numDigits=1, textSize=2.0, printdir='.', drawCMSPreliminary=True, drawColz=True):
+def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, printstr="hist", logx=True, logy=True, logz=True, lumistr="", commentstr="", dotext=True, drawErrs=False, palette='RAINBOW', grayGraphs=None, saveroot=True, savepdf=True, savepng=True, savec=True, numDigits=1, textSize=2.0, printdir='.', drawCMSPreliminary=True, drawColz=True, commentX=0.40, commentY=0.92):
     """Draw a single 2D histogram and print to file"""
     rt.gStyle.SetNumberContours(99)
     if palette == "FF":
@@ -576,7 +576,7 @@ def draw2DHist(c, hist, xtitle="", ytitle="", ztitle="", zmin=None, zmax=None, p
         #t1.Draw()
         #t2.Draw()
     if commentstr != "":
-        t3 = rt.TLatex(0.40, 0.92, commentstr)
+        t3 = rt.TLatex(commentX, commentY, commentstr)
         t3.SetNDC()
         t3.SetTextSize(0.05)
         t3.Draw()
@@ -1237,7 +1237,10 @@ def plot_SUS15004_FitVsMCTotal(c, mcTotal=0, fit=0, printstr="hist", lumistr="",
     mcStack.Delete()
     leg.Delete()
 
-def plot_SUS15004_MCTotalWithSignal(c, mcTotalUnrolled=0, signalUnrolled=0, printstr="hist", lumistr="", commentstr="", unrollBins=(None,None), printdir=".", ratiomin=0, ratiomax=5, signalString="Signal"):
+def plot_SUS15004_MCTotalWithSignal(c, mcTotalUnrolled=0, signalUnrolled=0, 
+        printstr="hist", lumistr="", commentstr="", unrollBins=(None,None), 
+        printdir=".", ratiomin=0, ratiomax=5, signalString="Signal", 
+        dataUnrolled=None):
     ymin=5e-3
     #unroll 2D hists to plot in 1D
     mcTotalUnrolled.SetFillColor(rt.kAzure-9)
@@ -1246,9 +1249,11 @@ def plot_SUS15004_MCTotalWithSignal(c, mcTotalUnrolled=0, signalUnrolled=0, prin
     rt.SetOwnership(leg, False)
     leg.AddEntry(mcTotalUnrolled, "Method A Pred.","f")
     leg.AddEntry(signalUnrolled, signalString, "lf")
-    plot_SUS15004_Unrolled(c, mcStack, None, None, leg, ymin=ymin, printstr=printstr, 
-            lumistr=lumistr, commentstr=commentstr, ratiomin=ratiomin, ratiomax=ratiomax, printdir=printdir, 
-            unrollBins=unrollBins, signalHist=signalUnrolled)
+    plot_SUS15004_Unrolled(c, mcStack, dataUnrolled, None, leg, 
+            ymin=ymin, printstr=printstr, lumistr=lumistr, 
+            commentstr=commentstr, ratiomin=ratiomin, ratiomax=ratiomax, 
+            printdir=printdir, unrollBins=unrollBins, 
+            signalHist=signalUnrolled)
     mcStack.Delete()
     leg.Delete()
 
@@ -1300,13 +1305,17 @@ def drawMRLabels(pad, xbins, cols):
             latex.SetTextAngle(0)
             latex.DrawLatex(binCenters[i], 0.8, mrString)
 
-def getMRLines(pad, xbins, cols, hist):
+def getMRLines(pad, xbins, cols, hist, ymin=None, ymax=None):
     """Draws lines at MR borders"""
+    if ymin is None:
+        ymin = 0
+    if ymax is None:
+        ymax = hist.GetMaximum()*2
     lines = []
     ibin = 0
     for i in range(0,len(xbins)-2):
         ibin += len(cols[i])-1
-        lines.append(rt.TLine(ibin,0,ibin,hist.GetMaximum()*2))
+        lines.append(rt.TLine(ibin,ymin,ibin,ymax))
         lines[-1].SetLineStyle(2)
         lines[-1].SetLineWidth(1)
         lines[-1].SetLineColor(rt.kBlack)
@@ -1660,14 +1669,14 @@ def plot_SUS15004_1D(c, mc=0, data=0, leg=0, xtitle="", ytitle="Events", ymin=No
     c.Print(printdir+'/'+printstr+".C")
     pad1.Delete()
 
-def plotEvidenceHist(c, ev, printstr="hist", printdir='.', lumistr="2.3 fb^{-1}", unrollBins=(None,None), zmin=1e-3):
+def plotEvidenceHist(c, ev, printstr="hist", printdir='.', lumistr="2.3 fb^{-1}", unrollBins=(None,None), zmin=1e-3, obs=None):
     #setup
     c.Clear()
     c.cd()
     pad1 = rt.TPad(printstr+"pad1", printstr+"pad1", 0, 0.28, 1, 1)
     rt.SetOwnership(pad1, False)
     pad1.SetBottomMargin(0.2)
-    pad1.SetLogy()
+    pad1.SetLogy(False)
     pad1.Draw()
     pad1.cd()
 
@@ -1687,8 +1696,16 @@ def plotEvidenceHist(c, ev, printstr="hist", printdir='.', lumistr="2.3 fb^{-1}"
     ev.SetMarkerSize(1)
     ev.SetLineWidth(1)
     ev.SetLineColor(rt.kBlack)
-    ev.SetMinimum(zmin)
+    #ev.SetMinimum(zmin)
+    ymin = -5
+    ymax = 5
+    ev.SetMaximum(ymax)
+    ev.SetMinimum(ymin)
     ev.Draw("pe")
+    if obs is not None:
+        obs.SetMarkerStyle(20)
+        obs.SetMarkerSize(1)
+        obs.Draw('pesame')
     pad1.Modified()
     rt.gPad.Update()
 
@@ -1696,7 +1713,8 @@ def plotEvidenceHist(c, ev, printstr="hist", printdir='.', lumistr="2.3 fb^{-1}"
     CMS_lumi(pad1, lumistr=lumistr)
     if unrollBins[0] is not None and unrollBins[1] is not None:
         drawMRLabels(pad1, unrollBins[0], unrollBins[1])
-        lines = getMRLines(pad1, unrollBins[0], unrollBins[1], ev)
+        lines = getMRLines(pad1, unrollBins[0], unrollBins[1], ev,
+                ymin=ymin, ymax=ymax)
         for l in lines: l.Draw()
 
     #save

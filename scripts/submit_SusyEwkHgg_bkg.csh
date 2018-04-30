@@ -22,11 +22,11 @@ WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8 \
   set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
   set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
   echo "Sample " $sample " maxjob = " $maxjob 
-  mkdir -p ../submissionbkg_v2
+  mkdir -p ../submissionbkg
   foreach jobnumber(`seq 0 1 $maxjob`)
     if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/SusyEwkHgg/jobs/SusyEwkHgg_${sample}.Job${jobnumber}Of${maxjob}.root ) then
     echo "job " $jobnumber " out of " $maxjob
-    bsub -q 1nh -o /afs/cern.ch/work/j/jmao/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/submissionbkg_v2/SusyEwkHgg_${sample}_${jobnumber}.out -J SusyEwkHgg_${sample}_${jobnumber} /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh SusyEwkHgg $inputfilelist 0 0 $filesPerJob $jobnumber SusyEwkHgg_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/SusyEwkHgg/bkg_v2/${sample}_jobs/ /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/ Razor2016_MoriondRereco
+    bsub -q 1nh -o /afs/cern.ch/work/j/jmao/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/submissionbkg/SusyEwkHgg_${sample}_${jobnumber}.out -J SusyEwkHgg_${sample}_${jobnumber} /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS_Jiajing.csh SusyEwkHgg $inputfilelist 0 0 $filesPerJob $jobnumber SusyEwkHgg_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/SusyEwkHgg/bkg/2016jobs_0224/${sample}_jobs/ /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/ Razor2016_MoriondRereco
     sleep 0.1
   end
 
@@ -42,11 +42,11 @@ WGGJets_TuneCUETP8M1_13TeV_madgraphMLM_pythia8 \
   set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
   set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
   echo "Sample " $sample " maxjob = " $maxjob 
-  mkdir -p ../submissionbkg_v2
+  mkdir -p ../submissionbkg
   foreach jobnumber(`seq 0 1 $maxjob`)
     if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/SusyEwkHgg/jobs/SusyEwkHgg_${sample}.Job${jobnumber}Of${maxjob}.root ) then
     echo "job " $jobnumber " out of " $maxjob
-    bsub -q 1nh -o /afs/cern.ch/work/j/jmao/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/submissionbkg_v2/SusyEwkHgg_${sample}_${jobnumber}.out -J SusyEwkHgg_${sample}_${jobnumber} /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh SusyEwkHgg $inputfilelist 0 0 $filesPerJob $jobnumber SusyEwkHgg_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/SusyEwkHgg/bkg_v2/${sample}_jobs/ /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/ Razor2016_MoriondRereco
+    bsub -q 1nh -o /afs/cern.ch/work/j/jmao/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/submissionbkg/SusyEwkHgg_${sample}_${jobnumber}.out -J SusyEwkHgg_${sample}_${jobnumber} /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS_Jiajing.csh SusyEwkHgg $inputfilelist 0 0 $filesPerJob $jobnumber SusyEwkHgg_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/SusyEwkHgg/bkg/2016jobs_0224/${sample}_jobs/ /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/ Razor2016_MoriondRereco
     sleep 0.1
   end
 
@@ -64,11 +64,11 @@ TGJets_TuneCUETP8M1_13TeV_amcatnlo_madspin_pythia8 \
   set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
   set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
   echo "Sample " $sample " maxjob = " $maxjob 
-  mkdir -p ../submissionbkg_v2
+  mkdir -p ../submissionbkg
   foreach jobnumber(`seq 0 1 $maxjob`)
     if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/SusyEwkHgg/jobs/SusyEwkHgg_${sample}.Job${jobnumber}Of${maxjob}.root ) then
     echo "job " $jobnumber " out of " $maxjob
-    bsub -q 1nh -o /afs/cern.ch/work/j/jmao/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/submissionbkg_v2/SusyEwkHgg_${sample}_${jobnumber}.out -J SusyEwkHgg_${sample}_${jobnumber} /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh SusyEwkHgg $inputfilelist 0 0 $filesPerJob $jobnumber SusyEwkHgg_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/SusyEwkHgg/bkg_v2/${sample}_jobs/ /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/ Razor2016_MoriondRereco
+    bsub -q 1nh -o /afs/cern.ch/work/j/jmao/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/submissionbkg/SusyEwkHgg_${sample}_${jobnumber}.out -J SusyEwkHgg_${sample}_${jobnumber} /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS_Jiajing.csh SusyEwkHgg $inputfilelist 0 0 $filesPerJob $jobnumber SusyEwkHgg_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/SusyEwkHgg/bkg/2016jobs_0224/${sample}_jobs/ /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/ Razor2016_MoriondRereco
     sleep 0.1
   end
 
@@ -86,11 +86,11 @@ bbHToGG_M-125_4FS_ybyt_13TeV_amcatnlo \
   set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
   set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
   echo "Sample " $sample " maxjob = " $maxjob 
-  mkdir -p ../submissionbkg_v2
+  mkdir -p ../submissionbkg
   foreach jobnumber(`seq 0 1 $maxjob`)
     if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/SusyEwkHgg/jobs/SusyEwkHgg_${sample}.Job${jobnumber}Of${maxjob}.root ) then
     echo "job " $jobnumber " out of " $maxjob
-    bsub -q 1nh -o /afs/cern.ch/work/j/jmao/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/submissionbkg_v2/SusyEwkHgg_${sample}_${jobnumber}.out -J SusyEwkHgg_${sample}_${jobnumber} /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh SusyEwkHgg $inputfilelist 0 0 $filesPerJob $jobnumber SusyEwkHgg_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/SusyEwkHgg/bkg_v2/${sample}_jobs/ /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/ Razor2016_MoriondRereco
+    bsub -q 1nh -o /afs/cern.ch/work/j/jmao/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/submissionbkg/SusyEwkHgg_${sample}_${jobnumber}.out -J SusyEwkHgg_${sample}_${jobnumber} /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS_Jiajing.csh SusyEwkHgg $inputfilelist 0 0 $filesPerJob $jobnumber SusyEwkHgg_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/SusyEwkHgg/bkg/2016jobs_0224/${sample}_jobs/ /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/ Razor2016_MoriondRereco
     sleep 0.1
   end
 
@@ -112,11 +112,11 @@ DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 \
   set nfiles = `cat $inputfilelist | wc | awk '{print $1}' `
   set maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
   echo "Sample " $sample " maxjob = " $maxjob 
-  mkdir -p ../submissionbkg_v2
+  mkdir -p ../submissionbkg
   foreach jobnumber(`seq 0 1 $maxjob`)
     if ( ! -e /afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/SusyEwkHgg/jobs/SusyEwkHgg_${sample}.Job${jobnumber}Of${maxjob}.root ) then
     echo "job " $jobnumber " out of " $maxjob
-    bsub -q 1nh -o /afs/cern.ch/work/j/jmao/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/submissionbkg_v2/SusyEwkHgg_${sample}_${jobnumber}.out -J SusyEwkHgg_${sample}_${jobnumber} /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS.csh SusyEwkHgg $inputfilelist 0 0 $filesPerJob $jobnumber SusyEwkHgg_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/SusyEwkHgg/bkg_v2/${sample}_jobs/ /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/ Razor2016_MoriondRereco
+    bsub -q 1nh -o /afs/cern.ch/work/j/jmao/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/submissionbkg/SusyEwkHgg_${sample}_${jobnumber}.out -J SusyEwkHgg_${sample}_${jobnumber} /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/scripts/runRazorJob_CERN_EOS_Jiajing.csh SusyEwkHgg $inputfilelist 0 0 $filesPerJob $jobnumber SusyEwkHgg_${sample}.Job${jobnumber}Of${maxjob}.root /store/group/phys_susy/razor/Run2Analysis/SusyEwkHgg/bkg/2016jobs_0224/${sample}_jobs/ /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/ Razor2016_MoriondRereco
     sleep 0.1
   end
 

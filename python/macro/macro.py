@@ -1378,7 +1378,8 @@ def makeRazorMCTotalUnrolledHist(infile, samples, unrollRows, unrollCols, debugL
         unrolledMCTotal.Add(unrolledMCs[n])
     return unrolledMCTotal
 
-def makeRazorMCTotalUnrolledHists(boxName, samples, inDir='.', unrollBins=None, debugLevel=0):
+def makeRazorMCTotalUnrolledHists(boxName, samples, inDir='.', 
+        unrollBins=None, debugLevel=0, doData=False):
     """Retrieve MC histograms, unroll, and add together"""
     nbmax = 3
     if boxName == 'DiJet':
@@ -1389,6 +1390,14 @@ def makeRazorMCTotalUnrolledHists(boxName, samples, inDir='.', unrollBins=None, 
         unrollRows = unrollBins[i][0]
         unrollCols = unrollBins[i][1]
         unrolledMCs.append( makeRazorMCTotalUnrolledHist(f, samples, unrollRows, unrollCols, debugLevel) )
+    if doData:
+        unrolledData = []
+        for i, f in enumerate(filenames):
+            unrollRows = unrollBins[i][0]
+            unrollCols = unrollBins[i][1]
+            unrolledData.append( makeRazorMCTotalUnrolledHist(
+                f, ['Data'], unrollRows, unrollCols, debugLevel) )
+        return unrolledMCs, unrolledData
     return unrolledMCs
 
 def splitByUnrollBins(hist, unrollBins):

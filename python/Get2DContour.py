@@ -77,14 +77,6 @@ def fix_hist_byhand(hist, model, box, clsType):
             if hist.GetBinContent(hist.FindBin(mg,mchi))==0:
                 if (mg,mchi) not in toFix:                
                     toFix.append((mg,mchi))
-            elif model == 'T2qq': # this one is unstable for some mass points
-                if obs<expPlus2 or obs>expMinus2:
-                    if obs < expPlus2:
-                        hist.SetBinContent(hist.FindBin(mg, mchi), expPlus2)
-                    elif obs > expMinus2:
-                        hist.SetBinContent(hist.FindBin(mg, mchi), expMinus2)
-                    if (mg,mchi) not in toFix:
-                        toFix.append((mg,mchi))
                         
 def set_palette(name="default", ncontours=255):
     # For the canvas:

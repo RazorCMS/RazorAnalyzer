@@ -33,6 +33,38 @@ def write_done_file(model, box, name='MADD'):
             done_file.write(os.path.basename(f)+'\n')
     return done_file_name
 
+def submit_box_signif(model, boxes, 
+        combined_with_boost=False, no_exec=True):
+    script = 'python/ComputeSignificance.py'
+    out_dir = get_limit_dir(model)
+    queue = '1nh'
+    combineName = 'MADDSignificance'
+    if combined_with_boost:
+        combineName = 'RazorInclusiveBoostSignficance'
+    done_file_name = write_done_file(
+            model, '_'.join(boxes), name=combineName)
+    command = ['python', script, '--model', model,
+            '--dir', out_dir, '--queue', queue,
+            '--done-file', done_file_name, '--boxes']
+    command += boxes
+    if combined_with_boost:
+        command.append('--combined-with-boost')
+    if no_exec:
+        command.append('--no-sub')
+    do_command(command, False)
+
+def submit_signif(model, tag, sms, combined=False, 
+        combined_with_boost=False, no_exec=True):
+    """
+    Submit jobs to compute significance on existing cards
+    """
+    if combined or combined_with_boost:
+        submit_box_signif(model, sms.boxes, combined_with_boost,
+                no_exec)
+    else:
+        for box in sms.boxes:
+            submit_box_signif(model, [box], False, no_exec)
+
 def submit_box(model, box, bkg_dir=None, no_boost_cuts=False,
         fine_grained=True, no_sys=False, no_sub=True):
     """
@@ -177,7 +209,7 @@ def get_config_dir():
     return 'PlotsSMS/config/{}'.format(VERSION)
 
 def get(model, tag, sms, no_smooth=False, do_combined=False,
-        do_boost_combined=False, no_exec=True):
+        do_boost_combined=False, no_exec=True, signif=False):
     """
     Retrieves limit results.  Args are the same as submit()
     except:
@@ -193,18 +225,28 @@ def get(model, tag, sms, no_smooth=False, do_combined=False,
     for box in boxes:
         print "Box {}".format(box)
         command = ['python', get_script, '--box', box, '--model', model]
+        combine_name = None
         if do_boost_combined:
             combine_name = 'RazorInclusiveBoost'
+            if signif:
+                combine_name += 'Significance'
             if len(sms.boxes) == 1:
                 combine_name += '_'+box
             comb_dir = out_dir+'/RazorInclusiveBoost'
-            command += ['--combine-name', combine_name]
             command += ['--in-dir', out_dir]
             command += ['--dir', comb_dir]
             do_command(['mkdir', '-p', comb_dir], no_exec)
         else:
             command += ['--dir', out_dir]
+        if signif:
+            command.append('--signif')
+            if combine_name is None:
+                combine_name = 'MADDSignificance'
+        if combine_name is not None:
+            command += ['--combine-name', combine_name]
         do_command(command, no_exec)
+        if signif:
+            return
         
         command = ['python', contour_script, '--box', box, '--model', model]
         if do_boost_combined:
@@ -332,6 +374,7 @@ if __name__ == '__main__':
             help='combine hadronic boxes only')
     parser.add_argument('--combined-leptonic', action='store_true',
             help='combine leptonic boxes only')
+    parser.add_argument('--significance', action='store_true')
     parser.add_argument('--get', action='store_true')
     parser.add_argument('--plot', action='store_true')
     parser.add_argument('--aggregate', action='store_true',
@@ -379,6 +422,12 @@ if __name__ == '__main__':
         sms.boxes = ['MultiJet', 'SevenJet']
         args.combined_with_boost = True
 
+    if args.significance and args.submit:
+        print "Compute significance for {}\n".format(args.model)
+        submit_signif(args.model, args.tag, sms, 
+                args.combined, args.combined_with_boost, 
+                no_exec)
+        sys.exit()
     if args.submit:
         print "Submit limit jobs for {}\n".format(args.model)
         if args.combined_with_boost:
@@ -407,7 +456,8 @@ if __name__ == '__main__':
         print "Get limit results for {}\n".format(args.model)
         get(args.model, args.tag, sms, no_smooth=args.no_smooth, 
                 do_combined=args.combined, no_exec=no_exec,
-                do_boost_combined=args.combined_with_boost)
+                do_boost_combined=args.combined_with_boost,
+                signif=args.significance)
 
     if args.plot or args.finish:
         print "Plot limit for {}\n".format(args.model)

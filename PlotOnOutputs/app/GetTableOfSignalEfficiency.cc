@@ -126,8 +126,7 @@ int main( int argc, char* argv[] )
   if(analysisTag!="Razor2017_92X")
           baseline = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25.";
   else
-          //baseline = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1SC_Eta) <1.4442 && abs(pho2SC_Eta)<1.4442 && (pho1Pt/mGammaGamma>1./3. || pho2Pt/mGammaGamma>1./3.) && pho1Pt/mGammaGamma>1./4. && pho2Pt/mGammaGamma>1./4. && pho1R9>0.5 && pho2R9>0.5";
-          baseline = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1SC_Eta) <1.4442 && abs(pho2SC_Eta)<1.4442 && (pho1Pt/mGammaGamma>1./3. || pho2Pt/mGammaGamma>1./3.) && pho1Pt/mGammaGamma>1./5. && pho2Pt/mGammaGamma>1./5. && pho1R9>0.5 && pho2R9>0.5";
+          baseline = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1SC_Eta) <1.4442 && abs(pho2SC_Eta)<1.4442 && (pho1Pt/mGammaGamma>1./3. || pho2Pt/mGammaGamma>1./3.) && pho1Pt/mGammaGamma>1./4. && pho2Pt/mGammaGamma>1./4. && pho1R9>0.5 && pho2R9>0.5";
           //baseline = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1SC_Eta) <1.4442 && abs(pho2SC_Eta)<1.4442 && (pho1Pt>40. || pho2Pt>40.) && pho1Pt>25. && pho2Pt>25.";
 
   cut.push_back(baseline);
@@ -137,7 +136,6 @@ int main( int argc, char* argv[] )
   cut_name3.push_back("Baseline");
   
   //MR>150 cut
-  //string MR150 = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150";
   string MR150 = baseline + " && MR>150"; 
   cut.push_back(MR150);
   cut_name.push_back("MR150");
@@ -145,32 +143,32 @@ int main( int argc, char* argv[] )
   cut_name2.push_back("MR150");
   cut_name3.push_back("MR150");
   //box=0 Zmm
-  //string Zmm = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 0  && lep1PassSelection > 1 && lep2PassSelection > 1";
-  string Zmm = MR150+ " && box == 0  && lep1PassSelection > 1 && lep2PassSelection > 1";
+  string Zmm = MR150+ " && box == 0  ";
+  //string Zmm = MR150+ " && box == 0  && lep1PassSelection > 1 && lep2PassSelection > 1";
   cut.push_back(Zmm);
   cut_name.push_back("Zmm");
   //box=1 Zee
-  //string Zee = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 1 && lep1PassSelection > 1 && lep2PassSelection > 1";
-  string Zee = MR150+ " && box == 1  && lep1PassSelection > 1 && lep2PassSelection > 1";
+  string Zee = MR150+ " && box == 1  ";
+  //string Zee = MR150+ " && box == 1  && lep1PassSelection > 1 && lep2PassSelection > 1";
   cut.push_back(Zee);
   cut_name.push_back("Zee");
   cut_name1.push_back("TwoLeptons");
   cut_name3.push_back("TwoLeptons");
   //box=2 Emu
-  //string Emu = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 2 && lep1PassSelection > 1 && lep2PassSelection > 1";
-  string Emu = MR150+ " && box == 2  && lep1PassSelection > 1 && lep2PassSelection > 1";
+  string Emu = MR150+ " && box == 2  ";
+  //string Emu = MR150+ " && box == 2  && lep1PassSelection > 1 && lep2PassSelection > 1";
   cut.push_back(Emu);
   cut_name.push_back("Emu");
   cut_name1.push_back("Emu");
   cut_name3.push_back("Emu");
   //box=3 OneMu
-  //string OneMu = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 3 && lep1PassSelection > 1";
-  string OneMu = MR150+ " && box == 3  && lep1PassSelection > 1";
+  string OneMu = MR150+ " && box == 3  ";
+  //string OneMu = MR150+ " && box == 3  && lep1PassSelection > 1";
   cut.push_back(OneMu);
   cut_name.push_back("OneMu");
   //box=4 OneEle
-  //string OneEle = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 4 && lep1PassSelection > 1 ";
-  string OneEle = MR150+ " && box == 4  && lep1PassSelection > 1";
+  string OneEle = MR150+ " && box == 4  ";
+  //string OneEle = MR150+ " && box == 4  && lep1PassSelection > 1";
   cut.push_back(OneEle);
   cut_name.push_back("OneEle");
   cut_name1.push_back("OneLepton");
@@ -178,31 +176,26 @@ int main( int argc, char* argv[] )
   cut_name3.push_back("OneLeptonHighPt");
   cut_name3.push_back("OneLeptonLowPt");
   //box=5 HighPt
-  //string HighPt = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 5 ";
   string HighPt = MR150+ " && box == 5";
   cut.push_back(HighPt);
   cut_name.push_back("HighPt");
   cut_name1.push_back("HighPt");
   cut_name3.push_back("HighPt");
   //box=6 Hbb
-  //string Hbb = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 6 ";
   string Hbb = MR150+ " && box == 6";
   cut.push_back(Hbb);
   cut_name.push_back("Hbb");
   //box=7 Zbb
-  //string Zbb = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 7 ";
   string Zbb = MR150+ " && box == 7";
   cut.push_back(Zbb);
   cut_name.push_back("Zbb");
   cut_name1.push_back("HZbb");
   cut_name3.push_back("HZbb");
   //box=8 HighRes
-  //string HighRes = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 8 ";
   string HighRes = MR150+ " && box == 8";
   cut.push_back(HighRes);
   cut_name.push_back("HighRes");
   //box=9 LowRes
-  //string LowRes = "mGammaGamma > 103. && mGammaGamma < 160. && pho1passIso == 1 && pho2passIso == 1 && pho1passEleVeto == 1 && pho2passEleVeto == 1 && abs(pho1Eta) <1.48 && abs(pho2Eta)<1.48 && (pho1Pt>40||pho2Pt>40) && pho1Pt> 25. && pho2Pt>25. && MR > 150 && box == 9 ";
   string LowRes = MR150+ " && box == 9";
   cut.push_back(LowRes);
   cut_name.push_back("LowRes");

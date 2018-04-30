@@ -751,7 +751,7 @@ def postprocessQCDHists(hists, shapeHists,
                         makeQCDExtrapolation(qcd2DHist, wHists, region, 
                             btags, debugLevel, errOpt=errType))
 
-def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", samples=[], plotOpts={}, lumiMC=1, lumiData=3000, dataName="Data", boxName=None, btags=-1, blindBins=None, debugLevel=0, printdir=".", plotDensity=True, unrollBins=(None,None), shapeErrors=[], doEmptyBinErrs=False):
+def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", samples=[], plotOpts={}, lumiMC=1, lumiData=3000, dataName="Data", boxName=None, btags=-1, blindBins=None, debugLevel=0, printdir=".", plotDensity=True, unrollBins=(None,None), shapeErrors=[], doEmptyBinErrs=False, weightHists=None):
     """Loads the output of makeControlSampleHists from a file and creates plots"""
 
     titles = {
@@ -800,6 +800,9 @@ def plotControlSampleHists(regionName="TTJetsSingleLepton", inFile="test.root", 
     
     if 'Sys' in hists: 
         #Shape errors have not been applied; propagate them to histograms them before plotting
+        if 'QCD' in samples:
+            # add additional b-tag uncertainty on QCD
+            makeQCDBtagSysHists(hists, weightHists, boxName, btags)  
         print "Propagating shape uncertainties found in Sys directory"
         shapeHists = hists['Sys']
         miscErrors = []
@@ -1668,7 +1671,7 @@ def unrollAndStitch(hists, boxName, samples=[], var=('MR','Rsq'),
          
 def unrollAndStitchFromFiles(boxName, samples=[], inDir=".", outDir=".", 
         var=('MR','Rsq'), debugLevel=0, unrollBins=None, export=True, 
-        noSys=False, addStatUnc=True, addMCVsFit=False, doEmptyBinErrs=False):
+        noSys=False, addStatUnc=True, addMCVsFit=False, doEmptyBinErrs=False, weightHists=None):
     """
     Loads the output of makeControlSampleHists, unrolls each 
     histogram, and pieces together the different b-tag bins 
@@ -1688,6 +1691,9 @@ def unrollAndStitchFromFiles(boxName, samples=[], inDir=".", outDir=".",
                 emptyBinErrs = []
             emptyBinErrs.append(macro.computeEmptyBinErrs(hists[ifile],
                 unrollBins[ifile], aggregate=False))
+        if 'QCD' in samples:
+            makeQCDBtagSysHists(hists[ifile], weightHists, boxName, 
+                    ifile)
 
     histsForDataCard = unrollAndStitch(hists, boxName, samples, 
             var, debugLevel, unrollBins, noSys, addStatUnc, 
@@ -1767,7 +1773,7 @@ def makeRazorBinEvidencePlots(boxName, samples, inDir='.', signalHist=None, outD
                     unrolledMCTotal, unrolledData, out_txt)
 
         #plot the evidence
-        plotting.plotEvidenceHist(c, evidenceHist, printstr="evidence"+boxName+str(i)+"BTag"+signalHist.GetName(), 
+        plotting.plotEvidenceHist(c, evidenceHist, printstr="evidence"+boxName+str(i)+"BTag"+signalHist.GetName(), obs=obsEvidenceHist,
                 printdir=outDir, unrollBins=unrollBins[i], zmin=zmin)
 
         evidenceHist2D = macro.makeTH2PolyFromColumns(evidenceHist.GetName()+"2D", evidenceHist.GetName()+"2D", 
@@ -1777,12 +1783,20 @@ def makeRazorBinEvidencePlots(boxName, samples, inDir='.', signalHist=None, outD
                 printstr="evidence2D"+boxName+str(i)+"BTag"+signalHist.GetName(), lumistr="2.3 fb^{-1}", dotext=True, palette=56,
                 numDigits=3, textSize=1.0, printdir=outDir)
 
-def makeRazorMCTotalPlusSignalPlot(boxName, samples, inDir='.', signalHist=None, outDir='.', unrollBins=None, signalString="Signal", modelName="Signal", debugLevel=0):
+def makeRazorMCTotalPlusSignalPlot(boxName, samples, inDir='.', 
+        signalHist=None, outDir='.', unrollBins=None, unblind=False,
+        signalString="Signal", modelName="Signal", debugLevel=0):
     nbmax = 3
     if boxName == 'DiJet':
         nbmax = 2
     filenames = [inDir+"/razorHistograms"+boxName+str(b)+"BTag.root" for b in range(nbmax+1)]
-    mcTotalHists = macro.makeRazorMCTotalUnrolledHists(boxName, samples, inDir, unrollBins, debugLevel)
+    hists = macro.makeRazorMCTotalUnrolledHists(
+            boxName, samples, inDir, unrollBins, debugLevel, doData=unblind)
+    if unblind:
+        mcTotalHists, dataHists = hists
+    else:
+        mcTotalHists = hists
+
     c = rt.TCanvas("d", "d", 800, 600)
     rt.SetOwnership(c, False)
     
@@ -1791,8 +1805,13 @@ def makeRazorMCTotalPlusSignalPlot(boxName, samples, inDir='.', signalHist=None,
         unrolledRowsCols = unrollBins[i]
         unrolledMCTotal = mcTotalHists[i]
         unrolledSignal = unrolledSignals[i]
+        if unblind:
+            unrolledData = dataHists[i]
+        else:
+            unrolledData = None
         
         comment = '#it{'+boxName+' '+str(i)+' b-tag}'
         plotting.plot_SUS15004_MCTotalWithSignal(c, mcTotalUnrolled=unrolledMCTotal, signalUnrolled=unrolledSignal, 
                 printstr="MRRsq"+boxName+str(i)+"BTagUnrolled"+modelName, lumistr="2.3 fb^{-1}", 
-                commentstr=comment, unrollBins=unrolledRowsCols, printdir=outDir, signalString=signalString)
+                commentstr=comment, unrollBins=unrolledRowsCols, printdir=outDir, signalString=signalString, dataUnrolled=unrolledData,
+                ratiomin=0.5, ratiomax=1.5)
