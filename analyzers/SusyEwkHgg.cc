@@ -1891,12 +1891,14 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 		      std::cout << "[DEBUG] Dimuon Sum pT: " << mu1.muon.Pt() + mu2.muon.Pt() << std::endl;
 		    }
 		  
-		  if( dimuonMass < 76 || dimuonMass > 106 )
+		  /*
+                   * if( dimuonMass < 76 || dimuonMass > 106 )
 		    {
 		      if ( _debug ) std::cout << "[DEBUG]: Dimuon mass is out of range [76, 106]  GeV: dimuon masss-> " << dimuonMass << std::endl;
 		      if ( _debug ) std::cout << "... mu1Pt: " << mu1.muon.Pt()  << " mu2Pt: " << mu2.muon.Pt()  << std::endl;
 		      continue;
 		    }
+                    */
 		  //---------------------------------------------
 		  //if the sum of the muon pT's is larger than 
 		  //that of the current Z candidate, 
@@ -1933,8 +1935,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  muSelectedCand.push_back(bestMuCand[0]);
 	  muSelectedCand.push_back(bestMuCand[1]);
 	  
-	  if ( ZCandidate.M() >= 76. && ZCandidate.M() < 106 )
-	    {
+	  //if ( ZCandidate.M() >= 76. && ZCandidate.M() < 106 )
+	    //{
 	      //Fill in selected muon info
 	      razorbox = Zmm;
 	      lep1Type = 13 * -1 * bestMuCand[0].muonCharge;
@@ -1968,7 +1970,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	      dileptonMass   = ZCandidate.M();
 	      bestDimuonPt   = ZCandidate.Pt();
 	      if ( _debug ) std::cout << "[DEBUG]: dimuon mass-> " << dileptonMass << " dimuon pT->" << bestDimuonPt << std::endl;
-	    }
+	    //}
 	  
 	}//end if muCand.size() > 1
       
@@ -2009,12 +2011,14 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 			  std::cout << "[DEBUG] Dielectron Sum pT: " << ele1.electron.Pt() + ele2.electron.Pt() << std::endl;
 			}
 		      
-		      if( dielectronMass < 76 || dielectronMass > 106 )
+		      /*
+                       * if( dielectronMass < 76 || dielectronMass > 106 )
 			{
 			  if ( _debug ) std::cout << "[DEBUG]: Dielectron mass is out of range [76, 106]  GeV: dielectron masss-> " << dielectronMass << std::endl;
 			  if ( _debug ) std::cout << "... ele1Pt: " << ele1.electron.Pt()  << " ele2Pt: " << ele2.electron.Pt()  << std::endl;
 			  continue;
 			}
+                        */
 		      //---------------------------------------------
 		      //if the sum of the electron pT's is larger than 
 		      //that of the current Z candidate, 
@@ -2051,8 +2055,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	      eleSelectedCand.push_back(bestEleCand[0]);
 	      eleSelectedCand.push_back(bestEleCand[1]);
 	      
-	      if ( ZCandidate.M() >= 76. && ZCandidate.M() < 106 )
-		{
+	      //if ( ZCandidate.M() >= 76. && ZCandidate.M() < 106 )
+		//{
 		  //Fill in selected electron info
 		  razorbox = Zee;
 		  lep1Type = 11 * -1 * bestEleCand[0].eleCharge;
@@ -2086,7 +2090,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 		  dileptonMass   = ZCandidate.M();
 		  bestDielectronPt   = ZCandidate.Pt();
 		  if ( _debug ) std::cout << "[DEBUG]: dielectron mass-> " << dileptonMass << " dielectron pT->" << bestDielectronPt << std::endl;
-		}//end check dielectron candidate
+		//}//end check dielectron candidate
 	      
 	    }//end if eleCand.size()>1
 	  
@@ -2521,7 +2525,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //----------------
       //High-pt category
       //----------------
-      if( razorbox == None && HiggsCandidate.Pt() > 110. ) razorbox = HighPt;
+      //if( razorbox == None && HiggsCandidate.Pt() > 110. ) razorbox = HighPt;
       if ( _phodebug ) std::cout << "pho PT :  " << bestCand[0].photon.Pt() << " and  " << bestCand[1].photon.Pt() << " Mgg : " << HiggsCandidate.M() << " pt1/Mgg = "   << bestCand[0].photon.Pt()/HiggsCandidate.M() << " pt2/Mgg = " << bestCand[1].photon.Pt()/HiggsCandidate.M() << std::endl;
       if ( _phodebug ) std::cout << "Higgs PT :  " << HiggsCandidate.Pt() << "  razorbox : " << razorbox << std::endl;
 
@@ -2617,6 +2621,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	    }
 	}//end Zbb category
       
+      if( razorbox == None && HiggsCandidate.Pt() > 110. ) razorbox = HighPt;
+
       //----
       //Jets
       //----
