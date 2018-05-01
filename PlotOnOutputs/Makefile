@@ -12,18 +12,21 @@ TARGET = PlotOnOutputs
 TARGET1 = GetTableOfSignalEfficiency
 TARGET2 = 2016vs2017
 TARGET3 = MakeRoot
+TARGET4 = CalculateYield
 
 SRC = app/PlotOnOutputs.cc
 SRC1 = app/GetTableOfSignalEfficiency.cc
 SRC2 = app/2016vs2017.cc
 SRC3 = app/MakeRoot.cc
+SRC4 = app/CalculateYield.cc  
 
 OBJ = $(SRC:.cc=.o)
 OBJ1 = $(SRC1:.cc=.o)
 OBJ2 = $(SRC2:.cc=.o)
 OBJ3 = $(SRC3:.cc=.o)
+OBJ4 = $(SRC4:.cc=.o)
 
-all : $(TARGET) $(TARGET1) $(TARGET2) $(TARGET3)
+all : $(TARGET) $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4)
 
 
 $(TARGET) : $(OBJ)
@@ -50,10 +53,16 @@ $(TARGET3) : $(OBJ3)
 	@echo $<
 	@echo $^
 
+$(TARGET4) : $(OBJ4)
+	$(LD) $(CPPFLAGS) -o $(TARGET4) $(OBJ4) $(LDFLAGS)
+	@echo $@
+	@echo $<
+	@echo $^
+
 %.o : %.cc	
 	$(CXX) $(CPPFLAGS) -o $@ -c $<
 	@echo $@	
 	@echo $<
 clean :
-	rm -f *.o src/*.o $(TARGET) $(TARGET1)  $(TARGET2) $(TARGET3) *~
+	rm -f *.o src/*.o $(TARGET) $(TARGET1)  $(TARGET2) $(TARGET3) $(TARGET4) *~
 
