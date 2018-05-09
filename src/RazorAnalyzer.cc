@@ -1793,24 +1793,30 @@ bool RazorAnalyzer::isTightTau(int i){
 bool RazorAnalyzer::isCSVL(int i, string dataset){
   if (dataset == "74X") {
     return jetCISV[i] > 0.605;
-  } else {
+  } else if (dataset == "80X" ) {
     return jetCISV[i] > 0.5426;
+  } else if (dataset == "94X" ) {
+    return jetCISV[i] > 0.5803;
   }
 }
 
 bool RazorAnalyzer::isCSVM(int i, string dataset){
   if (dataset == "74X") {
     return jetCISV[i] > 0.890;
-  } else {
+  } else if (dataset == "80X" ) {
     return jetCISV[i] > 0.8484;
+  } else if (dataset == "94X" ) {
+    return jetCISV[i] > 0.8838;
   }
 }
 
 bool RazorAnalyzer::isCSVT(int i, string dataset){
   if (dataset == "74X") {
     return jetCISV[i] > 0.970;
-  } else {
+  } else if (dataset == "80X" ) {
     return jetCISV[i] > 0.9535;
+  } else if (dataset == "94X" ) {
+    return jetCISV[i] > 0.9693;
   }
 }
 

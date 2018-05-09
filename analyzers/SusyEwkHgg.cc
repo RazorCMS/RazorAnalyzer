@@ -115,6 +115,10 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   //string analysisTag = "Razor2016_80X";
   if ( label != "") analysisTag = label;
 
+  string dataset = "80X";
+  if ( analysisTag == "Razor2016_MoriondRereco" ) dataset = "80X";
+  else if ( analysisTag == "Razor2017_17Nov2017Rereco" ) dataset = "94X";
+
   //***************************************************
   //What the options means:
   //option 0 / 10: Regular Selection, No MR Skim
@@ -322,6 +326,10 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       effMeasType="comb";
       misMeasType="incl";
     }
+  } else if ( analysisTag == "Razor2017_17Nov2017Rereco" ) {
+    btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_94XSF_V2_B_F.csv",bTagPathname.c_str()));
+    effMeasType="comb";
+    misMeasType="incl";
   }
 
   //Medium WP (b-tagging workpoint)
@@ -1963,7 +1971,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
               std::cout << "Warning: b-tag scale factor is <= 0!" << std::endl;
               std::cout << jetSF_Med << " " << jetSF_MedUp << " " << jetSF_MedDown << " " << jetSF_Loo << " " << jetSF_LooUp << " " << jetSF_LooDown << std::endl;
             }
-            else if ( isCSVL(i) )
+            else if ( isCSVL(i,analysisTag) )
             {
               btagCorrFactor *= jetSF_Loo;
               if ( abs( jetPartonFlavor[i] ) == 5 || abs( jetPartonFlavor[i] ) == 4 )
@@ -2009,22 +2017,22 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
             }
           }//Jetcut
         }//isData (Done with b-tagging scale factor)
-        if( !isCSVL(i) ) continue;
+        if( !isCSVL(i,analysisTag) ) continue;
         GoodBJets.push_back(thisJet);
-        GoodBJetsIsCVSL.push_back(isCSVL(i));
-        GoodBJetsIsCVSM.push_back(isCSVM(i));
-        GoodBJetsIsCVST.push_back(isCSVT(i));
+        GoodBJetsIsCVSL.push_back(isCSVL(i,analysisTag));
+        GoodBJetsIsCVSM.push_back(isCSVM(i,analysisTag));
+        GoodBJetsIsCVST.push_back(isCSVT(i,analysisTag));
         n_BJets++;
         //Filling bjet Candidate
         BjetCandidate tmp_bjetCand;
         tmp_bjetCand.Index  = i;
         tmp_bjetCand.bjet   = thisJet;
-        tmp_bjetCand.isCSVL = isCSVL(i);
-        tmp_bjetCand.isCSVM = isCSVM(i);
-        tmp_bjetCand.isCSVT = isCSVT(i);
+        tmp_bjetCand.isCSVL = isCSVL(i,analysisTag);
+        tmp_bjetCand.isCSVM = isCSVM(i,analysisTag);
+        tmp_bjetCand.isCSVT = isCSVT(i,analysisTag);
         bjetCand.push_back( tmp_bjetCand );
         nLooseBTaggedJets++;
-        if( isCSVM(i) ) nMediumBTaggedJets++;
+        if( isCSVM(i,analysisTag) ) nMediumBTaggedJets++;
       }//end of loop over jet for b-jet
 
       //***************************************************
@@ -2532,9 +2540,9 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         if(overlapbjj) continue;
         JetCandidate  tmp_jetCand;
         tmp_jetCand.jet    = thisJet;
-        tmp_jetCand.isCSVL = isCSVL(i);
-        tmp_jetCand.isCSVM = isCSVM(i);
-        tmp_jetCand.isCSVT = isCSVT(i);
+        tmp_jetCand.isCSVL = isCSVL(i,analysisTag);
+        tmp_jetCand.isCSVM = isCSVM(i,analysisTag);
+        tmp_jetCand.isCSVT = isCSVT(i,analysisTag);
         jetCand.push_back( tmp_jetCand );
         GoodJets.push_back(thisJet);
         n_Jets++;
