@@ -1322,7 +1322,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           //TLorentzVector for this muon
           TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]);
 	  if(!isVetoMuon(i)) continue;
-	  if(muonPt[i] < 15) continue;
+	  if(muonPt[i] < 20) continue;
 	  if(abs(muonEta[i]) > 2.4) continue;
 	  nLooseMuons++;
           GoodMuons.push_back(thisMuon);
@@ -1355,7 +1355,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  if( !isVetoElectron(i) ) continue;
 	  if ( !( passMVALooseElectronID(i) && passMVANonTrigVetoElectronIso(i) && fabs(ele_ip3dSignificance[i]) < 4. ) ) continue;//Only for electron WP test
 	  if( elePt[i] < 20 ) continue;
-	  if( abs(eleEta[i]) > 2.5 ) continue;
+	  if( abs(eleEta[i]) > 2.4 ) continue;
 	  nLooseElectrons++;
           GoodElectrons.push_back(thisElectron);
       	  if( isTightElectron(i) ) nTightElectrons++;
@@ -1559,6 +1559,12 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         vec.SetPtEtaPhi( pho_pt_corr, phoEta[i], phoPhi[i] );
     	  TLorentzVector thisPhoton;
     	  thisPhoton.SetVectM( vec, .0 );
+
+        if ( phoPt[i] < 20.0 )
+        {
+          if ( _phodebug ) std::cout << "[DEBUG]: failed pt" << std::endl;
+          continue;
+        }
         //removing gap photons
         if ( fabs(pho_superClusterEta[i]) > 1.4442 && fabs(pho_superClusterEta[i]) < 1.566 )
         {
@@ -2235,7 +2241,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         {
           for ( size_t i = 0; i < eleCand.size(); i++ )
           {
-            for ( size_t j = i+1; j < muCand.size(); j++ )
+            for ( size_t j = 0; j < muCand.size(); j++ )
             {
               MuonCandidate mu      = muCand[j];
               ElectronCandidate ele = eleCand[i];
