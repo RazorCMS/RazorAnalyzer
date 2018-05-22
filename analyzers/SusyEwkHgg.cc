@@ -210,8 +210,10 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
     Razor2015_76X
     Razor2016_MoriondRereco
     Razor2017_92X
+    Razor2017_17Nov2017Rereco
   */
   RazorHelper *helper =  new RazorHelper(analysisTag, isData, isFastsimSMS);;
+  cout << "Done Loading Helper\n";
 
   //--------------------------------
   //Photon Energy Scale and Resolution Corrections
@@ -230,36 +232,29 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
     photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
   } else if (analysisTag == "Razor2017_92X") {
     photonCorrector_2017 = new EnergyScaleCorrection_class_2017(Form("%s/Run2017_17Nov2017_v1_ele_unc", photonCorrectionPath.c_str()));
+  } else if (analysisTag == "Razor2017_17Nov2017Rereco") {
+    photonCorrector_2017 = new EnergyScaleCorrection_class_2017(Form("%s/Run2017_17Nov2017_v1_ele_unc", photonCorrectionPath.c_str()));
   }
 
 
-  if ( analysisTag != "Razor2017_92X" )
-  {
-    if(!isData)
-    {
-	     photonCorrector->doScale = false;
-       photonCorrector->doSmearings = true;
+  if ( analysisTag != "Razor2017_92X" && analysisTag != "Razor2017_17Nov2017Rereco" ) {
+    if(!isData) {
+      photonCorrector->doScale = false;
+      photonCorrector->doSmearings = true;
+    } else {
+      photonCorrector->doScale = true;
+      photonCorrector->doSmearings = false;
     }
-    else
-    {
-	     photonCorrector->doScale = true;
-	     photonCorrector->doSmearings = false;
-    }
-  }
-  else
-  {
-    if(!isData)
-    {
-	     photonCorrector_2017->doScale = false;
-	     photonCorrector_2017->doSmearings = true;
-    }
-    else
-    {
-	     photonCorrector_2017->doScale = true;
-	     photonCorrector_2017->doSmearings = false;
+  } else {
+    if(!isData) {
+      photonCorrector_2017->doScale = false;
+      photonCorrector_2017->doSmearings = true;
+    } else {
+      photonCorrector_2017->doScale = true;
+      photonCorrector_2017->doSmearings = false;
     }
   }
-
+  
   //--------------------------------
   //Including Jet Energy Corrections
   //--------------------------------
@@ -1529,7 +1524,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         double smear = 0;
         if ( doPhotonScaleCorrection )
         {
-          if ( analysisTag != "Razor2017_92X" )
+          if ( analysisTag != "Razor2017_92X" &&  analysisTag != "Razor2017_17Nov2017Rereco"  )
           {
             scale = photonCorrector->ScaleCorrection(run, (fabs(pho_superClusterEta[i]) < 1.5),
                                                      phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]));

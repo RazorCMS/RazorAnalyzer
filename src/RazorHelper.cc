@@ -52,7 +52,12 @@ RazorHelper::RazorHelper(std::string tag_, bool isData_, bool isFastsim_):
         loadTag_Razor2017_92X();
     }
 
-    // tag not found
+    // tag for 2017 17Nov2017 Rereco
+    else if (tag == "Razor2017_17Nov2017Rereco") {
+        loadTag_Razor2017_17Nov2017Rereco();
+    }
+
+   // tag not found
     else {
         std::cout << "Error in RazorHelper::RazorHelper : specified tag " << tag << " is not supported!" << std::endl;
         loadTag_Null();
@@ -726,7 +731,7 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
     jecUnc = std::vector<JetCorrectionUncertainty*>();
     JetResolutionCalculator = std::vector<SimpleJetResolution*>();
     JetCorrectionsIOV = std::vector<std::pair<int,int> >();
-
+    std::cout << "here1\n";
     if (isData) {
       //IOV: 2016BCD
       std::vector<JetCorrectorParameters> correctionParametersBCD = std::vector<JetCorrectorParameters> ();
@@ -845,6 +850,7 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
       JetCorrectionsIOV.push_back( std::pair<int,int>( -1, 99999999 ));
     }
     else {
+      std::cout << "Loading Jet Energy Corrections: Summer16_23Sep2016V3_MC \n";
       std::vector<JetCorrectorParameters> correctionParametersMC = std::vector<JetCorrectorParameters> ();
       correctionParametersMC.push_back(JetCorrectorParameters(
                   Form("%s/Summer16_23Sep2016V3_MC/Summer16_23Sep2016V3_MC_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
@@ -852,12 +858,13 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
                   Form("%s/Summer16_23Sep2016V3_MC/Summer16_23Sep2016V3_MC_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
       correctionParametersMC.push_back(JetCorrectorParameters(
                   Form("%s/Summer16_23Sep2016V3_MC/Summer16_23Sep2016V3_MC_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
+
       JetCorrectorParameters *JetResolutionParametersMC = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",jecPathname.c_str()));
-      FactorizedJetCorrector *JetCorrectorMC = new FactorizedJetCorrector(correctionParametersMC);
+      FactorizedJetCorrector *JetCorrectorMC = new FactorizedJetCorrector(correctionParametersMC);     
       std::string jecUncPath = jecPathname+"/Summer16_23Sep2016V3_MC/Summer16_23Sep2016V3_MC_Uncertainty_AK4PFchs.txt";
       JetCorrectionUncertainty *jecUncMC = new JetCorrectionUncertainty(jecUncPath);
       SimpleJetResolution* JetResolutionCalculatorMC = new SimpleJetResolution(*JetResolutionParametersMC);
-
+      
       correctionParameters.push_back(correctionParametersMC);
       JetResolutionParameters.push_back(JetResolutionParametersMC);
       JetCorrector.push_back( JetCorrectorMC );
@@ -865,7 +872,6 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
       jecUnc.push_back(jecUncMC);
       JetCorrectionsIOV.push_back( std::pair<int,int>( -1, 99999999 ));
     }
-
 }
 
 void RazorHelper::loadAK8JetTag_Razor2016_MoriondRereco() {
@@ -1490,6 +1496,106 @@ void RazorHelper::loadPhoton_Razor2017_92X(){
     phoLooseEffFastsimSFHist = (TH2D*)phoEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor");
 }
 
+////////////////////////////////////////////////
+//  2017 17Nov2017 Rereco
+////////////////////////////////////////////////
+void RazorHelper::loadTag_Razor2017_17Nov2017Rereco() {
+  loadPileup_Razor2017_92X();
+  loadLepton_Razor2016_MoriondRereco();
+  loadPhoton_Razor2017_92X();
+  loadBTag_Razor2017_17Nov2017Rereco();
+  loadTrigger_Razor2017_92X();
+  loadJECs_Razor2016_MoriondRereco();
+}
+
+void RazorHelper::loadLepton_Razor2017_17Nov2017Rereco(){
+
+    // electron efficiencies and scale factors
+    // LAST UPDATED: 18 October 2016
+    std::cout << "RazorHelper: loading 2016 electron efficiency histograms" << std::endl;
+    eleTightEfficiencyFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
+    eleVetoEfficiencyFile = TFile::Open("ElectronMVAIDScaleFactor_SUSYVLoose_2017_17Nov2017Rereco.root");
+    eleEffSFFile = TFile::Open("ElectronMVAIDScaleFactor_SUSYVLoose_2017_17Nov2017Rereco.root");
+    vetoEleEffSFFile = TFile::Open("ElectronMVAIDScaleFactor_SUSYVLoose_2017_17Nov2017Rereco.root");
+    eleGSFTrackEffSFFile = TFile::Open("efficiencySF_muEleTracking_2016_average.root");
+    eleGSFTrackEffFile = TFile::Open("Efficiency_PromptElectron_TTJets_25ns_Reco_Fullsim.root");
+    eleTightEffFastsimSFFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
+    eleVetoEffFastsimSFFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
+
+    eleTightEfficiencyHist = (TH2D*)eleTightEfficiencyFile->Get("ElectronEff_Tight_Fullsim");
+    eleVetoEfficiencyHist = (TH2D*)eleVetoEfficiencyFile->Get("ElectronEff_Veto_Fullsim");
+    // We don't have ID scale factors for Fastsim yet.
+    eleTightEffFastsimSFHist =  (TH2D*)eleTightEffFastsimSFFile->Get("ElectronTight_FastsimScaleFactor");
+    eleVetoEffFastsimSFHist = (TH2D*)eleVetoEffFastsimSFFile->Get("ElectronEff_Veto_Fullsim");
+    eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_TightElectronSelectionEffDenominatorGen");
+    eleVetoEffSFHist = (TH2D*)vetoEleEffSFFile->Get("ScaleFactor_VetoElectronSelectionEffDenominatorGen");
+    eleGSFTrackEffHist = (TH2D*)eleGSFTrackEffFile->Get("Efficiency_PtEta");
+    // These scale factors are weighted according to the fraction of the 2016 run affected
+    // by the 'HIP' issue, under the assumption that tracking scale factors are 1 for runs
+    // not affected by the 'HIP'.
+    eleGSFTrackEffSFHist = (TH2D*)eleGSFTrackEffSFFile->Get("h2_scaleFactorsEGamma");
+
+    // muon efficiencies and scale factors
+    // LAST UPDATED: 18 October 2016
+    std::cout << "RazorHelper: loading 2016 muon efficiency histograms" << std::endl;
+    muTightEfficiencyFile = TFile::Open("MuonIsoScaleFactor_2017_17Nov2017Rereco.root");
+    muVetoEfficiencyFile = TFile::Open("MuonIsoScaleFactor_2017_17Nov2017Rereco.root");
+    muEffSFFile = TFile::Open("MuonIsoScaleFactor_2017_17Nov2017Rereco.root");
+    vetoMuEffSFFile = TFile::Open("MuonIsoScaleFactor_2017_17Nov2017Rereco.root");
+    muTrackEffSFFile = TFile::Open("efficiencySF_muEleTracking_2016_average.root");
+    muTrackEffFile = TFile::Open("Efficiency_PromptMuon_TTJets_25ns_Reco_Fullsim.root");
+    muTightEffFastsimSFFile = TFile::Open("MuonEffFastsimToFullsimCorrectionFactors.2016.root");
+    muVetoEffFastsimSFFile = TFile::Open("MuonEffFastsimToFullsimCorrectionFactors.2016.root");
+
+    muTightEfficiencyHist = (TH2D*)muTightEfficiencyFile->Get("MuonEff_Tight_Fullsim");
+    muVetoEfficiencyHist = (TH2D*)muVetoEfficiencyFile->Get("MuonEff_Veto_Fullsim");
+    // We don't have ID scale factors for Fastsim yet.
+    muTightEffFastsimSFHist = (TH2D*)muTightEffFastsimSFFile->Get("MuonTight_FastsimScaleFactor");
+    muVetoEffFastsimSFHist = (TH2D*)muVetoEffFastsimSFFile->Get("MuonVeto_FastsimScaleFactor");
+    muTightEffSFHist = (TH2D*)muEffSFFile->Get("ScaleFactor_TightMuonSelectionEffDenominatorGen");
+    muVetoEffSFHist = (TH2D*)vetoMuEffSFFile->Get("ScaleFactor_VetoMuonSelectionEffDenominatorGen");
+    muTrackEffHist = (TH2D*)muTrackEffFile->Get("Efficiency_PtEta");
+    // These scale factors are weighted according to the fraction of the 2016 run affected
+    // by the 'HIP' issue, under the assumption that tracking scale factors are 1 for runs
+    // not affected by the 'HIP'.
+    muTrackEffSFHist = (TH2D*)muTrackEffSFFile->Get("muon");
+
+    // tau efficiencies and scale factors
+    std::cout << "RazorHelper: loading tau efficiency histograms" << std::endl;
+    tauEfficiencyFile = TFile::Open("TauEffFastsimToFullsimCorrectionFactors.2016.root");
+    tauLooseEfficiencyHist = (TH2D*)tauEfficiencyFile->Get("TauEff_Loose_Fullsim");
+
+}
+
+void RazorHelper::loadBTag_Razor2017_17Nov2017Rereco() {
+    // b-tag efficiencies and scale factors
+    std::cout << "RazorHelper: loading btag efficiency histograms for tag 17Nov2017Rereco" << std::endl;
+    btagEfficiencyFile = TFile::Open("Efficiency_BJets_25ns_CSVM_Fullsim_80X.root");
+    btagCharmEfficiencyFile = TFile::Open("Efficiency_CJets_25ns_CSVM_Fullsim_80X.root");
+    btagLightJetsEfficiencyFile = TFile::Open("Efficiency_LightJets_25ns_CSVM_Fullsim_80X.root");
+    btagMediumEfficiencyHist = (TH2D*)btagEfficiencyFile->Get("Efficiency_PtEta");
+    btagMediumCharmEfficiencyHist = (TH2D*)btagCharmEfficiencyFile->Get("Efficiency_PtEta");
+    btagMediumLightJetsEfficiencyHist = (TH2D*)btagLightJetsEfficiencyFile->Get("Efficiency_PtEta");
+
+    // Fullsim
+   btagcalib = new BTagCalibration("csvv2", "./CSVv2_94XSF_V2_B_F.csv");
+   btagreader = new BTagCalibrationReader( btagcalib,               // calibration instance
+                                           BTagEntry::OP_MEDIUM,     // operating point
+				           "comb",                 // measurement type
+				           "central");               // systematics type
+    btagreader_up = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "comb", "up");  // sys up
+    btagreader_do = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "comb", "down");  // sys down
+    btagreaderMistag = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "incl", "central");
+    btagreaderMistag_up = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "incl", "up");    // sys up
+    btagreaderMistag_do = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "incl", "down");  // sys down
+
+    // Fastsim
+    btagcalibfastsim = new BTagCalibration("csvv2", "./fastsim_csvv2_ttbar_26_1_2017.csv");
+    btagreaderfastsim = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "central");
+    btagreaderfastsim_up = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "up");
+    btagreaderfastsim_do = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "down");
+
+}
 
 
 ////////////////////////////////////////////////
