@@ -604,15 +604,15 @@ bool RazorAnalyzer::isEGammaPOGTightElectron(int i, bool applyID, bool applyIso,
   return pass;
 }
 
-bool RazorAnalyzer::isVetoElectron(int i, bool applyID, bool applyIso){
-  return isMVANonTrigVetoElectron(i, applyID, applyIso);
+bool RazorAnalyzer::isVetoElectron(int i, bool applyID, bool applyIso, string EraName){
+  return isMVANonTrigVetoElectron(i, applyID, applyIso, EraName);
 }
 
-bool RazorAnalyzer::isLooseElectron(int i, bool applyID, bool applyIso, bool use25nsCuts){
+bool RazorAnalyzer::isLooseElectron(int i, bool applyID, bool applyIso, bool use25nsCuts, string EraName){
   bool pass = true;
   double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
   if (applyID) {
-    if (!passEGammaPOGLooseElectronID(i,use25nsCuts, "Spring15")) pass = false;
+    if (!passEGammaPOGLooseElectronID(i,use25nsCuts, EraName)) pass = false;
   }
   if (applyIso) {
     if (!((ele_chargedMiniIso[i] + fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)))/elePt[i] < 0.1)) pass = false;
@@ -620,11 +620,11 @@ bool RazorAnalyzer::isLooseElectron(int i, bool applyID, bool applyIso, bool use
   return pass;
 }
 
-bool RazorAnalyzer::isMediumElectron(int i, bool applyID, bool applyIso, bool use25nsCuts){
+bool RazorAnalyzer::isMediumElectron(int i, bool applyID, bool applyIso, bool use25nsCuts, string EraName){
   bool pass = true;
   double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
   if (applyID) {
-    if (!passEGammaPOGMediumElectronID(i,use25nsCuts, "Spring15")) pass = false;
+    if (!passEGammaPOGMediumElectronID(i,use25nsCuts, EraName)) pass = false;
   }
   if (applyIso) {
     if (!((ele_chargedMiniIso[i] +  fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)))/elePt[i] < 0.1)) pass = false;
@@ -632,11 +632,11 @@ bool RazorAnalyzer::isMediumElectron(int i, bool applyID, bool applyIso, bool us
   return pass;
 }
 
-bool RazorAnalyzer::isTightElectron(int i, bool applyID, bool applyIso, bool use25nsCuts){
+bool RazorAnalyzer::isTightElectron(int i, bool applyID, bool applyIso, bool use25nsCuts, string EraName){
   bool pass = true;
   double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
   if (applyID) {
-    if (!passEGammaPOGTightElectronID(i,use25nsCuts, "Spring15")) pass = false;
+    if (!passEGammaPOGTightElectronID(i,use25nsCuts, EraName)) pass = false;
   }
   if (applyIso) {
     if (!((ele_chargedMiniIso[i] + fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveAreaMean(i)*pow(dr/0.3,2)))/elePt[i] < 0.1)) pass = false;
@@ -644,11 +644,11 @@ bool RazorAnalyzer::isTightElectron(int i, bool applyID, bool applyIso, bool use
   return pass;
 }
 
-bool RazorAnalyzer::isMVANonTrigVetoElectron(int i, bool applyID, bool applyIso){
+bool RazorAnalyzer::isMVANonTrigVetoElectron(int i, bool applyID, bool applyIso, string EraName){
 
   bool pass = true;
   if (applyID) {
-    if (!passMVANonTrigVetoElectronID(i)) pass = false;
+    if (!passMVANonTrigVetoElectronID(i,EraName)) pass = false;
   }
   if (applyIso) {
     if (!passMVANonTrigVetoElectronIso(i)) pass = false;
@@ -949,66 +949,11 @@ bool RazorAnalyzer::passEGammaPOGTightElectronID(int i, bool use25nsCuts, string
   return pass;
 }
 
-bool RazorAnalyzer::passMVANonTrigVetoElectronID(int i){
-
-  // //Used for 2015 analysis. Tunes for Spring15 MC samples
-  // Int_t subdet = 0;
-  // if (fabs(eleEta_SC[i]) < 0.8) subdet = 0;
-  // else if (fabs(eleEta_SC[i]) < 1.479) subdet = 1;
-  // else subdet = 2;
-  // Int_t ptBin = 0;
-  // if (elePt[i] > 10.0) ptBin = 1;
-
-  // Double_t MVACut = -999;
-  // if (subdet == 0 && ptBin == 0) MVACut = -0.11;
-  // if (subdet == 1 && ptBin == 0) MVACut = -0.55;
-  // if (subdet == 2 && ptBin == 0) MVACut = -0.60;
-  // if (subdet == 0 && ptBin == 1) MVACut = -0.16;
-  // if (subdet == 1 && ptBin == 1) MVACut = -0.65;
-  // if (subdet == 2 && ptBin == 1) MVACut = -0.74;
-
-
-
-  //Giovanni Zevi Della Porta
-  //tried to match working points of 80X electron MVA with 74X electron MVA
-  //pT < 10 bin should use "HZZ" MVA
-  //pT > 10 bin should use "GeneralPurpose" MVA
-  //https://indico.cern.ch/event/590228/contributions/2380031/attachments/1375541/2088587/EGMSUS_newIDs_17Nov16.pdf
-  Int_t subdet = 0;
-  if (fabs(eleEta_SC[i]) < 0.8) subdet = 0;
-  else if (fabs(eleEta_SC[i]) < 1.479) subdet = 1;
-  else subdet = 2;
-  Int_t ptBin = 0;
-  if (elePt[i] > 10.0 && elePt[i] <= 15.0) ptBin = 1;
-  if (elePt[i] > 15.0 && elePt[i] <= 25.0) ptBin = 2;
-  if (elePt[i] > 25.0 ) ptBin = 3;
-
-  double MVACut = -999;
-  //pt 5-10
-  if (subdet == 0 && ptBin == 0) MVACut = 0.46;
-  if (subdet == 1 && ptBin == 0) MVACut = -0.03;
-  if (subdet == 2 && ptBin == 0) MVACut = 0.06;
-  //For pT 10-15
-  if (subdet == 0 && ptBin == 1) MVACut = -0.48;
-  if (subdet == 1 && ptBin == 1) MVACut = -0.67;
-  if (subdet == 2 && ptBin == 1) MVACut = -0.49;
-  //For pT 15-25
-  if (subdet == 0 && ptBin == 2) MVACut = -0.48 - 0.037 * ( elePt[i] - 15);
-  if (subdet == 1 && ptBin == 2) MVACut = -0.67 - 0.024 * ( elePt[i] - 15);
-  if (subdet == 2 && ptBin == 2) MVACut = -0.49 - 0.034 * ( elePt[i] - 15);
-  //For pT>25
-  if (subdet == 0 && ptBin == 3) MVACut = -0.85;
-  if (subdet == 1 && ptBin == 3) MVACut = -0.91;
-  if (subdet == 2 && ptBin == 3) MVACut = -0.83;
-
-  double mvaVar = ele_IDMVAGeneralPurpose[i];
-  if (ptBin == 0) mvaVar = ele_IDMVAHZZ[i];
-
-  //cout << ptBin << " " << subdet << " : " << ele_IDMVAGeneralPurpose[i] << " " << ele_IDMVAHZZ[i] << " --> " << mvaVar << " : cut = " <<  MVACut << " | pass = ";
+bool RazorAnalyzer::passMVANonTrigVetoElectronID(int i, string EraName){
 
   bool pass = false;
-  if (mvaVar > MVACut
-      && fabs(ele_ip3dSignificance[i]) < 4
+  if ( passMVAVetoElectronID(i, EraName)
+       && fabs(ele_ip3dSignificance[i]) < 4
       ) {
     pass = true;
   }
@@ -1018,7 +963,7 @@ bool RazorAnalyzer::passMVANonTrigVetoElectronID(int i){
 
 }
 
-bool RazorAnalyzer::passMVAVetoElectronID(int i){
+bool RazorAnalyzer::passMVAVetoElectronID(int i, string EraName){
 
   //Giovanni Zevi Della Porta
   //tried to match working points of 80X electron MVA with 74X electron MVA
@@ -1035,22 +980,51 @@ bool RazorAnalyzer::passMVAVetoElectronID(int i){
   if (elePt[i] > 25.0 ) ptBin = 3;
 
   double MVACut = -999;
-  //pt 5-10
-  if (subdet == 0 && ptBin == 0) MVACut = 0.46;
-  if (subdet == 1 && ptBin == 0) MVACut = -0.03;
-  if (subdet == 2 && ptBin == 0) MVACut = 0.06;
-  //For pT 10-15
-  if (subdet == 0 && ptBin == 1) MVACut = -0.48;
-  if (subdet == 1 && ptBin == 1) MVACut = -0.67;
-  if (subdet == 2 && ptBin == 1) MVACut = -0.49;
-  //For pT 15-25
-  if (subdet == 0 && ptBin == 2) MVACut = -0.48 - 0.037 * ( elePt[i] - 15);
-  if (subdet == 1 && ptBin == 2) MVACut = -0.67 - 0.024 * ( elePt[i] - 15);
-  if (subdet == 2 && ptBin == 2) MVACut = -0.49 - 0.034 * ( elePt[i] - 15);
-  //For pT>25
-  if (subdet == 0 && ptBin == 3) MVACut = -0.85;
-  if (subdet == 1 && ptBin == 3) MVACut = -0.91;
-  if (subdet == 2 && ptBin == 3) MVACut = -0.83;
+
+  if (EraName == "17Nov2017Rereco") {
+    //Vinay Hegde
+    //https://indico.cern.ch/event/719317/contributions/2963816/attachments/1630110/2598062/MVAidSUSY_10Apr18_SUSYMeeting.pdf
+    //Working Point is called SUSY VLoose
+    //Used for 2017 Data (17Nov2017Rereco)
+    //pt 5-10
+    if (subdet == 0 && ptBin == 0) MVACut = 0.488;
+    if (subdet == 1 && ptBin == 0) MVACut = -0.045;
+    if (subdet == 2 && ptBin == 0) MVACut = 0.176;
+    //For pT 10-25
+    if (subdet == 0 && (ptBin == 1 || ptBin == 2) ) MVACut = -0.788 - 0.00987 * ( elePt[i] - 10);
+    if (subdet == 1 && (ptBin == 1 || ptBin == 2) ) MVACut = -0.85 - 0.005 * ( elePt[i] - 10);
+    if (subdet == 2 && (ptBin == 1 || ptBin == 2) ) MVACut = -0.81 - 0.00513 * ( elePt[i] - 10);
+    //For pT>25
+    if (subdet == 0 && ptBin == 3) MVACut = -0.64;
+    if (subdet == 1 && ptBin == 3) MVACut = -0.775;
+    if (subdet == 2 && ptBin == 3) MVACut = -0.733;
+
+  } else {
+     //Giovanni Zevi Della Porta
+    //tried to match working points of 80X electron MVA with 74X electron MVA
+    //Working Point is called SUSY VLoose
+    //Used for 2016 Data
+    //pT < 10 bin should use "HZZ" MVA
+    //pT > 10 bin should use "GeneralPurpose" MVA
+    //https://indico.cern.ch/event/590228/contributions/2380031/attachments/1375541/2088587/EGMSUS_newIDs_17Nov16.pdf
+    
+    //pt 5-10
+    if (subdet == 0 && ptBin == 0) MVACut = 0.46;
+    if (subdet == 1 && ptBin == 0) MVACut = -0.03;
+    if (subdet == 2 && ptBin == 0) MVACut = 0.06;
+    //For pT 10-15
+    if (subdet == 0 && ptBin == 1) MVACut = -0.48;
+    if (subdet == 1 && ptBin == 1) MVACut = -0.67;
+    if (subdet == 2 && ptBin == 1) MVACut = -0.49;
+    //For pT 15-25
+    if (subdet == 0 && ptBin == 2) MVACut = -0.48 - 0.037 * ( elePt[i] - 15);
+    if (subdet == 1 && ptBin == 2) MVACut = -0.67 - 0.024 * ( elePt[i] - 15);
+    if (subdet == 2 && ptBin == 2) MVACut = -0.49 - 0.034 * ( elePt[i] - 15);
+    //For pT>25
+    if (subdet == 0 && ptBin == 3) MVACut = -0.85;
+    if (subdet == 1 && ptBin == 3) MVACut = -0.91;
+    if (subdet == 2 && ptBin == 3) MVACut = -0.83;
+  }
 
   double mvaVar = ele_IDMVAGeneralPurpose[i];
   if (ptBin == 0) mvaVar = ele_IDMVAHZZ[i];
@@ -1067,7 +1041,7 @@ bool RazorAnalyzer::passMVAVetoElectronID(int i){
 
 }
 
-bool RazorAnalyzer::passMVALooseElectronID(int i){
+bool RazorAnalyzer::passMVALooseElectronID(int i, string EraName){
 
   //Tuned to match signal efficiency of the EGM Cut-based Veto Working Point
   //pT < 10 bin should use "HZZ" MVA
@@ -1083,23 +1057,47 @@ bool RazorAnalyzer::passMVALooseElectronID(int i){
   if (elePt[i] > 25.0 ) ptBin = 3;
 
   double MVACut = -999;
-  //pt 5-10
-  if (subdet == 0 && ptBin == 0) MVACut = 0.83;
-  if (subdet == 1 && ptBin == 0) MVACut = 0.76;
-  if (subdet == 2 && ptBin == 0) MVACut = 0.80;
-  //For pT 10-15
-  if (subdet == 0 && ptBin == 1) MVACut = 0.66;
-  if (subdet == 1 && ptBin == 1) MVACut = 0.44;
-  if (subdet == 2 && ptBin == 1) MVACut = 0.49;
-  //For pT 15-25
-  if (subdet == 0 && ptBin == 2) MVACut = 0.66 - 0.064 * ( elePt[i] - 15);
-  if (subdet == 1 && ptBin == 2) MVACut = 0.44 - 0.057 * ( elePt[i] - 15);
-  if (subdet == 2 && ptBin == 2) MVACut = 0.49 - 0.030 * ( elePt[i] - 15);
-  //For pT>25
-  if (subdet == 0 && ptBin == 3) MVACut = 0.02;
-  if (subdet == 1 && ptBin == 3) MVACut = -0.13;
-  if (subdet == 2 && ptBin == 3) MVACut = 0.19;
 
+  if (EraName == "17Nov2017Rereco") {
+    //Working point tuned for WWZ analysis (it should be retuned for 2017 dataset)
+    //For 2017 Data
+    //pt 5-10
+    if (subdet == 0 && ptBin == 0) MVACut = 0.83;
+    if (subdet == 1 && ptBin == 0) MVACut = 0.76;
+    if (subdet == 2 && ptBin == 0) MVACut = 0.80;
+    //For pT 10-15
+    if (subdet == 0 && ptBin == 1) MVACut = 0.66;
+    if (subdet == 1 && ptBin == 1) MVACut = 0.44;
+    if (subdet == 2 && ptBin == 1) MVACut = 0.49;
+    //For pT 15-25
+    if (subdet == 0 && ptBin == 2) MVACut = 0.66 - 0.064 * ( elePt[i] - 15);
+    if (subdet == 1 && ptBin == 2) MVACut = 0.44 - 0.057 * ( elePt[i] - 15);
+    if (subdet == 2 && ptBin == 2) MVACut = 0.49 - 0.030 * ( elePt[i] - 15);
+    //For pT>25
+    if (subdet == 0 && ptBin == 3) MVACut = 0.02;
+    if (subdet == 1 && ptBin == 3) MVACut = -0.13;
+    if (subdet == 2 && ptBin == 3) MVACut = 0.19;
+  } else {
+    //Working point tuned for WWZ analysis
+    //For 2016 Data
+    //pt 5-10
+    if (subdet == 0 && ptBin == 0) MVACut = 0.83;
+    if (subdet == 1 && ptBin == 0) MVACut = 0.76;
+    if (subdet == 2 && ptBin == 0) MVACut = 0.80;
+    //For pT 10-15
+    if (subdet == 0 && ptBin == 1) MVACut = 0.66;
+    if (subdet == 1 && ptBin == 1) MVACut = 0.44;
+    if (subdet == 2 && ptBin == 1) MVACut = 0.49;
+    //For pT 15-25
+    if (subdet == 0 && ptBin == 2) MVACut = 0.66 - 0.064 * ( elePt[i] - 15);
+    if (subdet == 1 && ptBin == 2) MVACut = 0.44 - 0.057 * ( elePt[i] - 15);
+    if (subdet == 2 && ptBin == 2) MVACut = 0.49 - 0.030 * ( elePt[i] - 15);
+    //For pT>25
+    if (subdet == 0 && ptBin == 3) MVACut = 0.02;
+    if (subdet == 1 && ptBin == 3) MVACut = -0.13;
+    if (subdet == 2 && ptBin == 3) MVACut = 0.19;
+  }
+  
   double mvaVar = ele_IDMVAGeneralPurpose[i];
   if (ptBin == 0) mvaVar = ele_IDMVAHZZ[i];
 

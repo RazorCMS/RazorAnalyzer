@@ -117,7 +117,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 
   string dataset = "80X";
   if ( analysisTag == "Razor2016_MoriondRereco" ) dataset = "80X";
-  else if ( analysisTag == "Razor2017_17Nov2017Rereco" ) dataset = "94X";
+  else if ( analysisTag == "Razor2017_17Nov2017Rereco" ) dataset = "17Nov2017Rereco";
 
   //***************************************************
   //What the options means:
@@ -1355,8 +1355,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           if (overlap) continue;
           //TLorentzVector for this electron
           TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
-	  if( !isVetoElectron(i) ) continue;
-	  if ( !( passMVALooseElectronID(i) && passMVANonTrigVetoElectronIso(i) && fabs(ele_ip3dSignificance[i]) < 4. ) ) continue;//Only for electron WP test
+	  if( !isVetoElectron(i,true, true,dataset) ) continue;
+	  if ( !( passMVALooseElectronID(i,dataset) && passMVANonTrigVetoElectronIso(i) && fabs(ele_ip3dSignificance[i]) < 4. ) ) continue;//Only for electron WP test
 	  if( elePt[i] < 20 ) continue;
 	  if( abs(eleEta[i]) > 2.4 ) continue;
 	  nLooseElectrons++;
@@ -1368,7 +1368,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  tmp_eleCand.electron = thisElectron;
 	  tmp_eleCand.eleCharge = eleCharge[i];
 	  //tmp_eleCand.isTightElectron = isTightElectron(i);
-	  tmp_eleCand.isTightElectron = (passMVALooseElectronID(i) && passMVANonTrigVetoElectronIso(i) && fabs(ele_ip3dSignificance[i]) < 4);//mvaLooseID + IP cut
+	  tmp_eleCand.isTightElectron = (passMVALooseElectronID(i,dataset) && passMVANonTrigVetoElectronIso(i) && fabs(ele_ip3dSignificance[i]) < 4);//mvaLooseID + IP cut
           eleCand.push_back( tmp_eleCand );
 	}
 
