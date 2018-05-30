@@ -771,7 +771,8 @@ void MakeRazorTriggerEfficiencyPlots( int option = 0) {
 */
 
        //ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20171031/FullRazorInclusive_SingleElectron_Run2017C-F-PromptReco_GoldenLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_SingleElectronData_2017C-F");
-       ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20171127/FullRazorInclusive_SingleElectron_Run2017C-F-PromptReco_GoldenLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_SingleElectronData_2017C-F");
+       //ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20171127/FullRazorInclusive_SingleElectron_Run2017C-F-PromptReco_GoldenLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_SingleElectronData_2017C-F");
+       ProduceRazorTriggerEfficiencyPlots("/eos/cms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2018/V5p0_20180524//FullRazorInclusive_EGamma_2018A_PromptReco_GoodLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_EGammaData_2018A");
        
       // //wp=7 backup trigger
        //ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20171031/FullRazorInclusive_SingleElectron_Run2017A-F-PromptReco_GoldenLumi.root", 2017, 7, 11, "RazorTrigger_RsqMR320_Rsq0p09_MR200_All_SingleElectronData_2017A-F");

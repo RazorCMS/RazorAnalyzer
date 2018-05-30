@@ -5,6 +5,7 @@ if [ "$1" == "" ] || [ "$2" == "" ]; then
 else
     cp ${CMSSW_BASE}/src/RazorAnalyzer/bin/Run$2 .
 
+    cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/CSVv2_94XSF_V2_B_F.csv ./
     cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/CSVv2_Moriond17_B_H.csv ./
     cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/CSVv2_Moriond17_G_H.csv ./
     cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/CSVv2_ichep.csv ./

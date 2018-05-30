@@ -1501,7 +1501,7 @@ void RazorHelper::loadPhoton_Razor2017_92X(){
 ////////////////////////////////////////////////
 void RazorHelper::loadTag_Razor2017_17Nov2017Rereco() {
   loadPileup_Razor2017_92X();
-  loadLepton_Razor2016_MoriondRereco();
+  loadLepton_Razor2017_17Nov2017Rereco();
   loadPhoton_Razor2017_92X();
   loadBTag_Razor2017_17Nov2017Rereco();
   loadTrigger_Razor2017_92X();
@@ -1512,7 +1512,7 @@ void RazorHelper::loadLepton_Razor2017_17Nov2017Rereco(){
 
     // electron efficiencies and scale factors
     // LAST UPDATED: 18 October 2016
-    std::cout << "RazorHelper: loading 2016 electron efficiency histograms" << std::endl;
+    std::cout << "RazorHelper: loading 2017 electron efficiency histograms" << std::endl;
     eleTightEfficiencyFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
     eleVetoEfficiencyFile = TFile::Open("ElectronMVAIDScaleFactor_SUSYVLoose_2017_17Nov2017Rereco.root");
     eleEffSFFile = TFile::Open("ElectronMVAIDScaleFactor_SUSYVLoose_2017_17Nov2017Rereco.root");
@@ -1537,7 +1537,7 @@ void RazorHelper::loadLepton_Razor2017_17Nov2017Rereco(){
 
     // muon efficiencies and scale factors
     // LAST UPDATED: 18 October 2016
-    std::cout << "RazorHelper: loading 2016 muon efficiency histograms" << std::endl;
+    std::cout << "RazorHelper: loading 2017 muon efficiency histograms" << std::endl;
     muTightEfficiencyFile = TFile::Open("MuonIsoScaleFactor_2017_17Nov2017Rereco.root");
     muVetoEfficiencyFile = TFile::Open("MuonIsoScaleFactor_2017_17Nov2017Rereco.root");
     muEffSFFile = TFile::Open("MuonIsoScaleFactor_2017_17Nov2017Rereco.root");
