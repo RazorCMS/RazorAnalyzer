@@ -746,7 +746,8 @@ def postprocessQCDHists(hists, shapeHists,
                 wHists, region, btags, debugLevel))
         if 'QCD' in shapeHists and 'qcdnormUp' in shapeHists['QCD']:
             for errType in ['qcdnormUp', 'qcdnormDown', 
-                    'qcdbtagUp', 'qcdbtagDown']:
+                    'qcdbtagUp', 'qcdbtagDown',
+                    'qcdaltfunctionUp', 'qcdaltfunctionDown']:
                 shapeHists['QCD'][errType][var] = (
                         makeQCDExtrapolation(qcd2DHist, wHists, region, 
                             btags, debugLevel, errOpt=errType))

@@ -40,9 +40,9 @@ razorWeightOpts["Razor2016_80X"] = razorWeightOpts["Razor2016"]
 razorWeightOpts["Razor2016_ICHEP_80X"] = razorWeightOpts["Razor2016"]
 razorExtraWeightOpts = {
         "Razor2016G_SUSYUnblind_80X":{
-            'TTJets':['toppt'], 
-            'TTJets1L':['toppt'], 
-            'TTJets2L':['toppt'],
+            #'TTJets':['toppt'], 
+            #'TTJets1L':['toppt'], 
+            #'TTJets2L':['toppt'],
             'Signal':['nisr'],
                  }
         }
@@ -57,6 +57,9 @@ razorWeightHists = {
             "macros/BackgroundStudies/QCD/qcd_best_fit_2d_{}.root".format(box),
             "qcd{}".format(box)) for box in ['dijet', 'multijet', 'sevenjet'] }
         }
+razorWeightHists["Razor2016"].update({
+    "qcdaltfunction{}".format(box):(
+        "macros/BackgroundStudies/QCD/qcd_best_fit_2d_{}_quadratic.root".format(box), "qcd{}".format(box)) for box in ['dijet', 'multijet', 'sevenjet'] })
 razorWeightHists["Razor2016"].update({
     "qcdbtags{}".format(box):(
         "data/ScaleFactors/RazorMADD2015/RazorQCDBTagScaleFactors_Razor2016_MoriondRereco.root",

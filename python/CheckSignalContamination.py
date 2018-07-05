@@ -4,12 +4,23 @@ import sys
 import os
 from array import *
 
-#local imports
 from framework import Config
 from SMSTemplates import makeSMSTemplates, SMSOpts
 from macro.razorAnalysis import Analysis, razorSignalDirs
 from macro.macro import importHists, makeTH2PolyFromColumns, fillTH2PolyFromTH2, stitch
-from WriteRazorMADDCard import BACKGROUND_DIR, getModelName, getBranchingFracsFromModelName
+
+BACKGROUND_DIR = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/RazorMADD2016_08Apr2018"
+
+def getModelName(model, mass1, mass2):
+    return "SMS-%s_%d_%d"%(model, mass1, mass2)
+
+def getBranchingFracsFromModelName(model):
+    """Returns (x branching ratio, y branching ratio)"""
+    xBR = float(model[model.find('x')+1:
+        model.find('y')].replace('p','.'))
+    yBR = float(model[model.find('y')+1:].replace(
+        'p','.'))
+    return xBR, yBR
 
 def checkSignalContamination(config, outDir, lumi, box, model, mLSP, 
         mGluino=-1, mStop=-1, mergeBins=False, debugLevel=0,
@@ -89,7 +100,7 @@ def checkSignalContamination(config, outDir, lumi, box, model, mLSP,
 
 if __name__ == '__main__':
     parser = OptionParser()
-    parser.add_option('-c','--config',dest="config",type="string",default="config/run2.config",
+    parser.add_option('-c','--config',dest="config",type="string",default="config/run2_MADD.config",
                   help="Name of the config file to use")
     parser.add_option('-d','--dir',dest="outDir",default="./",type="string",
                   help="Output directory to store datasets")
@@ -122,10 +133,11 @@ if __name__ == '__main__':
     c = rt.TCanvas('c','c',500,400)
     sigTH1.SetMarkerStyle(8)
     sigTH1.SetMarkerSize(0.8)
+    sigTH1.Scale(100)
     sigTH1.Draw("pe")
     sigTH1.SetMinimum(0)
-    sigTH1.GetXaxis().SetTitle('Bin Number')
-    sigTH1.GetYaxis().SetTitle('Signal Contamination in %s'%box)
+    sigTH1.GetXaxis().SetTitle('Control Region Bin Number')
+    sigTH1.GetYaxis().SetTitle('Signal Contamination (%)')
     sigTH1.GetYaxis().SetTitleOffset(2.)
 
     tleg = rt.TLegend(0.2,0.69,0.5,0.89)

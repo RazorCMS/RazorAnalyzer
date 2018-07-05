@@ -198,7 +198,10 @@ if __name__ == '__main__':
         if doSignificance:
             sigHist.SetBinContent(sigHist.FindBin(mg,mchi), limits[0])
         else:
-            haddOutput = writeXsecTree(boxInput, model, directory, mg, mchi, [limits[0]],[limits[1]],[limits[2]],[limits[3]],[limits[4]],[limits[5]])
+            try:
+                haddOutput = writeXsecTree(boxInput, model, directory, mg, mchi, [limits[0]],[limits[1]],[limits[2]],[limits[3]],[limits[4]],[limits[5]])
+            except ReferenceError: # happens if a file is corrupt
+                continue
             haddOutputs.append(haddOutput)
 
     if doSignificance:

@@ -210,9 +210,11 @@ if __name__ == "__main__":
                 sfHists=sfHists, sfVars=sfVars, printdir=outdir, debugLevel=debugLevel, 
                 auxSFs=auxSFs, noFill=args.noFill, dataDrivenQCD=dataDrivenQCD) 
         #compute scale factors
+        normErrFractions = getNormErrFractions()
+        normErrFractions['QCD'] = 0.02
         appendScaleFactors(process, hists, sfHists, lumiData=analysis.lumi, th2PolyXBins=xbins, 
                 th2PolyCols=cols, debugLevel=debugLevel, var=sfVars, printdir=outdir,
-                normErrFraction=getNormErrFractions())
+                normErrFraction=normErrFractions)
         #export histograms
         if not args.noSave:
             macro.exportHists(hists, outFileName='controlHistograms'+region+'.root', 

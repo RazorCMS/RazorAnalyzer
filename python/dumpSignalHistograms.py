@@ -1,6 +1,7 @@
 ### INPUT: ROOT file produced by RazorAnalyzer python macro code
 
 import sys
+import math
 import argparse
 import ROOT as rt
 
@@ -29,6 +30,9 @@ for proc in hists:
                     sys_dict[sys] = tmp.Clone(sys)
                     sys_dict[sys].Reset()
                 tmp = plotting.unroll2DHistograms([hists['Sys'][sys_proc][sys][var]])[0]
+                for ibin in range(1, tmp.GetNbinsX()+1):
+                    if math.isnan(tmp.GetBinContent(ibin)):
+                        tmp.SetBinContent(ibin, 0)
                 sys_dict[sys].Add(tmp)
     elif proc == "Data" or proc == "Fit":
         print proc

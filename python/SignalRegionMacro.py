@@ -13,6 +13,7 @@ commonShapeErrors = [
         ('othernorm',"Other"),
         ('qcdnorm','QCD'),
         ('qcdbtag','QCD'),
+        ('qcdaltfunction', 'QCD'),
         'btag', 'bmistag', 'pileup', 'facscale', 'renscale', 'facrenscale',
         ('btaginvcrosscheck',['ZInv']),
         ('btagcrosscheckrsq',['TTJets1L','TTJets2L','WJets']),

@@ -1247,7 +1247,7 @@ def plot_SUS15004_MCTotalWithSignal(c, mcTotalUnrolled=0, signalUnrolled=0,
     mcStack = makeStack({"MC":mcTotalUnrolled}, ["MC"], "MC")
     leg = rt.TLegend(0.15, 0.21, 0.55, 0.27)
     rt.SetOwnership(leg, False)
-    leg.AddEntry(mcTotalUnrolled, "Method A Pred.","f")
+    leg.AddEntry(mcTotalUnrolled, "Background Pred.","f")
     leg.AddEntry(signalUnrolled, signalString, "lf")
     plot_SUS15004_Unrolled(c, mcStack, dataUnrolled, None, leg, 
             ymin=ymin, printstr=printstr, lumistr=lumistr, 
@@ -1478,10 +1478,7 @@ def plot_SUS15004_Unrolled(c, mc=0, data=0, fit=0, leg=0, ymin=None, ymax=None, 
     if data:
         #draw data/MC with poisson errors from data
         lowerPadHist = makeRatioTGraphAsymmErrorsTH1(data, mcTotal, "", ratiomin, ratiomax)
-        if controlRegion:
-            lowerPadHist.GetYaxis().SetTitle("Data / pred.")
-        else:
-            lowerPadHist.GetYaxis().SetTitle("Data / pred. [Method A]")
+        lowerPadHist.GetYaxis().SetTitle("Data / pred.")
     elif fit:
         lowerPadHist = make1DRatioHistogram(fit, mcTotal, "", ratiomin, ratiomax, ignoreDenominatorErrs=True)
         lowerPadHist.GetYaxis().SetTitle("Method B / Method A")
