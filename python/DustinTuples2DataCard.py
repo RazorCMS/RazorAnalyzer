@@ -330,8 +330,9 @@ def writeDataCard_th1(box,txtfileName,hists,bkgs):
     rates += [hists[bkg].Integral() for bkg in bkgs]
     processes = [signalName]+bkgs
     lumiErrs = [1+lumiUncertainty] 
-    lumiErrs += [1+lumiUncertainty if bkg.lower() != 
-            'qcd' else 1.0 for bkg in bkgs] 
+    noLumiErrProcs = ['ttjets1l', 'ttjets2l', 'wjets', 'zinv', 'qcd']
+    lumiErrs += [1+lumiUncertainty if bkg.lower() 
+            not in noLumiErrProcs else 1.0 for bkg in bkgs] 
     mcErrs = {} #dictionary of uncorrelated mc bkgd lnN uncertainties
 
     #get list of shape uncertainties

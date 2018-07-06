@@ -47,13 +47,21 @@ def makeQCDBtagSysHists(hists, whists, region, nbtags):
         hists['Sys']['QCD']['qcdbtagsysDown'][var] = down_hist
 
 def getQCDExtrapolationFactor(mrlow, mrhigh, rsqlow, rsqhigh, nbtags,
-        fun, mean, cov, btagHist, errorOpt, debugLevel):
+        fun, mean, cov, btagHist, errorOpt, debugLevel, alt_fun=None):
     """Get QCD extrapolation factor as a function of MR and Rsq"""
     btagBin = min(4, nbtags+1)
     norm = btagHist.GetBinContent(btagBin)
     area = (mrhigh-mrlow)*(rsqhigh-rsqlow)
     integral = fun.Integral(mrlow, mrhigh, rsqlow, rsqhigh)
     sf = norm*integral/area
+
+    # An alternate extrapolation function can be used
+    # to quantify uncertainty on the choice of functional form
+    if alt_fun is not None:
+        alt_integral = alt_fun.Integral(mrlow, mrhigh, 
+                rsqlow, rsqhigh)
+        alt_sf = norm * alt_integral / area
+        alt_sf_frac = alt_sf / sf
 
     if errorOpt is not None:
         sfErr = norm * integral_error(fun, mean, cov, 
@@ -67,6 +75,10 @@ def getQCDExtrapolationFactor(mrlow, mrhigh, rsqlow, rsqhigh, nbtags,
             return sf + normErr
         elif errorOpt == 'qcdbtagDown':
             return max(0., sf - normErr)
+        elif errorOpt == 'qcdaltfunctionUp':
+            return sf * alt_sf_frac
+        elif errorOpt == 'qcdaltfunctionDown':
+            return sf / alt_sf_frac
 
     return sf
 
@@ -95,6 +107,9 @@ def makeQCDExtrapolation(qcd2DHist, wHists, region, btags,
     npz_file = 'macros/BackgroundStudies/QCD/qcd_best_fit_2d_{}.npz'.format(region)
     mean, cov = read_mean_and_cov(npz_file)
     fun = wHists['qcdfunction{}'.format(region)]
+    alt_fun = None
+    if errOpt is not None and 'qcdaltfunction' in errOpt:
+        alt_fun = wHists['qcdaltfunction{}'.format(region)]
     btagHist = wHists['qcdbtags{}'.format(region)]
     for bx in range(1, qcd2DHist.GetNbinsX()+1):
         for by in range(1, qcd2DHist.GetNbinsY()+1):
@@ -103,7 +118,8 @@ def makeQCDExtrapolation(qcd2DHist, wHists, region, btags,
             rsqlow = qcd2DHist.GetYaxis().GetBinLowEdge(by) 
             rsqhigh = qcd2DHist.GetYaxis().GetBinUpEdge(by) 
             extrapFactor = getQCDExtrapolationFactor(mrlow, mrhigh, rsqlow, rsqhigh, btags,
-                    fun, mean, cov, btagHist, errOpt, debugLevel)
+                    fun, mean, cov, btagHist, errOpt, debugLevel,
+                    alt_fun=alt_fun)
             if debugLevel > 0:
                 print "QCD extrapolation factor in bin {} {} {} {} is {} (error opt {})".format(
                         mrlow, mrhigh, rsqlow, rsqhigh, extrapFactor, errOpt)
@@ -758,6 +774,7 @@ def splitShapeErrorsByType(shapeErrors):
         'othernorm':True,
         'qcdnorm':True,
         'qcdbtag':True,
+        'qcdaltfunction':True,
         'sfsysttjets':True,
         'sfsyswjets':True,
         'sfsyszinv':True,

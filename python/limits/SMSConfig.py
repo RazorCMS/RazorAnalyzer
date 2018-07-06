@@ -1,7 +1,7 @@
 import copy
 
-VERSION = '08Apr2018'
-#VERSION = '18Dec2017_NoBoostCuts'
+VERSION = '04Jul2018'
+#VERSION = '08Apr2018_NoBoostCuts'
 BOOST_LIMIT_DIR = "/eos/user/j/jkarancs/RazorBoost/datacards/2018_03_24/"
 BOOST_LOCAL_DIR = "syst_results/run_2018_03_24_syst/cards"
 
@@ -74,6 +74,6 @@ sms_models = {
                 'T2tt_mStop-400to1200',
                 ]),
         'T2qq':SMS(300, 1700, 0, 1300, boxes=HADRONIC_BOXES,
-            isGluino=False, smoothing=50, epsilon=5),
+            isGluino=False, smoothing=0, epsilon=10),
         }
 

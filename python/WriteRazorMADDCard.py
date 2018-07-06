@@ -290,7 +290,7 @@ if __name__ == "__main__":
         # do not correlate closure test uncertainties between
         # boxes with different numbers of jets
         jet_closure_uncs = ['btagcrosscheckrsq', 'btaginvcrosscheck',
-                'qcdnorm', 'qcdbtag', 'qcdbtagsys', 
+                'qcdnorm', 'qcdbtag', 'qcdbtagsys', 'qcdaltfunction',
                 'ttcrosscheck', 'vetolepetacrosscheck',
                 'vetolepptcrosscheck', 'vetotauetacrosscheck',
                 'vetotauptcrosscheck', 'zllcrosscheckmr', 'zllcrosscheckrsq',
