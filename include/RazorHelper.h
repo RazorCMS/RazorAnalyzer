@@ -220,6 +220,7 @@ class RazorHelper {
         void loadPhoton_Razor2017_92X();
 
 	// for Razor2017 17Nov2017 Rereco
+        void loadPileup_Razor2017_17Nov2017Rereco();
 	void loadBTag_Razor2017_17Nov2017Rereco();
         void loadLepton_Razor2017_17Nov2017Rereco();
 

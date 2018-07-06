@@ -72,13 +72,13 @@ void MakePileupReweight(int option = 0) {
   //For 2017 Data
   pileupSourceFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupSource_MC_Fall2017.root", "READ");
   // /afs/cern.ch/user/j/jmao/work/public/releases/CMSSW_9_2_1/src/RazorAnalyzer/data/PileupWeights/PileupSource_MC_Fall2017.root
-  if (option == 0) pileupTargetFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupTarget_2017_41p2ifb.root", "READ");
-  else if (option == 1) pileupTargetFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupTarget_2017_41p2ifb_SysUp.root", "READ");
-  else if (option == 2) pileupTargetFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupTarget_2017_41p2ifb_SysDown.root", "READ");
+  if (option == 0) pileupTargetFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupTarget_2017Rereco_41p2ifb.root", "READ");
+  else if (option == 1) pileupTargetFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupTarget_2017Rereco_41p2ifb_SysUp.root", "READ");
+  else if (option == 2) pileupTargetFile = new TFile("RazorAnalyzer/data/PileupWeights/PileupTarget_2017Rereco_41p2ifb_SysDown.root", "READ");
   else {
     return;
   }
-  file = TFile::Open("PileupReweight_2017_41p2ifb.root", "UPDATE");
+  file = TFile::Open("PileupReweight_2017Rereco_41p2ifb.root", "UPDATE");
 
 
   TH1F *pileupTargetHist = (TH1F*)pileupTargetFile->Get("pileup");
