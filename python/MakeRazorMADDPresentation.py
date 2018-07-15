@@ -143,8 +143,7 @@ def def_slides(plot_dir):
         dy_suffix = ("MultiJet")*(suffix == "MultiJet_Closure" or suffix == 'SevenJet_Closure')
         if "Jet" in suffix:
             slides += [ Slide(dy_title,
-                    ["%s/MR_NoZRsq_NoZ_DYJetsDileptonInv%sUnrolledDataMC.pdf" % (dy_this_dir,dy_suffix),
-                     "%s/DYJetsInvScaleFactors.pdf" % dy_this_dir]),
+                    ["%s/MR_NoZRsq_NoZ_DYJetsDileptonInv%sUnrolledDataMC.pdf" % (dy_this_dir,dy_suffix)]),
                         Slide(dy_title,
                             ["%s/NJets_NoZ_DYJetsDileptonInv%s.pdf" % (dy_this_dir,dy_suffix),
                              ]),
@@ -179,12 +178,12 @@ def def_slides(plot_dir):
                             ["%s/NJets40_%s.pdf" % (veto_dir,veto_region),
                              "%s/NBJetsMedium_%s.pdf" % (veto_dir,veto_region)]),
                             ]
-    #for box in ['DiJet','MultiJet','SevenJet','LeptonMultiJet','LeptonSevenJet']:
-    #    for nb in range(4):
-    #        if (box == 'DiJet') and nb == 3: continue
-    #        slides += [
-    #                Slide("%s (%d b-tags) sideband and signal region"%(box,nb),
-    #                    ["%s/MRRsq_%sUnrolledDataMC.pdf" % (box+str(nb)+"BFineGrained",box)])]
+    for box in ['DiJet','MultiJet','SevenJet','LeptonMultiJet','LeptonSevenJet']:
+        for nb in range(4):
+            if (box == 'DiJet') and nb == 3: continue
+            slides += [
+                    Slide("%s (%d b-tags) sideband and signal region"%(box,nb),
+                        ["%s/MRRsq_%sUnrolledDataMC.pdf" % (box+str(nb)+"BFineGrained",box)])]
 
     for slide in slides:
         slide.append_dir_prefix(plot_dir)
