@@ -1533,10 +1533,25 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           }
           else
           {
-            scale = photonCorrector_2017->ScaleCorrection(run, (fabs(pho_superClusterEta[i]) < 1.5),
-                                                          phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]));
-            smear = photonCorrector_2017->getSmearingSigma(run, (fabs(pho_superClusterEta[i]) < 1.5),
-                                                           phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]), 0, 0., 0.);
+            //old version (92X)
+            //scale = photonCorrector_2017->ScaleCorrection_class_2017(run, (fabs(pho_superClusterEta[i]) < 1.5),
+            //                                              phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]));
+            //smear = photonCorrector_2017->smearingSigma(run, (fabs(pho_superClusterEta[i]) < 1.5),
+             //                                              phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]), 0, 0., 0.);
+            //new version (94X, not working)
+            //scale = photonCorrector_2017->scaleCorr(run, phoE[i]/cosh(pho_superClusterEta[i]), pho_superClusterEta[i], phoR9[i], 0, 0.);
+            //smear = photonCorrector_2017->smearingSigma(run, phoE[i]/cosh(pho_superClusterEta[i]), pho_superClusterEta[i], phoR9[i], 0, 0., 0.);
+            //scale = photonCorrector_2017->scaleCorr(run, phoE[i]/cosh(pho_superClusterEta[i]), pho_superClusterEta[i], phoR9[i], 12, 0.);
+            //smear = photonCorrector_2017->smearingSigma(run, phoE[i]/cosh(pho_superClusterEta[i]), pho_superClusterEta[i], phoR9[i], 12, 0., 0.);
+            //new version (94X, not working yet)
+            //const EnergyScaleCorrection_class_2017::ScaleCorrection_class_2017* scaleCorr = getScaleCorr(runNumber, et, scEtaAbs, photon.full5x5_r9(), gainSeedSC);  
+            //const EnergyScaleCorrection_class_2017::SmearCorrection_class_2017* smearCorr = getSmearCorr(runNumber, et, scEtaAbs, photon.full5x5_r9(), gainSeedSC);  
+            
+             const EnergyScaleCorrection_class_2017::ScaleCorrection_class_2017* scaleCorr = photonCorrector_2017->EnergyScaleCorrection_class_2017::getScaleCorr(run, phoE[i]/cosh(pho_superClusterEta[i]), pho_superClusterEta[i], phoR9[i], 12);
+            const EnergyScaleCorrection_class_2017::SmearCorrection_class_2017* smearCorr = photonCorrector_2017->EnergyScaleCorrection_class_2017::getSmearCorr(run, phoE[i]/cosh(pho_superClusterEta[i]), pho_superClusterEta[i], phoR9[i], 12);
+            scale  = scaleCorr->scale();
+            smear  = smearCorr->sigma(phoE[i]/cosh(pho_superClusterEta[i]));
+           
           }
           //apply scale to data and smearing to MC
 	        if (isData)
@@ -2468,6 +2483,11 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         }
       }//end Zbb category
 
+      //----------------
+      //High-pt category
+      //----------------
+      //if( razorbox == None && HiggsCandidate.Pt() > 110. ) razorbox = HighPt;
+      
       //------------------------------------------------
       //I n v a ri a n t   m a s s   r e s o l u t i o n
       //------------------------------------------------
@@ -2798,6 +2818,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 
   outFile->Close();
   delete photonCorrector;
+  delete photonCorrector_2017;
   delete helper;
 
 }

@@ -1,225 +1,183 @@
-#ifndef EgammaAnalysis_ElectronTools_EnergyScaleCorrection_class_2017_hh
-#define EgammaAnalysis_ElectronTools_EnergyScaleCorrection_class_2017_hh
-/// Read and get energy scale and smearings from .dat files
-/**\class EnergyScaleCorrection_class_2017 EnergyScaleCorrection_class_2017.cc Calibration/ZFitter/src/EnergyScaleCorrection_class_2017.cc
- *  \author Shervin Nourbakhsh
- *
- */
+#ifndef RecoEgamma_EgammaTools_EnergyScaleCorrection_class_2017_h
+#define RecoEgamma_EgammaTools_EnergyScaleCorrection_class_2017_h
 
-/** Description
-	This module is taken from the ECALELF package, used to derive the energy scales and smearings.
+//author: Alan Smithee
+//description: 
+//  A port of Shervin Nourbakhsh's EnergyScaleCorrection_class_2017_class in EgammaAnalysis/ElectronTools
+//  this reads the scale & smearing corrections in from a text file for given categories
+//  it then allows these values to be accessed
 
-	There are two sub-classes: 
-	 - correctionValue_class_2017 that defines the corrections
-     - correctionCategory_class_2017 that defines the categories
-	 There is one map that associates the correction to the category (values read from text file)
 
-	 There is one class that reads the text files with the corrections and returns the scale/smearings given the electron/photon properties
- */
-
-#include <TString.h>
 #include <iostream>
 #include <fstream>
-#include <map>
+#include <vector>
 #include <cmath>
-#include <TChain.h>
-#include <TRandom3.h>
 #include <string>
 #include <bitset> 
 
-//============================== First auxiliary class
-class correctionValue_class_2017
-{
-public:
-  // values
-  float scale, scale_err, scale_err_syst, scale_err_gain;
-  float rho, rho_err;
-  float phi, phi_err;
-  float Emean, Emean_err;
-  
-  correctionValue_class_2017(void)
-  {
-    scale = 1;
-    scale_err = 0;
-    scale_err_syst=0;
-    scale_err_gain=0;
-    rho = 0;
-    rho_err = 0;
-    phi = 0;
-    phi_err = 0;
-    Emean = 0;
-    Emean_err = 0;
-  };
-  
-  friend std::ostream& operator << (std::ostream& os, const correctionValue_class_2017 a)
-  {
-    os <<  "( "
-       << a.scale << " +/- " << a.scale_err << " +/- " << a.scale_err_syst << " +/- " << a.scale_err_gain <<")" 
-       <<  "\t"
-       << a.rho << " +/- " << a.rho_err 
-       <<  "\t"
-       << a.phi << " +/- " << a.phi_err
-       <<  "\t"
-       << a.Emean << " +/- " << a.Emean_err;
-    return os;
-  };
-};
 
-//============================== Second auxiliary class
-class correctionCategory_class_2017
-{
-  // for class definition and ordering
-public:
-  unsigned int runmin;
-  unsigned int runmax;
-  
-private:
-  // definition of the variables used for binning and the min-max ranges
-  float r9min;  ///< min R9 vaule for the bin
-  float r9max;  ///< max R9 value for the bin
-  float etmin;  ///< min Et value for the bin
-  float etmax;  ///< max Et value for the bin
-  float etamin; ///< min eta value for the bin
-  float etamax; ///< max eta value for the bin
-  unsigned int gain; ///< 12, 6, 1, 61 (double gain switch)
-
-  
-public:
-  /** there are two constructors:
-      - the first using the values taken from the e/gamma object
-      - the second used to define the categories and the correction values
-  */
-  
-  /** This constructor uses a string to define the category
-      The string is used in the .dat file where the corrections are defined
-      The syntax of the strings follows the definitions in the ECALELF ElectronCategory_class_2017: http://ecalelfs.github.io/ECALELF/d5/d11/classElectronCategory__class_2017.html
-  */
-  correctionCategory_class_2017(TString category_); ///< constructor with name of the category according to ElectronCategory_class_2017
-  
-  /// this constructor is used to assign a category to the electron/photon given values in input
-  inline  correctionCategory_class_2017(const unsigned int runNumber, const float etaEle, const float R9Ele, const float EtEle, const unsigned int gainSeed)
-  {
-    runmin = runNumber;
-    runmax = runNumber;
-    etamin = fabs(etaEle);
-    etamax = fabs(etaEle);
-    r9min = R9Ele;
-    r9max = R9Ele;
-    etmin = EtEle;
-    etmax = EtEle;
-    gain  = gainSeed;
-  }
-  
-  /// for ordering of the categories
-  bool operator<(const correctionCategory_class_2017& b) const;
-  
-  /// for DEBUG
-  friend std::ostream& operator << (std::ostream& os, const correctionCategory_class_2017 a)
-  {
-    os <<  a.runmin << " " << a.runmax
-       << "\t" << a.etamin << " " << a.etamax
-       << "\t" << a.r9min << " " << a.r9max
-       << "\t" << a.etmin << " " << a.etmax
-       << "\t" << a.gain;    
-    return os;
-  };
-};
-
-
-//============================== 
-/// map associating the category and the correction
-typedef std::map < correctionCategory_class_2017, correctionValue_class_2017 > correction_map_t_2017;
-
-
-
-//============================== Main class
 class EnergyScaleCorrection_class_2017
-{
-	
+{	
 public:  
-  enum fileFormat_t {
+  enum FileFormat{
     UNKNOWN=0,
     GLOBE,
     ECALELF_TOY,
     ECALELF
   };
 
-  enum paramSmear_t {
-        kNone = 0,
-        kRho,
-        kPhi,
-        kNParamSmear
+  enum ParamSmear{
+    kNone = 0,
+    kRho,
+    kPhi,
+    kNParamSmear
   };
   
-  enum scaleNuisances_t{
-    scNone = 0,
-    scStat,
-    scSyst,
-    scStatSyst,
-    scGain,
-    scStatGain,
-    scAll
+  enum ScaleNuisances{
+    kErrStatBitNr = 0,
+    kErrSystBitNr = 1,
+    kErrGainBitNr = 2,
+    kErrNrBits=3,
+    kErrNone = 0,
+    kErrStat = 1,
+    kErrSyst = 2,
+    kErrGain = 4,
+    kErrStatSyst = 3,
+    kErrStatGain = 5,
+    kErrSystGain = 6,
+    kErrStatSystGain = 7
   };
+  
   
   bool doScale, doSmearings;
+
   
-public:
-  EnergyScaleCorrection_class_2017(std::string correctionFileName, unsigned int genSeed=0);
-  EnergyScaleCorrection_class_2017(){}; ///< dummy constructor needed in ElectronEnergyCalibratorRun2
-  ~EnergyScaleCorrection_class_2017(void);
-  
-  
-  //------------------------------ scales
-  float ScaleCorrection(unsigned int runNumber, bool isEBEle, double R9Ele, double etaSCEle,
-			double EtEle, unsigned int gainSeed=12, std::bitset<scAll> uncBitMask=scNone) const; ///< method to get energy scale corrections
-  
-  float ScaleCorrectionUncertainty(unsigned int runNumber, bool isEBEle,
-				   double R9Ele, double etaSCEle, double EtEle, unsigned int gainSeed, 
-				   std::bitset<scAll> uncBitMask=scAll) const;///< method to get scale correction uncertainties: it is:
-  /** 
-   * bit 0 = stat
-   * bit 1 = syst
-   * but 2 = gain
-   */
-  
- private:
-  /// Returns the correction value class
-  correctionValue_class_2017 getScaleCorrection(unsigned int runNumber, bool isEBEle, double R9Ele, double etaSCEle, double EtEle, unsigned int gainSeed) const; 
-  
-  
-  void ReadFromFile(std::string filename); ///<   category  "runNumber"   runMin  runMax   deltaP  err_deltaP_per_bin err_deltaP_stat err_deltaP_syst
-  
-  // this method adds the correction values read from the txt file to the map
-  void AddScale(TString category_, int runMin_, int runMax_, double deltaP_, double err_deltaP_, double err_syst_deltaP, double err_deltaP_gain);
-  
-  //============================== smearings
- public:
-  float getSmearingSigma(int runNumber, bool isEBEle, float R9Ele, float etaSCEle, float EtEle, unsigned int gainSeed, paramSmear_t par, float nSigma = 0.) const;
-  float getSmearingSigma(int runNumber, bool isEBEle, float R9Ele, float etaSCEle, float EtEle, unsigned int gainSeed, float nSigma_rho, float nSigma_phi) const;
-  
-  
- private:
-  fileFormat_t smearingType_;
-  
-  correction_map_t_2017 scales, scales_not_defined;
-  correction_map_t_2017 smearings, smearings_not_defined;
-  
-  void AddSmearing(TString category_, int runMin_, int runMax_, //double smearing_, double err_smearing_);
-		   double rho, double err_rho, double phi, double err_phi, double Emean, double err_Emean);
-  void ReadSmearingFromFile(std::string filename); ///< File structure: category constTerm alpha;
- public:
-  inline void SetSmearingType(fileFormat_t value)
+  class ScaleCorrection_class_2017
   {
-    if(value >= 0 && value <= 1) {
-      smearingType_ = value;
-    } else {
-      smearingType_ = UNKNOWN;
-    }
+  public:  
+    ScaleCorrection_class_2017():
+      scale_(1.),scaleErrStat_(0.),scaleErrSyst_(0.),scaleErrGain_(0.){}
+    ScaleCorrection_class_2017(float iScale,float iScaleErrStat,float iScaleErrSyst,float iScaleErrGain):
+      scale_(iScale),scaleErrStat_(iScaleErrStat),scaleErrSyst_(iScaleErrSyst),scaleErrGain_(iScaleErrGain){}
+    
+    float scale()const{return scale_;}
+    float scaleErr(const std::bitset<kErrNrBits>& uncBitMask)const;
+    float scaleErrStat()const{return scaleErrStat_;}
+    float scaleErrSyst()const{return scaleErrSyst_;}
+    float scaleErrGain()const{return scaleErrGain_;}
+
+    friend std::ostream& operator<<(std::ostream& os, const ScaleCorrection_class_2017& a){return a.print(os);}
+    std::ostream& print(std::ostream& os)const;
+  private:    
+    float scale_, scaleErrStat_, scaleErrSyst_, scaleErrGain_;
   };
   
-  float getSmearingRho(int runNumber, bool isEBEle, float R9Ele, float etaSCEle, float EtEle, unsigned int gainSeed) const; ///< public for sigmaE estimate
-  
+  struct SmearCorrection_class_2017
+  {
+  public:  
+    SmearCorrection_class_2017():
+      rho_(0.),rhoErr_(0.),phi_(0.),phiErr_(0.),
+      eMean_(0.),eMeanErr_(0.){}
+    SmearCorrection_class_2017(float iRho,float iRhoErr,float iPhi,float iPhiErr,float iEMean,float iEMeanErr):
+      rho_(iRho),rhoErr_(iRhoErr),phi_(iPhi),phiErr_(iPhiErr),
+      eMean_(iEMean),eMeanErr_(iEMeanErr){}
+    
+    friend std::ostream& operator<<(std::ostream& os, const SmearCorrection_class_2017& a){return a.print(os);}
+    std::ostream& print(std::ostream& os)const;
+   
+   
+    float sigma(const float et,const float nrSigmaRho=0.,const float nrSigmaPhi=0.)const{
+      const float rhoVal = rho_ + rhoErr_ * nrSigmaRho;
+      const float phiVal = phi_ + phiErr_ * nrSigmaPhi;
+      const float constTerm =  rhoVal * std::sin(phiVal);
+      const float alpha =  rhoVal *  eMean_ * std::cos(phiVal);
+      return std::sqrt(constTerm * constTerm + alpha * alpha / et);
+    }
+  private:
+    float rho_, rhoErr_;
+    float phi_, phiErr_;
+    float eMean_, eMeanErr_;
 
+  };
+  
+  class CorrectionCategory_class_2017
+  {  
+  public:
+    CorrectionCategory_class_2017(const std::string& category,int runnrMin=0,int runnrMax=999999);
+    CorrectionCategory_class_2017(const unsigned int runnr, const float et, const float eta, const float r9, 
+		       const unsigned int gainSeed):
+      runMin_(runnr),runMax_(runnr),etaMin_(std::abs(eta)),etaMax_(std::abs(eta)),
+      r9Min_(r9),r9Max_(r9),etMin_(et),etMax_(et),gain_(gainSeed){}
+    
+    bool operator<(const CorrectionCategory_class_2017& b) const;
+    bool inCategory(const unsigned int runnr, const float et, const float eta, const float r9, 
+		    const unsigned int gainSeed)const;
+    
+    friend std::ostream& operator << (std::ostream& os, const CorrectionCategory_class_2017& a){return a.print(os);}
+    std::ostream& print(std::ostream &os)const;
+    
+  private:
+    //all boundaries are inclusive (X<=Y<=Z)
+    unsigned int runMin_;
+    unsigned int runMax_;
+    float etaMin_; ///< min eta value for the bin
+    float etaMax_; ///< max eta value for the bin
+    float r9Min_;  ///< min R9 vaule for the bin
+    float r9Max_;  ///< max R9 value for the bin
+    float etMin_;  ///< min Et value for the bin
+    float etMax_;  ///< max Et value for the bin
+    unsigned int gain_; ///< 12, 6, 1, 61 (double gain switch)
+  };
+
+    
+public:
+  EnergyScaleCorrection_class_2017(const std::string& correctionFileName, unsigned int genSeed=0);
+  EnergyScaleCorrection_class_2017(){};
+  ~EnergyScaleCorrection_class_2017(void);
+  
+ 
+  float scaleCorr(unsigned int runnr, double et, double eta, double r9,
+		  unsigned int gainSeed=12, std::bitset<kErrNrBits> uncBitMask=kErrNone) const; 
+  
+  float scaleCorrUncert(unsigned int runnr, double et, double eta, double r9,
+			unsigned int gainSeed,std::bitset<kErrNrBits> uncBitMask=kErrNone) const;
+  
+  float smearingSigma(int runnr, double et, double eta, double r9, unsigned int gainSeed, ParamSmear par, float nSigma = 0.) const;
+  float smearingSigma(int runnr, double et, double eta, double r9, unsigned int gainSeed, float nSigmaRho, float nSigmaPhi) const;
+  
+  void setSmearingType(FileFormat value);
+
+  const ScaleCorrection_class_2017* getScaleCorr(unsigned int runnr, double et, double eta, double r9, unsigned int gainSeed) const; 
+  const SmearCorrection_class_2017* getSmearCorr(unsigned int runnr, double et, double eta, double r9, unsigned int gainSeed) const; 
+
+ private:
+
+  void addScale(const std::string& category, int runMin, int runMax, 
+		double deltaP, double errDeltaP, double errSystDeltaP, double errDeltaPGain);
+  void addSmearing(const std::string& category, int runMin, int runMax,
+		   double rho, double errRho, double phi, double errPhi, 
+		   double eMean, double errEMean);
+  
+  void readScalesFromFile(const std::string& filename); 
+  void readSmearingsFromFile(const std::string& filename); 
+
+  //static data members
+  static constexpr float kDefaultScaleVal_ = 1.0;
+  static constexpr float kDefaultSmearVal_ = 0.0;
+
+  //data members
+  FileFormat smearingType_;  
+  std::vector<std::pair<CorrectionCategory_class_2017,ScaleCorrection_class_2017> >scales_;
+  std::vector<std::pair<CorrectionCategory_class_2017,SmearCorrection_class_2017> >smearings_;
+  
+  template<typename T1,typename T2>
+  class Sorter{
+  public:
+    bool operator()(const std::pair<T1,T2>& lhs,const T1& rhs)const{return lhs.first<rhs;}
+    bool operator()(const std::pair<T1,T2>& lhs,const std::pair<T1,T2>& rhs)const{return lhs.first<rhs.first;}
+    bool operator()(const T1& lhs,const std::pair<T1,T2>& rhs)const{return lhs<rhs.first;}
+    bool operator()(const T1& lhs,const T1& rhs)const{return lhs<rhs;}
+  };
   
 };
 
