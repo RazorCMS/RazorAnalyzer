@@ -698,7 +698,8 @@ bool RazorAnalyzer::passEGammaPOGVetoElectronID(int i, bool use25nsCuts, string 
 
       // Veto ID recommended for analyses performed on 2016 data using 8XX releases.
       // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
-    
+      // Based on these slides: https://indico.cern.ch/event/732971/contributions/3022843/attachments/1658685/2656462/eleIdTuning.pdf
+
       if(fabs(eleEta_SC[i]) < 1.479) {
         if ( fabs(ele_dEta[i]) < 0.00749
 	     && fabs(ele_dPhi[i]) < 0.228
@@ -727,7 +728,39 @@ bool RazorAnalyzer::passEGammaPOGVetoElectronID(int i, bool use25nsCuts, string 
         }
       } 
     }
+    else if (EraName == "2017_94X") {
 
+    // Veto ID recommended for analyses performed on 2017 data using 94X releases.
+    // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
+    // Based on these slides: https://indico.cern.ch/event/732971/contributions/3022843/attachments/1658685/2656462/eleIdTuning.pdf
+ 
+    if(fabs(eleEta_SC[i]) < 1.479) {
+      if ( fabs(ele_dEta[i]) < 0.00463
+	   && fabs(ele_dPhi[i]) < 0.148
+	   && eleFull5x5SigmaIetaIeta[i] < 0.0126
+	   && ele_HoverE[i] < 0.05 + 1.16 / eleE[i] + 0.0324*fixedGridRhoFastjetAll / eleE[i]
+	   && fabs(ele_d0[i]) < 0.05
+	   && fabs(ele_dZ[i]) < 0.10
+	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.209
+	   && ele_PassConvVeto[i]
+	   && ele_MissHits[i] <= 2
+	   ) {
+	pass = true;
+      }
+    } else {
+      if (fabs(ele_dEta[i]) < 0.00814
+	  && fabs(ele_dPhi[i]) < 0.19
+	  && eleFull5x5SigmaIetaIeta[i] < 0.0457
+	  && ele_HoverE[i] < 0.05 + 2.54 / eleE[i] + 0.183*fixedGridRhoFastjetAll / eleE[i]
+	  && fabs(ele_d0[i]) < 0.1
+	  && fabs(ele_dZ[i]) < 0.2
+	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.132
+	  && ele_PassConvVeto[i]
+	  && ele_MissHits[i] <= 3
+	  ) {
+	pass = true;
+      }
+    } 
     return pass;
 }
 
@@ -772,7 +805,7 @@ bool RazorAnalyzer::passEGammaPOGLooseElectronID(int i, bool use25nsCuts, string
 
       // Loose ID recommended for analyses performed on 2016 data using 8XX releases.
       // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
-      //
+      // Based on these slides: https://indico.cern.ch/event/482677/contributions/2259342/attachments/1316731/1972911/talk_electron_ID_spring16_update.pdf
       if(fabs(eleEta_SC[i]) < 1.479) {
 	if ( fabs(ele_dEta[i]) < 0.00477
 	     && fabs(ele_dPhi[i]) < 0.222
@@ -794,6 +827,40 @@ bool RazorAnalyzer::passEGammaPOGLooseElectronID(int i, bool use25nsCuts, string
 	    && fabs(ele_d0[i]) < 0.1
 	    && fabs(ele_dZ[i]) < 0.2
 	    && fabs(ele_OneOverEminusOneOverP[i]) < 0.14
+	    && ele_PassConvVeto[i]
+	    && ele_MissHits[i] <= 1
+	    ) {
+	  pass = true;
+	}
+      } 
+    }
+    else if (EraName == "2017_94X") {
+
+      // Loose ID recommended for analyses performed on 2017 data using 94X releases.
+      // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
+      // Based on these slides: https://indico.cern.ch/event/732971/contributions/3022843/attachments/1658685/2656462/eleIdTuning.pdf
+
+      if(fabs(eleEta_SC[i]) < 1.479) {
+	if ( fabs(ele_dEta[i]) < 0.00377
+	     && fabs(ele_dPhi[i]) < 0.0884
+	     && eleFull5x5SigmaIetaIeta[i] < 0.0112
+	     && ele_HoverE[i] < 0.05 + 1.16 / eleE[i] + 0.0324*fixedGridRhoFastjetAll / eleE[i]
+	     && fabs(ele_d0[i]) < 0.05
+	     && fabs(ele_dZ[i]) < 0.10
+	     && fabs(ele_OneOverEminusOneOverP[i]) < 0.193
+	     && ele_PassConvVeto[i]
+	     && ele_MissHits[i] <= 1
+	     ) {
+	  pass = true;
+	}
+      } else {
+	if (fabs(ele_dEta[i]) < 0.00674
+	    && fabs(ele_dPhi[i]) < 0.169
+	    && eleFull5x5SigmaIetaIeta[i] < 0.0425
+	    && ele_HoverE[i] < 0.0441 + 2.54 / eleE[i] + 0.183*fixedGridRhoFastjetAll / eleE[i]
+	    && fabs(ele_d0[i]) < 0.1
+	    && fabs(ele_dZ[i]) < 0.2
+	    && fabs(ele_OneOverEminusOneOverP[i]) < 0.111
 	    && ele_PassConvVeto[i]
 	    && ele_MissHits[i] <= 1
 	    ) {
@@ -845,6 +912,7 @@ bool RazorAnalyzer::passEGammaPOGMediumElectronID(int i, bool use25nsCuts, strin
   else if (EraName == "Summer16") {
     // Medium ID recommended for analyses performed on 2016 data using 8XX releases.
     // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
+    // Based on these slides: https://indico.cern.ch/event/482677/contributions/2259342/attachments/1316731/1972911/talk_electron_ID_spring16_update.pdf
     
     if(fabs(eleEta_SC[i]) < 1.479) {
       if ( fabs(ele_dEta[i]) < 0.00311
@@ -871,6 +939,40 @@ bool RazorAnalyzer::passEGammaPOGMediumElectronID(int i, bool use25nsCuts, strin
     	  && ele_MissHits[i] <= 1
     	  ) {
     	pass = true;
+      }
+    } 
+  }
+  else if (EraName == "2017_94X") {
+
+    // Tight ID recommended for analyses performed on 2017 data using 94X releases.
+    // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
+    // Based on these slides: https://indico.cern.ch/event/482677/contributions/2259342/attachments/1316731/1972911/talk_electron_ID_spring16_update.pdf
+
+    if(fabs(eleEta_SC[i]) < 1.479) {
+      if ( fabs(ele_dEta[i]) < 0.0032
+	   && fabs(ele_dPhi[i]) < 0.0547
+	   && eleFull5x5SigmaIetaIeta[i] < 0.0106
+	   && ele_HoverE[i] < 0.046 + 1.16 / eleE[i] + 0.0324*fixedGridRhoFastjetAll / eleE[i]
+	   && fabs(ele_d0[i]) < 0.05
+	   && fabs(ele_dZ[i]) < 0.10
+	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.184
+	   && ele_PassConvVeto[i]
+	   && ele_MissHits[i] <= 1
+	   ) {
+	pass = true;
+      }
+    } else {
+      if (fabs(ele_dEta[i]) < 0.00632
+	  && fabs(ele_dPhi[i]) < 0.0394
+	  && eleFull5x5SigmaIetaIeta[i] < 0.0387
+	  && ele_HoverE[i] < 0.0275 + 2.52 / eleE[i] + 0.183*fixedGridRhoFastjetAll / eleE[i]
+	  && fabs(ele_d0[i]) < 0.1
+	  && fabs(ele_dZ[i]) < 0.2
+	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.0721
+	  && ele_PassConvVeto[i]
+	  && ele_MissHits[i] <= 1
+	  ) {
+	pass = true;
       }
     } 
   }
@@ -917,7 +1019,8 @@ bool RazorAnalyzer::passEGammaPOGTightElectronID(int i, bool use25nsCuts, string
   else if (EraName == "Summer16") {
     // Tight ID recommended for analyses performed on 2016 data using 8XX releases.
     // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
-    
+    // Based on these slides: https://indico.cern.ch/event/482677/contributions/2259342/attachments/1316731/1972911/talk_electron_ID_spring16_update.pdf
+
     if(fabs(eleEta_SC[i]) < 1.479) {
       if ( fabs(ele_dEta[i]) < 0.00308
 	   && fabs(ele_dPhi[i]) < 0.0816
@@ -946,6 +1049,41 @@ bool RazorAnalyzer::passEGammaPOGTightElectronID(int i, bool use25nsCuts, string
       }
     } 
   }
+  else if (EraName == "2017_94X") {
+
+    // Tight ID recommended for analyses performed on 2017 data using 94X releases.
+    // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
+    // Based on these slides: https://indico.cern.ch/event/732971/contributions/3022843/attachments/1658685/2656462/eleIdTuning.pdf
+
+    if(fabs(eleEta_SC[i]) < 1.479) {
+      if ( fabs(ele_dEta[i]) < 0.00255
+	   && fabs(ele_dPhi[i]) < 0.022
+	   && eleFull5x5SigmaIetaIeta[i] < 0.0104
+	   && ele_HoverE[i] < 0.026 + 1.15 / eleE[i] + 0.0324*fixedGridRhoFastjetAll / eleE[i]
+	   && fabs(ele_d0[i]) < 0.05
+	   && fabs(ele_dZ[i]) < 0.10
+	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.159
+	   && ele_PassConvVeto[i]
+	   && ele_MissHits[i] <= 1
+	   ) {
+	pass = true;
+      }
+    } else {
+      if (fabs(ele_dEta[i]) < 0.00501
+	  && fabs(ele_dPhi[i]) < 0.0236
+	  && eleFull5x5SigmaIetaIeta[i] < 0.0353
+	  && ele_HoverE[i] < 0.0188 + 2.06 / eleE[i] + 0.183*fixedGridRhoFastjetAll / eleE[i]
+	  && fabs(ele_d0[i]) < 0.1
+	  && fabs(ele_dZ[i]) < 0.2
+	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.0197
+	  && ele_PassConvVeto[i]
+	  && ele_MissHits[i] <= 1
+	  ) {
+	pass = true;
+      }
+    } 
+  }
+
   return pass;
 }
 
