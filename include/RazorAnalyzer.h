@@ -67,7 +67,7 @@ class RazorAnalyzer: public RazorEvents {
         //functions in RazorAuxElectron.cc
 	float GetElectronScaleCorrection( double pt, double eta );
 	float GetElectronEffectiveAreaMean(int i, bool use25nsCuts = true);
-	float GetElectronEffectiveArea90(int i);
+	float GetElectronEffectiveArea90(int i, string EraName = "Spring15");
         bool isEGammaPOGVetoElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true, string EraName = "Spring15");
         bool isEGammaPOGLooseElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true, string EraName = "Spring15");
         bool isEGammaPOGMediumElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true, string EraName = "Spring15");

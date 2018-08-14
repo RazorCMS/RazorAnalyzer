@@ -516,46 +516,69 @@ float RazorAnalyzer::GetElectronEffectiveAreaMean(int i, bool use25nsCuts ){
     return effArea;
 }
 
-float RazorAnalyzer::GetElectronEffectiveArea90(int i){ 
+float RazorAnalyzer::GetElectronEffectiveArea90(int i, string EraName){ 
 
   double effArea = 0.0;
   //Effective areas derived on Spring15 MC
   // We will keep using these old ones for Moriond 2017 analyses
   //Reference: https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSLeptonSF
-  if (fabs(eleEta_SC[i]) < 1.0) {
-    effArea = 0.1752;
-  } else if (fabs(eleEta_SC[i]) < 1.479) {
-    effArea = 0.1862;	
-  } else if (fabs(eleEta_SC[i]) < 2.0) {
-    effArea = 0.1411;	
-  } else if (fabs(eleEta_SC[i]) < 2.2) {
-    effArea = 0.1534;	
-  } else if (fabs(eleEta_SC[i]) < 2.3) {
-    effArea = 0.1903;	
-  } else if (fabs(eleEta_SC[i]) < 2.4) {
-    effArea = 0.2243;	
-  } else if (fabs(eleEta_SC[i]) < 2.5) {
-    effArea = 0.2687;
+  if (EraName == "Spring15") {
+    if (fabs(eleEta_SC[i]) < 1.0) {
+      effArea = 0.1752;
+    } else if (fabs(eleEta_SC[i]) < 1.479) {
+      effArea = 0.1862;	
+    } else if (fabs(eleEta_SC[i]) < 2.0) {
+      effArea = 0.1411;	
+    } else if (fabs(eleEta_SC[i]) < 2.2) {
+      effArea = 0.1534;	
+    } else if (fabs(eleEta_SC[i]) < 2.3) {
+      effArea = 0.1903;	
+    } else if (fabs(eleEta_SC[i]) < 2.4) {
+      effArea = 0.2243;	
+    } else if (fabs(eleEta_SC[i]) < 2.5) {
+      effArea = 0.2687;
+    }
   }
-
-  // //New effective areas derived from Spring 16 MC
-  // //Reference: https://indico.cern.ch/event/482673/contributions/2187022/attachments/1282446/1905912/talk_electron_ID_spring16.pdf
-  // //Effective areas below are for the sum of Neutral Hadrons + Photons
-  // if (fabs(eleEta_SC[i]) < 1.0) {
-  //   effArea = 0.1703;
-  // } else if (fabs(eleEta_SC[i]) < 1.479) {
-  //   effArea = 0.1715;	
-  // } else if (fabs(eleEta_SC[i]) < 2.0) {
-  //   effArea = 0.1213;	
-  // } else if (fabs(eleEta_SC[i]) < 2.2) {
-  //   effArea = 0.1230;	
-  // } else if (fabs(eleEta_SC[i]) < 2.3) {
-  //   effArea = 0.1635;	
-  // } else if (fabs(eleEta_SC[i]) < 2.4) {
-  //   effArea = 0.1937;	
-  // } else if (fabs(eleEta_SC[i]) < 2.5) {
-  //   effArea = 0.2393;
-  // }
+  else if (EraName == "Spring16" || EraName == "Summer16") {
+    //New effective areas derived from Spring 16 MC
+    //Reference: https://indico.cern.ch/event/482673/contributions/2187022/attachments/1282446/1905912/talk_electron_ID_spring16.pdf
+    //Effective areas below are for the sum of Neutral Hadrons + Photons
+    if (fabs(eleEta_SC[i]) < 1.0) {
+      effArea = 0.1703;
+    } else if (fabs(eleEta_SC[i]) < 1.479) {
+      effArea = 0.1715;	
+    } else if (fabs(eleEta_SC[i]) < 2.0) {
+      effArea = 0.1213;	
+    } else if (fabs(eleEta_SC[i]) < 2.2) {
+      effArea = 0.1230;	
+    } else if (fabs(eleEta_SC[i]) < 2.3) {
+      effArea = 0.1635;	
+    } else if (fabs(eleEta_SC[i]) < 2.4) {
+      effArea = 0.1937;	
+    } else if (fabs(eleEta_SC[i]) < 2.5) {
+      effArea = 0.2393;
+    }
+  }   
+  else if (EraName == "2017_94X") {
+    //Effective areas derived from 94X samples
+    //Reference numbers: https://github.com/cms-sw/cmssw/blob/CMSSW_10_2_X/RecoEgamma/ElectronIdentification/data/Fall17/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_94X.txt
+    //Details found here: https://indico.cern.ch/event/697576/contributions/2940576/attachments/1620927/2578913/eleIdTuning.pdf
+    if (fabs(eleEta_SC[i]) < 1.0) {
+      effArea = 0.1440;
+    } else if (fabs(eleEta_SC[i]) < 1.479) {
+      effArea = 0.1562;	
+    } else if (fabs(eleEta_SC[i]) < 2.0) {
+      effArea = 0.1032;	
+    } else if (fabs(eleEta_SC[i]) < 2.2) {
+      effArea = 0.0859;	
+    } else if (fabs(eleEta_SC[i]) < 2.3) {
+      effArea = 0.1116;	
+    } else if (fabs(eleEta_SC[i]) < 2.4) {
+      effArea = 0.1321;	
+    } else if (fabs(eleEta_SC[i]) < 2.5) {
+      effArea = 0.1654;
+    }
+  }
 
   return effArea;
 }
@@ -730,37 +753,38 @@ bool RazorAnalyzer::passEGammaPOGVetoElectronID(int i, bool use25nsCuts, string 
     }
     else if (EraName == "2017_94X") {
 
-    // Veto ID recommended for analyses performed on 2017 data using 94X releases.
-    // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
-    // Based on these slides: https://indico.cern.ch/event/732971/contributions/3022843/attachments/1658685/2656462/eleIdTuning.pdf
- 
-    if(fabs(eleEta_SC[i]) < 1.479) {
-      if ( fabs(ele_dEta[i]) < 0.00463
-	   && fabs(ele_dPhi[i]) < 0.148
-	   && eleFull5x5SigmaIetaIeta[i] < 0.0126
-	   && ele_HoverE[i] < 0.05 + 1.16 / eleE[i] + 0.0324*fixedGridRhoFastjetAll / eleE[i]
-	   && fabs(ele_d0[i]) < 0.05
-	   && fabs(ele_dZ[i]) < 0.10
-	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.209
-	   && ele_PassConvVeto[i]
-	   && ele_MissHits[i] <= 2
-	   ) {
-	pass = true;
+      // Veto ID recommended for analyses performed on 2017 data using 94X releases.
+      // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
+      // Based on these slides: https://indico.cern.ch/event/732971/contributions/3022843/attachments/1658685/2656462/eleIdTuning.pdf
+      
+      if(fabs(eleEta_SC[i]) < 1.479) {
+	if ( fabs(ele_dEta[i]) < 0.00463
+	     && fabs(ele_dPhi[i]) < 0.148
+	     && eleFull5x5SigmaIetaIeta[i] < 0.0126
+	     && ele_HoverE[i] < 0.05 + 1.16 / eleE[i] + 0.0324*fixedGridRhoFastjetAll / eleE[i]
+	     && fabs(ele_d0[i]) < 0.05
+	     && fabs(ele_dZ[i]) < 0.10
+	     && fabs(ele_OneOverEminusOneOverP[i]) < 0.209
+	     && ele_PassConvVeto[i]
+	     && ele_MissHits[i] <= 2
+	     ) {
+	  pass = true;
+	}
+      } else {
+	if (fabs(ele_dEta[i]) < 0.00814
+	    && fabs(ele_dPhi[i]) < 0.19
+	    && eleFull5x5SigmaIetaIeta[i] < 0.0457
+	    && ele_HoverE[i] < 0.05 + 2.54 / eleE[i] + 0.183*fixedGridRhoFastjetAll / eleE[i]
+	    && fabs(ele_d0[i]) < 0.1
+	    && fabs(ele_dZ[i]) < 0.2
+	    && fabs(ele_OneOverEminusOneOverP[i]) < 0.132
+	    && ele_PassConvVeto[i]
+	    && ele_MissHits[i] <= 3
+	    ) {
+	  pass = true;
+	}
       }
-    } else {
-      if (fabs(ele_dEta[i]) < 0.00814
-	  && fabs(ele_dPhi[i]) < 0.19
-	  && eleFull5x5SigmaIetaIeta[i] < 0.0457
-	  && ele_HoverE[i] < 0.05 + 2.54 / eleE[i] + 0.183*fixedGridRhoFastjetAll / eleE[i]
-	  && fabs(ele_d0[i]) < 0.1
-	  && fabs(ele_dZ[i]) < 0.2
-	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.132
-	  && ele_PassConvVeto[i]
-	  && ele_MissHits[i] <= 3
-	  ) {
-	pass = true;
-      }
-    } 
+    }
     return pass;
 }
 
