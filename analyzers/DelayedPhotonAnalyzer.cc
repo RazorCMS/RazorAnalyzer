@@ -19,6 +19,8 @@ const double SPEED_OF_LIGHT = 29.9792458; // speed of light in cm / ns
 const float EB_R = 129.7;
 const float EE_Z = 317.0;
 const double JET_CUT = 30.;
+const int NUM_PDF_WEIGHTS = 60;
+
 const bool photonOrderByTime = true;
 //const double TR_SMEAR = 0.2210;
 const int N_pt_divide = 19;
@@ -280,6 +282,8 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   float weight;
   float pileupWeight, pileupWeightUp, pileupWeightDown;
   float photonEffSF; 
+  float triggerEffWeight;
+  float triggerEffSFWeight;
   float ISRSystWeightUp, ISRSystWeightDown;
   float sf_facScaleUp, sf_facScaleDown;
   float sf_renScaleUp, sf_renScaleDown;
@@ -349,6 +353,8 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   outputTree->Branch("pileupWeight", &pileupWeight, "pileupWeight/F");
   outputTree->Branch("pileupWeightUp", &pileupWeightUp, "pileupWeightUp/F");
   outputTree->Branch("pileupWeightDown", &pileupWeightDown, "pileupWeightDown/F");
+  outputTree->Branch("triggerEffWeight", &triggerEffWeight, "triggerEffWeight/F");
+  outputTree->Branch("triggerEffSFWeight", &triggerEffSFWeight, "triggerEffSFWeight/F");
   outputTree->Branch("photonEffSF", &photonEffSF, "photonEffSF/F");
   outputTree->Branch("ISRSystWeightUp", &ISRSystWeightUp, "ISRSystWeightUp/F");
   outputTree->Branch("ISRSystWeightDown", &ISRSystWeightDown, "ISRSystWeightDown/F");
@@ -572,6 +578,8 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
     pileupWeight = 1.0;
     pileupWeightUp = 1.0;
     pileupWeightDown = 1.0;
+    triggerEffWeight  = 1.0;
+    triggerEffSFWeight  = 1.0;
     ISRSystWeightUp   = 1.0;
     ISRSystWeightDown = 1.0;
     photonEffSF = 1.0;
@@ -650,7 +658,6 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
     pileupWeightUp = helper->getPileupWeightUp(NPU) / pileupWeight;
     pileupWeightDown = helper->getPileupWeightDown(NPU) / pileupWeight;
 
-    }
 	
     if ( (*scaleWeights).size() >= 9 )
         {
@@ -677,6 +684,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 	  SumPdfWeights->Fill(double(iwgt),(*pdfWeights)[iwgt]);
 	} 
   
+    }
  
     int nPho = 0;
     TLorentzVector pho1 = makeTLorentzVector(0,0,0,0);
@@ -728,8 +736,8 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 	float pho_pt_corr_scaleDown = phoPt[ind_pho];
 	double scale = photonCorrector->ScaleCorrection(run, (fabs(pho_superClusterEta[ind_pho]) < 1.5), phoR9[ind_pho], pho_superClusterEta[ind_pho], phoE[ind_pho]/cosh(pho_superClusterEta[ind_pho]));
 	double scaleUnc = photonCorrector->ScaleCorrectionUncertainty(run, (fabs(pho_superClusterEta[ind_pho]) < 1.5), phoR9[ind_pho], pho_superClusterEta[ind_pho], phoE[ind_pho]/cosh(pho_superClusterEta[ind_pho]));
-	double scaleUp = scale*(1.0+scaleUnc);
-	double scaleDown =  scale/(1.0+scaleUnc);
+	double scaleUp = scale + scaleUnc;
+	double scaleDown = scale - scaleUnc;
         double smear = photonCorrector->getSmearingSigma(run, (fabs(pho_superClusterEta[ind_pho]) < 1.5), phoR9[ind_pho], pho_superClusterEta[ind_pho], phoE[ind_pho]/cosh(pho_superClusterEta[ind_pho]), 0., 0.);
 
 	if (doPhotonScaleCorrection) {
@@ -1147,14 +1155,56 @@ HT = 0.0;
 HT = pho1Pt;
 if(nPho>=2) HT += pho2Pt;
 
+
 //******************************************************
 //compute photon efficiency scale factor
 //******************************************************
+if(nPho == 1) photonEffSF = helper->getPhotonScaleFactor(pho1Pt, pho1Eta);
+else
+{
+	photonEffSF = helper->getPhotonScaleFactor(pho1Pt, pho1Eta) * helper->getPhotonScaleFactor(pho2Pt, pho2Eta);	
+}
+//******************************************************
+//compute trigger efficiency weights for MC
+//******************************************************
+triggerEffWeight = 1.0;
+triggerEffSFWeight = 1.0;
 
-photonEffSF = helper->getPhotonScaleFactor(pho1Pt, pho1Eta);
+double leadPhoPt=0;
+double leadPhoEta=0;
+double trailingPhoPt=0;
+double trailingPhoEta=0;
+if (pho1Pt > pho2Pt)
+{
+	leadPhoPt = pho1Pt;
+	leadPhoEta = pho1Eta;
+	trailingPhoPt = pho2Pt;
+	trailingPhoEta= pho2Eta;
+}
+else
+{
+	leadPhoPt = pho2Pt;
+	leadPhoEta = pho2Eta;
+        trailingPhoPt = pho1Pt;
+        trailingPhoEta= pho1Eta;
+}
+
+if(nPho==1)
+{
+	triggerEffWeight = helper->getDiphotonTrigLeadingLegEff( pho1Pt, pho1Eta );
+	triggerEffSFWeight = helper->getDiphotonTrigLeadingLegEffSF( pho1Pt, pho1Eta );
+}
+else
+{
+	double triggerEffLeadingLeg = helper->getDiphotonTrigLeadingLegEff( leadPhoPt, leadPhoEta );
+	double triggerEffTrailingLeg = helper->getDiphotonTrigTrailingLegEff( trailingPhoPt, trailingPhoEta );
+	triggerEffWeight = triggerEffLeadingLeg*triggerEffTrailingLeg;
+	double triggerEffSFLeadingLeg = helper->getDiphotonTrigLeadingLegEffSF( leadPhoPt, leadPhoEta );
+	double triggerEffSFTrailingLeg = helper->getDiphotonTrigTrailingLegEffSF( trailingPhoPt, trailingPhoEta );
+	triggerEffSFWeight = triggerEffSFLeadingLeg*triggerEffSFTrailingLeg;
+}
 
 //jet loop
-
 
 std::vector<FactorizedJetCorrector*> JetCorrector = helper->getJetCorrector();
 std::vector<std::pair<int,int> > JetCorrectorIOV = helper->getJetCorrectionsIOV();
