@@ -170,6 +170,9 @@ public :
    Float_t         pho_sumChargedHadronPt[700];   //[nPhotons]
    Float_t         pho_sumNeutralHadronEt[700];   //[nPhotons]
    Float_t         pho_sumPhotonEt[700];   //[nPhotons]
+   Float_t         pho_ecalPFClusterIso[700];   //[nPhotons]
+   Float_t         pho_hcalPFClusterIso[700];   //[nPhotons]
+   Float_t         pho_trkSumPtHollowConeDR03[700];   //[nPhotons]
    Float_t         pho_sumWorstVertexChargedHadronPt[700];   //[nPhotons]
    Float_t         pho_pfIsoChargedHadronIso[700];   //[nPhotons]
    Float_t         pho_pfIsoChargedHadronIsoWrongVtx[700];   //[nPhotons]
@@ -520,6 +523,9 @@ public :
    TBranch        *b_pho_sumChargedHadronPt;   //!
    TBranch        *b_pho_sumNeutralHadronEt;   //!
    TBranch        *b_pho_sumPhotonEt;   //!
+   TBranch        *b_pho_ecalPFClusterIso;   //!
+   TBranch        *b_pho_hcalPFClusterIso;   //!
+   TBranch        *b_pho_trkSumPtHollowConeDR03;   //!
    TBranch        *b_pho_sumWorstVertexChargedHadronPt;   //!
    TBranch        *b_pho_pfIsoChargedHadronIso;   //!
    TBranch        *b_pho_pfIsoChargedHadronIsoWrongVtx;   //!
@@ -961,6 +967,9 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("pho_sumChargedHadronPt", pho_sumChargedHadronPt, &b_pho_sumChargedHadronPt);
    fChain->SetBranchAddress("pho_sumNeutralHadronEt", pho_sumNeutralHadronEt, &b_pho_sumNeutralHadronEt);
    fChain->SetBranchAddress("pho_sumPhotonEt", pho_sumPhotonEt, &b_pho_sumPhotonEt);
+   fChain->SetBranchAddress("pho_ecalPFClusterIso", pho_ecalPFClusterIso, &b_pho_ecalPFClusterIso);
+   fChain->SetBranchAddress("pho_hcalPFClusterIso", pho_hcalPFClusterIso, &b_pho_hcalPFClusterIso);
+   fChain->SetBranchAddress("pho_trkSumPtHollowConeDR03", pho_trkSumPtHollowConeDR03, &b_pho_trkSumPtHollowConeDR03);
    fChain->SetBranchAddress("pho_sumWorstVertexChargedHadronPt", pho_sumWorstVertexChargedHadronPt, &b_pho_sumWorstVertexChargedHadronPt);
    fChain->SetBranchAddress("pho_pfIsoChargedHadronIso", pho_pfIsoChargedHadronIso, &b_pho_pfIsoChargedHadronIso);
    fChain->SetBranchAddress("pho_pfIsoChargedHadronIsoWrongVtx", pho_pfIsoChargedHadronIsoWrongVtx, &b_pho_pfIsoChargedHadronIsoWrongVtx);
