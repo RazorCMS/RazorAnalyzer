@@ -279,7 +279,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   float genVertexTime = 0.0;//genVertexT;
   float weight;
   float pileupWeight, pileupWeightUp, pileupWeightDown;
-  
+  float photonEffSF; 
   float ISRSystWeightUp, ISRSystWeightDown;
   float sf_facScaleUp, sf_facScaleDown;
   float sf_renScaleUp, sf_renScaleDown;
@@ -349,7 +349,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   outputTree->Branch("pileupWeight", &pileupWeight, "pileupWeight/F");
   outputTree->Branch("pileupWeightUp", &pileupWeightUp, "pileupWeightUp/F");
   outputTree->Branch("pileupWeightDown", &pileupWeightDown, "pileupWeightDown/F");
-
+  outputTree->Branch("photonEffSF", &photonEffSF, "photonEffSF/F");
   outputTree->Branch("ISRSystWeightUp", &ISRSystWeightUp, "ISRSystWeightUp/F");
   outputTree->Branch("ISRSystWeightDown", &ISRSystWeightDown, "ISRSystWeightDown/F");
   outputTree->Branch("sf_facScaleUp", &sf_facScaleUp, "sf_facScaleUp/F");
@@ -545,6 +545,9 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   outputTree->Branch("ZD2", &ZD2, "ZD2/F");
 
   TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
+  TH1F *SumWeights = new TH1F("SumWeights", "SumWeights", 1, 0.5, 1.5);
+  TH1F *SumScaleWeights = new TH1F("SumScaleWeights", "SumScaleWeights", 6, -0.5, 5.5);
+  TH1F *SumPdfWeights = new TH1F("SumPdfWeights", "SumPdfWeights", NUM_PDF_WEIGHTS, -0.5, NUM_PDF_WEIGHTS-0.5);
 
   //begin loop
   if (fChain == 0) return;
@@ -571,7 +574,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
     pileupWeightDown = 1.0;
     ISRSystWeightUp   = 1.0;
     ISRSystWeightDown = 1.0;
-
+    photonEffSF = 1.0;
     sf_facScaleUp = 1.0;
     sf_facScaleDown = 1.0;
     sf_renScaleUp = 1.0;
@@ -633,6 +636,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
     //fill normalization histogram
     NEvents->SetBinContent( 1, NEvents->GetBinContent(1) + genWeight);
     weight = genWeight;
+    SumWeights->Fill(1.0, weight);
 
     //get NPU
     if( !isData )
@@ -656,12 +660,21 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
           sf_renScaleDown    = (*scaleWeights)[6]/genWeight;
           sf_facRenScaleUp   = (*scaleWeights)[4]/genWeight;
           sf_facRenScaleDown = (*scaleWeights)[8]/genWeight;
+	
+	  SumScaleWeights->Fill(0.0, (*scaleWeights)[1]);
+	  SumScaleWeights->Fill(1.0, (*scaleWeights)[2]);
+	  SumScaleWeights->Fill(2.0, (*scaleWeights)[3]);
+	  SumScaleWeights->Fill(3.0, (*scaleWeights)[6]);
+	  SumScaleWeights->Fill(4.0, (*scaleWeights)[4]);
+	  SumScaleWeights->Fill(5.0, (*scaleWeights)[8]);
+
     }
    
     sf_pdf.erase( sf_pdf.begin(), sf_pdf.end() );
     for ( unsigned int iwgt = 0; iwgt < pdfWeights->size(); ++iwgt )
         {
           sf_pdf.push_back( pdfWeights->at(iwgt)/genWeight );
+	  SumPdfWeights->Fill(double(iwgt),(*pdfWeights)[iwgt]);
 	} 
   
  
@@ -1134,6 +1147,12 @@ HT = 0.0;
 HT = pho1Pt;
 if(nPho>=2) HT += pho2Pt;
 
+//******************************************************
+//compute photon efficiency scale factor
+//******************************************************
+
+photonEffSF = helper->getPhotonScaleFactor(pho1Pt, pho1Eta);
+
 //jet loop
 
 
@@ -1453,6 +1472,9 @@ if( !isData )
 cout << "Writing output trees..." << endl;
 outputTree->Write();
 NEvents->Write();
+SumWeights->Write();
+SumScaleWeights->Write();
+SumPdfWeights->Write();
 outFile->Close();
 
 }//analyzer function
