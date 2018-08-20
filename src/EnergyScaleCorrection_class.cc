@@ -153,7 +153,7 @@ void EnergyScaleCorrection_class::ReadFromFile(std::string filename)
 #ifdef PEDANTIC_OUTPUT
   std::cout << "[STATUS] Reading energy scale correction  values from file: " << filename << std::endl;
 #endif
-  std::cout << "[STATUS] Reading energy scale correction  values from file: " << filename << std::endl;
+  //std::cout << "[STATUS] Reading energy scale correction  values from file: " << filename << std::endl;
 
   //std::ifstream Ccufile(edm::FileInPath(Ccufilename).fullPath().c_str(),std::ios::in);
   std::ifstream f_in( filename.c_str());
@@ -267,7 +267,7 @@ void EnergyScaleCorrection_class::ReadSmearingFromFile(std::string filename)
 #ifdef PEDANTIC_OUTPUT
   std::cout << "[STATUS] Reading smearing values from file: " << filename << std::endl;
 #endif
-  std::cout << "[STATUS] Reading smearing values from file: " << filename << std::endl;
+  //std::cout << "[STATUS] Reading smearing values from file: " << filename << std::endl;
 
   std::ifstream f_in( filename.c_str());
   if(!f_in.good()) {
