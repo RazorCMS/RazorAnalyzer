@@ -152,8 +152,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   TRandom3 random(3003);
   //bool doPhotonScaleCorrection = true;
 
-  string analysisTag = "Razor2016_MoriondRereco";
-  //string analysisTag = "Razor2016_80X";
+  string analysisTag = "Razor2016_07Aug2017Rereco";
   if ( label != "") analysisTag = label;
 
   if ( label != "") analysisTag = label;
