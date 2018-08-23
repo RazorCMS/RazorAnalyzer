@@ -708,7 +708,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   //--------------------------------
   //Photon Energy Scale and Resolution Corrections
   //--------------------------------
-  std::string photonCorrectionPath = "/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonCorrections/";
+  std::string photonCorrectionPath = "./";//eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonCorrections/";
   EnergyScaleCorrection_class *photonCorrector = 0;
   if (analysisTag == "Razor2016_MoriondRereco") photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
   else if (analysisTag == "Razor2016_07Aug2017Rereco") photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
