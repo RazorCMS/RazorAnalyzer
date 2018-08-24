@@ -20,6 +20,7 @@ do
 	nfiles=`cat $inputfilelist | wc | awk '{print $1}' `
 	maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
 	rm submit/${sample}_Job*.jdl
+	rm log/${sample}_Job*
 
 	for jobnumber in `seq 0 1 ${maxjob}`
 	do
@@ -27,7 +28,7 @@ do
 		jdl_file=submit/${sample}_Job${jobnumber}_Of_${maxjob}.jdl
 		echo "Universe = vanilla" > ${jdl_file}
 		echo "Executable = ${job_script}" >> ${jdl_file}
-		echo "Arguments = DelayedPhoton_GMSB_L350TeV_Ctau200cm_13TeV-pythia8_Job${jobnumber}_Of_${maxjob} /store/user/zhicaiz/Run2Analysis/DelayedPhotonAnalysis/2016/jobs/ DelayedPhotonAnalyzer ${inputfilelist} no 10 ${filesPerJob} ${jobnumber} DelayedPhoton_GMSB_L350TeV_Ctau200cm_13TeV-pythia8_Job${jobnumber}_Of_${maxjob}.root" >> ${jdl_file}
+		echo "Arguments = ${sample}_Job${jobnumber}_Of_${maxjob} /store/user/zhicaiz/Run2Analysis/DelayedPhotonAnalysis/2016/jobs/ DelayedPhotonAnalyzer ${inputfilelist} no 10 ${filesPerJob} ${jobnumber} ${sample}_Job${jobnumber}_Of_${maxjob}.root" >> ${jdl_file}
 		echo "Log = log/${sample}_Job${jobnumber}_Of_${maxjob}_PC.log" >> ${jdl_file}
 		echo "Output = log/${sample}_Job${jobnumber}_Of_${maxjob}_\$(Cluster).\$(Process).out" >> ${jdl_file}
 		echo "Error = log/${sample}_Job${jobnumber}_Of_${maxjob}_\$(Cluster).\$(Process).err" >> ${jdl_file}
