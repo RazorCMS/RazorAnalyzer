@@ -20,3 +20,4 @@ do
 	done
 	sed -i '/xxxxxxxxxx/d' DoubleEG_${run}_06Aug2018.cern.txt
 done
+sed -i "s/\/eos\/cms/root\:\/\/cms-xrd-global.cern.ch\//g" `grep \/eos\/cms -rl DoubleEG_2016*06Aug2018.cern.txt`
