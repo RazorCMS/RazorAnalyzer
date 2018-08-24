@@ -12,7 +12,57 @@ filesPerJob=20
 
 for sample in \
 GMSB_L100TeV_Ctau1000cm_13TeV-pythia8 \
-GMSB_L100TeV_Ctau10cm_13TeV-pythia8 
+GMSB_L100TeV_Ctau10cm_13TeV-pythia8 \
+GMSB_L100TeV_Ctau1200cm_13TeV-pythia8 \
+GMSB_L100TeV_Ctau20000cm_13TeV-pythia8 \
+GMSB_L100TeV_Ctau4000cm_13TeV-pythia8 \
+GMSB_L150TeV_Ctau1000cm_13TeV-pythia8 \
+GMSB_L150TeV_Ctau100cm_13TeV-pythia8 \
+GMSB_L150TeV_Ctau10cm_13TeV-pythia8 \
+GMSB_L150TeV_Ctau1200cm_13TeV-pythia8 \
+GMSB_L150TeV_Ctau20000cm_13TeV-pythia8 \
+GMSB_L150TeV_Ctau200cm_13TeV-pythia8 \
+GMSB_L150TeV_Ctau4000cm_13TeV-pythia8 \
+GMSB_L150TeV_Ctau400cm_13TeV-pythia8 \
+GMSB_L150TeV_Ctau50cm_13TeV-pythia8 \
+GMSB_L150TeV_Ctau5cm_13TeV-pythia8 \
+GMSB_L150TeV_Ctau600cm_13TeV-pythia8 \
+GMSB_L150TeV_Ctau800cm_13TeV-pythia8 \
+GMSB_L200TeV_Ctau0p01cm_13TeV-pythia8 \
+GMSB_L200TeV_Ctau0p1cm_13TeV-pythia8 \
+GMSB_L200TeV_Ctau1000cm_13TeV-pythia8 \
+GMSB_L200TeV_Ctau100cm_13TeV-pythia8 \
+GMSB_L200TeV_Ctau10cm_13TeV-pythia8 \
+GMSB_L200TeV_Ctau1200cm_13TeV-pythia8 \
+GMSB_L200TeV_Ctau20000cm_13TeV-pythia8 \
+GMSB_L200TeV_Ctau200cm_13TeV-pythia8 \
+GMSB_L200TeV_Ctau400cm_13TeV-pythia8 \
+GMSB_L200TeV_Ctau50cm_13TeV-pythia8 \
+GMSB_L200TeV_Ctau5cm_13TeV-pythia8 \
+GMSB_L200TeV_Ctau600cm_13TeV-pythia8 \
+GMSB_L200TeV_Ctau800cm_13TeV-pythia8 \
+GMSB_L250TeV_Ctau0p01cm_13TeV-pythia8 \
+GMSB_L250TeV_Ctau0p1cm_13TeV-pythia8 \
+GMSB_L250TeV_Ctau100cm_13TeV-pythia8 \
+GMSB_L250TeV_Ctau10cm_13TeV-pythia8 \
+GMSB_L250TeV_Ctau200cm_13TeV-pythia8 \
+GMSB_L250TeV_Ctau400cm_13TeV-pythia8 \
+GMSB_L250TeV_Ctau50cm_13TeV-pythia8 \
+GMSB_L250TeV_Ctau5cm_13TeV-pythia8 \
+GMSB_L250TeV_Ctau600cm_13TeV-pythia8 \
+GMSB_L300TeV_Ctau0p01cm_13TeV-pythia8 \
+GMSB_L300TeV_Ctau0p1cm_13TeV-pythia8 \
+GMSB_L300TeV_Ctau100cm_13TeV-pythia8 \
+GMSB_L300TeV_Ctau10cm_13TeV-pythia8 \
+GMSB_L300TeV_Ctau50cm_13TeV-pythia8 \
+GMSB_L300TeV_Ctau5cm_13TeV-pythia8 \
+GMSB_L300TeV_Ctau600cm_13TeV-pythia8 \
+GMSB_L350TeV_Ctau0p1cm_13TeV-pythia8 \
+GMSB_L350TeV_Ctau200cm_13TeV-pythia8 \
+GMSB_L400TeV_Ctau0p01cm_13TeV-pythia8 \
+GMSB_L400TeV_Ctau0p1cm_13TeV-pythia8 \
+GMSB_L400TeV_Ctau10cm_13TeV-pythia8 \
+GMSB_L400TeV_Ctau800cm_13TeV-pythia8
 
 do
 	echo "Sample " ${sample}
