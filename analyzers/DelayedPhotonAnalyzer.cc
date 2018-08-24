@@ -177,8 +177,9 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   IC_time_all=0;
   detID_all=0;
 
-  TFile f_timeCalib("/eos/cms/store/group/phys_susy/razor/EcalTiming/EcalTimeCalibConstants_Legacy2016_v1/EcalTimeCalibConstants_Legacy2016_v1.root","READ");
-  TTree *tree_timeCalib = (TTree*)f_timeCalib.Get("timeCalib");
+  //TFile *f_timeCalib = TFile::Open("root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/EcalTiming/EcalTimeCalibConstants_Legacy2016_v1/EcalTimeCalibConstants_Legacy2016_v1.root","READ"); // use this if you run on lxplus
+  TFile *f_timeCalib = TFile::Open("root://cmsxrootd.fnal.gov//store/user/zhicaiz/EcalTiming/EcalTimeCalibConstants_Legacy2016_v1/EcalTimeCalibConstants_Legacy2016_v1.root","READ"); // use this if you run on Caltech T2
+  TTree *tree_timeCalib = (TTree*)f_timeCalib->Get("timeCalib");
   
   tree_timeCalib->SetBranchAddress("start_run", &start_run_tmp);
   tree_timeCalib->SetBranchAddress("end_run", &end_run_tmp);
@@ -196,8 +197,9 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   }
 
 
-  TFile f_timeCalib_rereco("/eos/cms/store/group/phys_susy/razor/EcalTiming/EcalTimeCalibConstants_v08_offline/tree_EcalTimeCalibConstants_v08_offline.root","READ");
-  TTree *tree_timeCalib_rereco = (TTree*)f_timeCalib_rereco.Get("timeCalib");
+  //TFile *f_timeCalib_rereco = TFile::Open("root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/EcalTiming/EcalTimeCalibConstants_v08_offline/tree_EcalTimeCalibConstants_v08_offline.root","READ"); // use this if you run on lxplus 
+  TFile *f_timeCalib_rereco = TFile::Open("root://cmsxrootd.fnal.gov//store/user/zhicaiz/EcalTiming/EcalTimeCalibConstants_v08_offline/tree_EcalTimeCalibConstants_v08_offline.root","READ"); // use this if you run on Caltech T2
+  TTree *tree_timeCalib_rereco = (TTree*)f_timeCalib_rereco->Get("timeCalib");
   
   tree_timeCalib_rereco->SetBranchAddress("start_run", &start_run_tmp);
   tree_timeCalib_rereco->SetBranchAddress("end_run", &end_run_tmp);
@@ -224,8 +226,9 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   rms_G12_all=0;
   detID_all=0 ;
 
-  TFile f_pedestal("/eos/cms/store/group/phys_susy/razor/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ");
-  TTree *tree_pedestal = (TTree*)f_pedestal.Get("pedestal");
+  //TFile *f_pedestal = TFile::Open("root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ"); // use this if you run on lxplus
+  TFile *f_pedestal = TFile::Open("root://cmsxrootd.fnal.gov//store/user/zhicaiz/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ"); // use this if you run on Caltech T2
+  TTree *tree_pedestal = (TTree*)f_pedestal->Get("pedestal");
   
   tree_pedestal->SetBranchAddress("start_time_second", &start_time_tmp);
   tree_pedestal->SetBranchAddress("end_time_second", &end_time_tmp);
@@ -708,7 +711,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   //--------------------------------
   //Photon Energy Scale and Resolution Corrections
   //--------------------------------
-  std::string photonCorrectionPath = "./";//eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonCorrections/";
+  std::string photonCorrectionPath = "./";//eos/cms/store/user/zhicaiz/Run2Analysis/ScaleFactors/PhotonCorrections/";
   EnergyScaleCorrection_class *photonCorrector = 0;
   if (analysisTag == "Razor2016_MoriondRereco") photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
   else if (analysisTag == "Razor2016_07Aug2017Rereco") photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));

@@ -1,0 +1,68 @@
+#!/bin/sh
+
+if [ "$1" == "" ] || [ "$2" == "" ]; then
+    echo "RazorRun <list of input files> <analyzer name> <options>"
+else
+    cp ${CMSSW_BASE}/src/RazorAnalyzer/bin/Run$2 .
+
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/CSVv2_94XSF_V2_B_F.csv ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/CSVv2_Moriond17_B_H.csv ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/CSVv2_Moriond17_G_H.csv ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/CSVv2_ichep.csv ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/fastsim_csvv2_ttbar_26_1_2017.csv ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/CSV_13TEV_Combined_20_11_2015.csv ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/JEC/JEC_Summer16_23Sep2016V3.tgz ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/JEC/Spring16_FastSimV1.tgz ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/JEC/JetResolutionInputAK5PF.txt ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonCorrections/Winter_2016_reReco_v1_ele_smearings.dat ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonCorrections/Winter_2016_reReco_v1_ele_scales.dat ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/JEC/Summer16_07Aug2017_V6_V12_DATA_MC.tgz ./ 
+
+    #################for tag Razor2016_07Aug2017Rereco #######################
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PileupWeights/PileupReweight_Summer16_2016_36p2ifb.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PileupWeights/PileupReweight_2016_36p2ifb.root ./
+
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/ElectronEffFastsimToFullsimCorrectionFactors.2016.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/ElectronEffFastsimToFullsimCorrectionFactors.2016.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightElectronSelectionEffDenominatorGen_2016_Rereco_Golden.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_VetoElectronSelectionEffDenominatorGen_2016_Rereco_Golden.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiencySF_muEleTracking_2016_average.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptElectron_TTJets_25ns_Reco_Fullsim.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/ElectronEffFastsimToFullsimCorrectionFactors.2016.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/ElectronEffFastsimToFullsimCorrectionFactors.2016.root ./
+
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/MuonEffFastsimToFullsimCorrectionFactors.2016.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_TightMuonSelectionEffDenominatorGen_2016_Rereco_Golden.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_VetoMuonSelectionEffDenominatorGen_2016_Rereco_Golden.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiencySF_muEleTracking_2016_average.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/Efficiency_PromptMuon_TTJets_25ns_Reco_Fullsim.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/TauEffFastsimToFullsimCorrectionFactors.2016.root ./
+
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/efficiency_results_PhoLooseEffDenominatorReco_2016_Rereco.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/FastsimToFullsim/PhotonEffFastsimToFullsimCorrectionFactors.2016.root ./
+    
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_BJets_25ns_CSVM_Fullsim_80X.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_CJets_25ns_CSVM_Fullsim_80X.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/BTagEfficiencies/Efficiency_LightJets_25ns_CSVM_Fullsim_80X.root ./
+    
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2016_Rereco_Golden.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2016_Rereco_Golden.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleElectronTriggerEfficiency_2016_Rereco_Golden.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2016_Golden/SingleMuonTriggerEfficiency_2016_Rereco_Golden.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTLeadingLegEffDenominatorLoose_2016_Rereco.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/PhoHLTTrailingLegEffDenominatorLoose_2016_Rereco.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/efficiency_results_PhoHLTLeadingLegEffDenominatorLoose_2016_Rereco.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2016/efficiency_results_PhoHLTTrailingLegEffDenominatorLoose_2016_Rereco.root ./ 
+    
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/AK8JetTag/2016/puppiCorr.root ./
+    xrdcp root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/Run2Analysis/ScaleFactors/AK8JetTag/2016/AK8WTopTagEff.root ./
+    
+
+    tar vxzf JEC_Summer16_23Sep2016V3.tgz
+    tar vxzf Spring16_FastSimV1.tgz
+    tar vxzf Summer16_07Aug2017_V6_V12_DATA_MC.tgz
+
+    ./Run$2 $1 ${@:3}
+    rm Run$2
+  
+fi
