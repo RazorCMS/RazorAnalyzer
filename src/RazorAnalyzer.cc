@@ -228,6 +228,9 @@ void RazorAnalyzer::EnablePhotons(){
     fChain->SetBranchStatus("pho_sumChargedHadronPt", 1);
     fChain->SetBranchStatus("pho_sumNeutralHadronEt", 1);
     fChain->SetBranchStatus("pho_sumPhotonEt", 1);
+    fChain->SetBranchStatus("pho_ecalPFClusterIso", 1);
+    fChain->SetBranchStatus("pho_hcalPFClusterIso", 1);
+    fChain->SetBranchStatus("pho_trkSumPtHollowConeDR03", 1);
     fChain->SetBranchStatus("pho_sumWorstVertexChargedHadronPt", 1);
     fChain->SetBranchStatus("pho_pfIsoChargedHadronIso", 1);
     fChain->SetBranchStatus("pho_pfIsoChargedHadronIsoWrongVtx", 1);
@@ -516,46 +519,69 @@ float RazorAnalyzer::GetElectronEffectiveAreaMean(int i, bool use25nsCuts ){
     return effArea;
 }
 
-float RazorAnalyzer::GetElectronEffectiveArea90(int i){ 
+float RazorAnalyzer::GetElectronEffectiveArea90(int i, string EraName){ 
 
   double effArea = 0.0;
   //Effective areas derived on Spring15 MC
   // We will keep using these old ones for Moriond 2017 analyses
   //Reference: https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSLeptonSF
-  if (fabs(eleEta_SC[i]) < 1.0) {
-    effArea = 0.1752;
-  } else if (fabs(eleEta_SC[i]) < 1.479) {
-    effArea = 0.1862;	
-  } else if (fabs(eleEta_SC[i]) < 2.0) {
-    effArea = 0.1411;	
-  } else if (fabs(eleEta_SC[i]) < 2.2) {
-    effArea = 0.1534;	
-  } else if (fabs(eleEta_SC[i]) < 2.3) {
-    effArea = 0.1903;	
-  } else if (fabs(eleEta_SC[i]) < 2.4) {
-    effArea = 0.2243;	
-  } else if (fabs(eleEta_SC[i]) < 2.5) {
-    effArea = 0.2687;
+  if (EraName == "Spring15") {
+    if (fabs(eleEta_SC[i]) < 1.0) {
+      effArea = 0.1752;
+    } else if (fabs(eleEta_SC[i]) < 1.479) {
+      effArea = 0.1862;	
+    } else if (fabs(eleEta_SC[i]) < 2.0) {
+      effArea = 0.1411;	
+    } else if (fabs(eleEta_SC[i]) < 2.2) {
+      effArea = 0.1534;	
+    } else if (fabs(eleEta_SC[i]) < 2.3) {
+      effArea = 0.1903;	
+    } else if (fabs(eleEta_SC[i]) < 2.4) {
+      effArea = 0.2243;	
+    } else if (fabs(eleEta_SC[i]) < 2.5) {
+      effArea = 0.2687;
+    }
   }
-
-  // //New effective areas derived from Spring 16 MC
-  // //Reference: https://indico.cern.ch/event/482673/contributions/2187022/attachments/1282446/1905912/talk_electron_ID_spring16.pdf
-  // //Effective areas below are for the sum of Neutral Hadrons + Photons
-  // if (fabs(eleEta_SC[i]) < 1.0) {
-  //   effArea = 0.1703;
-  // } else if (fabs(eleEta_SC[i]) < 1.479) {
-  //   effArea = 0.1715;	
-  // } else if (fabs(eleEta_SC[i]) < 2.0) {
-  //   effArea = 0.1213;	
-  // } else if (fabs(eleEta_SC[i]) < 2.2) {
-  //   effArea = 0.1230;	
-  // } else if (fabs(eleEta_SC[i]) < 2.3) {
-  //   effArea = 0.1635;	
-  // } else if (fabs(eleEta_SC[i]) < 2.4) {
-  //   effArea = 0.1937;	
-  // } else if (fabs(eleEta_SC[i]) < 2.5) {
-  //   effArea = 0.2393;
-  // }
+  else if (EraName == "Spring16" || EraName == "Summer16") {
+    //New effective areas derived from Spring 16 MC
+    //Reference: https://indico.cern.ch/event/482673/contributions/2187022/attachments/1282446/1905912/talk_electron_ID_spring16.pdf
+    //Effective areas below are for the sum of Neutral Hadrons + Photons
+    if (fabs(eleEta_SC[i]) < 1.0) {
+      effArea = 0.1703;
+    } else if (fabs(eleEta_SC[i]) < 1.479) {
+      effArea = 0.1715;	
+    } else if (fabs(eleEta_SC[i]) < 2.0) {
+      effArea = 0.1213;	
+    } else if (fabs(eleEta_SC[i]) < 2.2) {
+      effArea = 0.1230;	
+    } else if (fabs(eleEta_SC[i]) < 2.3) {
+      effArea = 0.1635;	
+    } else if (fabs(eleEta_SC[i]) < 2.4) {
+      effArea = 0.1937;	
+    } else if (fabs(eleEta_SC[i]) < 2.5) {
+      effArea = 0.2393;
+    }
+  }   
+  else if (EraName == "2017_94X") {
+    //Effective areas derived from 94X samples
+    //Reference numbers: https://github.com/cms-sw/cmssw/blob/CMSSW_10_2_X/RecoEgamma/ElectronIdentification/data/Fall17/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_94X.txt
+    //Details found here: https://indico.cern.ch/event/697576/contributions/2940576/attachments/1620927/2578913/eleIdTuning.pdf
+    if (fabs(eleEta_SC[i]) < 1.0) {
+      effArea = 0.1440;
+    } else if (fabs(eleEta_SC[i]) < 1.479) {
+      effArea = 0.1562;	
+    } else if (fabs(eleEta_SC[i]) < 2.0) {
+      effArea = 0.1032;	
+    } else if (fabs(eleEta_SC[i]) < 2.2) {
+      effArea = 0.0859;	
+    } else if (fabs(eleEta_SC[i]) < 2.3) {
+      effArea = 0.1116;	
+    } else if (fabs(eleEta_SC[i]) < 2.4) {
+      effArea = 0.1321;	
+    } else if (fabs(eleEta_SC[i]) < 2.5) {
+      effArea = 0.1654;
+    }
+  }
 
   return effArea;
 }
@@ -698,7 +724,8 @@ bool RazorAnalyzer::passEGammaPOGVetoElectronID(int i, bool use25nsCuts, string 
 
       // Veto ID recommended for analyses performed on 2016 data using 8XX releases.
       // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
-    
+      // Based on these slides: https://indico.cern.ch/event/732971/contributions/3022843/attachments/1658685/2656462/eleIdTuning.pdf
+
       if(fabs(eleEta_SC[i]) < 1.479) {
         if ( fabs(ele_dEta[i]) < 0.00749
 	     && fabs(ele_dPhi[i]) < 0.228
@@ -727,7 +754,40 @@ bool RazorAnalyzer::passEGammaPOGVetoElectronID(int i, bool use25nsCuts, string 
         }
       } 
     }
+    else if (EraName == "2017_94X") {
 
+      // Veto ID recommended for analyses performed on 2017 data using 94X releases.
+      // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
+      // Based on these slides: https://indico.cern.ch/event/732971/contributions/3022843/attachments/1658685/2656462/eleIdTuning.pdf
+      
+      if(fabs(eleEta_SC[i]) < 1.479) {
+	if ( fabs(ele_dEta[i]) < 0.00463
+	     && fabs(ele_dPhi[i]) < 0.148
+	     && eleFull5x5SigmaIetaIeta[i] < 0.0126
+	     && ele_HoverE[i] < 0.05 + 1.16 / eleE[i] + 0.0324*fixedGridRhoFastjetAll / eleE[i]
+	     && fabs(ele_d0[i]) < 0.05
+	     && fabs(ele_dZ[i]) < 0.10
+	     && fabs(ele_OneOverEminusOneOverP[i]) < 0.209
+	     && ele_PassConvVeto[i]
+	     && ele_MissHits[i] <= 2
+	     ) {
+	  pass = true;
+	}
+      } else {
+	if (fabs(ele_dEta[i]) < 0.00814
+	    && fabs(ele_dPhi[i]) < 0.19
+	    && eleFull5x5SigmaIetaIeta[i] < 0.0457
+	    && ele_HoverE[i] < 0.05 + 2.54 / eleE[i] + 0.183*fixedGridRhoFastjetAll / eleE[i]
+	    && fabs(ele_d0[i]) < 0.1
+	    && fabs(ele_dZ[i]) < 0.2
+	    && fabs(ele_OneOverEminusOneOverP[i]) < 0.132
+	    && ele_PassConvVeto[i]
+	    && ele_MissHits[i] <= 3
+	    ) {
+	  pass = true;
+	}
+      }
+    }
     return pass;
 }
 
@@ -772,7 +832,7 @@ bool RazorAnalyzer::passEGammaPOGLooseElectronID(int i, bool use25nsCuts, string
 
       // Loose ID recommended for analyses performed on 2016 data using 8XX releases.
       // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
-      //
+      // Based on these slides: https://indico.cern.ch/event/482677/contributions/2259342/attachments/1316731/1972911/talk_electron_ID_spring16_update.pdf
       if(fabs(eleEta_SC[i]) < 1.479) {
 	if ( fabs(ele_dEta[i]) < 0.00477
 	     && fabs(ele_dPhi[i]) < 0.222
@@ -794,6 +854,40 @@ bool RazorAnalyzer::passEGammaPOGLooseElectronID(int i, bool use25nsCuts, string
 	    && fabs(ele_d0[i]) < 0.1
 	    && fabs(ele_dZ[i]) < 0.2
 	    && fabs(ele_OneOverEminusOneOverP[i]) < 0.14
+	    && ele_PassConvVeto[i]
+	    && ele_MissHits[i] <= 1
+	    ) {
+	  pass = true;
+	}
+      } 
+    }
+    else if (EraName == "2017_94X") {
+
+      // Loose ID recommended for analyses performed on 2017 data using 94X releases.
+      // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
+      // Based on these slides: https://indico.cern.ch/event/732971/contributions/3022843/attachments/1658685/2656462/eleIdTuning.pdf
+
+      if(fabs(eleEta_SC[i]) < 1.479) {
+	if ( fabs(ele_dEta[i]) < 0.00377
+	     && fabs(ele_dPhi[i]) < 0.0884
+	     && eleFull5x5SigmaIetaIeta[i] < 0.0112
+	     && ele_HoverE[i] < 0.05 + 1.16 / eleE[i] + 0.0324*fixedGridRhoFastjetAll / eleE[i]
+	     && fabs(ele_d0[i]) < 0.05
+	     && fabs(ele_dZ[i]) < 0.10
+	     && fabs(ele_OneOverEminusOneOverP[i]) < 0.193
+	     && ele_PassConvVeto[i]
+	     && ele_MissHits[i] <= 1
+	     ) {
+	  pass = true;
+	}
+      } else {
+	if (fabs(ele_dEta[i]) < 0.00674
+	    && fabs(ele_dPhi[i]) < 0.169
+	    && eleFull5x5SigmaIetaIeta[i] < 0.0425
+	    && ele_HoverE[i] < 0.0441 + 2.54 / eleE[i] + 0.183*fixedGridRhoFastjetAll / eleE[i]
+	    && fabs(ele_d0[i]) < 0.1
+	    && fabs(ele_dZ[i]) < 0.2
+	    && fabs(ele_OneOverEminusOneOverP[i]) < 0.111
 	    && ele_PassConvVeto[i]
 	    && ele_MissHits[i] <= 1
 	    ) {
@@ -845,6 +939,7 @@ bool RazorAnalyzer::passEGammaPOGMediumElectronID(int i, bool use25nsCuts, strin
   else if (EraName == "Summer16") {
     // Medium ID recommended for analyses performed on 2016 data using 8XX releases.
     // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
+    // Based on these slides: https://indico.cern.ch/event/482677/contributions/2259342/attachments/1316731/1972911/talk_electron_ID_spring16_update.pdf
     
     if(fabs(eleEta_SC[i]) < 1.479) {
       if ( fabs(ele_dEta[i]) < 0.00311
@@ -871,6 +966,40 @@ bool RazorAnalyzer::passEGammaPOGMediumElectronID(int i, bool use25nsCuts, strin
     	  && ele_MissHits[i] <= 1
     	  ) {
     	pass = true;
+      }
+    } 
+  }
+  else if (EraName == "2017_94X") {
+
+    // Tight ID recommended for analyses performed on 2017 data using 94X releases.
+    // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
+    // Based on these slides: https://indico.cern.ch/event/482677/contributions/2259342/attachments/1316731/1972911/talk_electron_ID_spring16_update.pdf
+
+    if(fabs(eleEta_SC[i]) < 1.479) {
+      if ( fabs(ele_dEta[i]) < 0.0032
+	   && fabs(ele_dPhi[i]) < 0.0547
+	   && eleFull5x5SigmaIetaIeta[i] < 0.0106
+	   && ele_HoverE[i] < 0.046 + 1.16 / eleE[i] + 0.0324*fixedGridRhoFastjetAll / eleE[i]
+	   && fabs(ele_d0[i]) < 0.05
+	   && fabs(ele_dZ[i]) < 0.10
+	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.184
+	   && ele_PassConvVeto[i]
+	   && ele_MissHits[i] <= 1
+	   ) {
+	pass = true;
+      }
+    } else {
+      if (fabs(ele_dEta[i]) < 0.00632
+	  && fabs(ele_dPhi[i]) < 0.0394
+	  && eleFull5x5SigmaIetaIeta[i] < 0.0387
+	  && ele_HoverE[i] < 0.0275 + 2.52 / eleE[i] + 0.183*fixedGridRhoFastjetAll / eleE[i]
+	  && fabs(ele_d0[i]) < 0.1
+	  && fabs(ele_dZ[i]) < 0.2
+	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.0721
+	  && ele_PassConvVeto[i]
+	  && ele_MissHits[i] <= 1
+	  ) {
+	pass = true;
       }
     } 
   }
@@ -917,7 +1046,8 @@ bool RazorAnalyzer::passEGammaPOGTightElectronID(int i, bool use25nsCuts, string
   else if (EraName == "Summer16") {
     // Tight ID recommended for analyses performed on 2016 data using 8XX releases.
     // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
-    
+    // Based on these slides: https://indico.cern.ch/event/482677/contributions/2259342/attachments/1316731/1972911/talk_electron_ID_spring16_update.pdf
+
     if(fabs(eleEta_SC[i]) < 1.479) {
       if ( fabs(ele_dEta[i]) < 0.00308
 	   && fabs(ele_dPhi[i]) < 0.0816
@@ -946,6 +1076,41 @@ bool RazorAnalyzer::passEGammaPOGTightElectronID(int i, bool use25nsCuts, string
       }
     } 
   }
+  else if (EraName == "2017_94X") {
+
+    // Tight ID recommended for analyses performed on 2017 data using 94X releases.
+    // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
+    // Based on these slides: https://indico.cern.ch/event/732971/contributions/3022843/attachments/1658685/2656462/eleIdTuning.pdf
+
+    if(fabs(eleEta_SC[i]) < 1.479) {
+      if ( fabs(ele_dEta[i]) < 0.00255
+	   && fabs(ele_dPhi[i]) < 0.022
+	   && eleFull5x5SigmaIetaIeta[i] < 0.0104
+	   && ele_HoverE[i] < 0.026 + 1.15 / eleE[i] + 0.0324*fixedGridRhoFastjetAll / eleE[i]
+	   && fabs(ele_d0[i]) < 0.05
+	   && fabs(ele_dZ[i]) < 0.10
+	   && fabs(ele_OneOverEminusOneOverP[i]) < 0.159
+	   && ele_PassConvVeto[i]
+	   && ele_MissHits[i] <= 1
+	   ) {
+	pass = true;
+      }
+    } else {
+      if (fabs(ele_dEta[i]) < 0.00501
+	  && fabs(ele_dPhi[i]) < 0.0236
+	  && eleFull5x5SigmaIetaIeta[i] < 0.0353
+	  && ele_HoverE[i] < 0.0188 + 2.06 / eleE[i] + 0.183*fixedGridRhoFastjetAll / eleE[i]
+	  && fabs(ele_d0[i]) < 0.1
+	  && fabs(ele_dZ[i]) < 0.2
+	  && fabs(ele_OneOverEminusOneOverP[i]) < 0.0197
+	  && ele_PassConvVeto[i]
+	  && ele_MissHits[i] <= 1
+	  ) {
+	pass = true;
+      }
+    } 
+  }
+
   return pass;
 }
 
@@ -2145,15 +2310,29 @@ void RazorAnalyzer::getPhotonEffArea90( float eta, double& effAreaChHad, double&
     }
 };
 
+void RazorAnalyzer::getPhotonEffAreaPFClusterIso( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho )
+{
+      effAreaChHad = 0.113;
+      effAreaNHad  = 0.108;
+      effAreaPho   = 0.167;
+ };
 
 //photon ID and isolation cuts from https://twiki.cern.ch/twiki/bin/viewauth/CMS/EgammaIDRecipesRun2
-bool RazorAnalyzer::photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90, bool usePrivatePF){
+bool RazorAnalyzer::photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90, bool usePrivatePF, bool usePFClusterIso){
     //get effective area for isolation calculations
     double effAreaChargedHadrons = 0.0;
     double effAreaNeutralHadrons = 0.0;
     double effAreaPhotons = 0.0;
 
+    double effAreaChargedHadrons_ClusterIso = 0.0;
+    double effAreaNeutralHadrons_ClusterIso = 0.0;
+    double effAreaPhotons_ClusterIso = 0.0;
+
     //get the effective areas. results are passed to variables by reference
+    if(usePFClusterIso)
+      {
+        getPhotonEffAreaPFClusterIso( pho_superClusterEta[i] , effAreaChargedHadrons_ClusterIso, effAreaNeutralHadrons_ClusterIso, effAreaPhotons_ClusterIso);
+      }
     if (useEffectiveArea90) 
       {
 	getPhotonEffArea90( pho_superClusterEta[i] , effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons);
@@ -2166,16 +2345,19 @@ bool RazorAnalyzer::photonPassesIsolation(int i, double PFChHadIsoCut, double PF
     //Rho corrected PF charged hadron isolation
     double PFIsoCorrected_ChHad = fmax(pho_pfIsoChargedHadronIso[i] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.);
     if(usePrivatePF) PFIsoCorrected_ChHad = fmax(pho_sumChargedHadronPt[i] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.);
+    if(usePFClusterIso) PFIsoCorrected_ChHad = fmax(pho_trkSumPtHollowConeDR03[i] - fixedGridRhoFastjetAll*effAreaChargedHadrons_ClusterIso, 0.);
     if(PFIsoCorrected_ChHad > PFChHadIsoCut) return false;
     
     //Rho corrected PF neutral hadron isolation
     double PFIsoCorrected_NeuHad = fmax(pho_pfIsoNeutralHadronIso[i] - fixedGridRhoFastjetAll*effAreaNeutralHadrons, 0.);
     if(usePrivatePF) PFIsoCorrected_NeuHad = fmax(pho_sumNeutralHadronEt[i] - fixedGridRhoFastjetAll*effAreaNeutralHadrons, 0.);
+    if(usePFClusterIso) PFIsoCorrected_NeuHad = fmax(pho_sumNeutralHadronEt[i] - fixedGridRhoFastjetAll*effAreaNeutralHadrons, 0.);
     if(PFIsoCorrected_NeuHad > PFNeuHadIsoCut) return false;
     
     //Rho corrected PF photon isolation
     double PFIsoCorrected_Photons = fmax(pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);
     if(usePrivatePF) PFIsoCorrected_Photons = fmax(pho_sumPhotonEt[i] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);
+    if(usePFClusterIso) PFIsoCorrected_Photons = fmax(pho_ecalPFClusterIso[i] - fixedGridRhoFastjetAll*effAreaPhotons_ClusterIso, 0.);
     if(PFIsoCorrected_Photons > PFPhotIsoCut) return false;
 
     //photon passed all cuts
@@ -2278,13 +2460,14 @@ bool RazorAnalyzer::photonPassTightID(int i, bool use25nsCuts){
 
 // 80X-v2.2 Cuts from EGamma Presentation
 // https://indico.cern.ch/event/491548/contributions/2384977/attachments/1377936/2093213/CutBasedPhotonID_25-11-2016.pdf
-bool RazorAnalyzer::photonPassLooseIso(int i, bool use25nsCuts, bool usePrivatePF){
+bool RazorAnalyzer::photonPassLooseIso(int i, bool use25nsCuts, bool usePrivatePF, bool usePFClusterIso){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
-      return photonPassesIsolation(i, 1.295, 10.910 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 3.630 + 0.0047*phoPt[i], true, usePrivatePF );
+      if(!usePFClusterIso) return photonPassesIsolation(i, 1.295, 10.910 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 3.630 + 0.0047*phoPt[i], true, usePrivatePF, usePFClusterIso );
+      else return photonPassesIsolation(i, 20.0 + 0.0056*phoPt[i], 10.910 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 20.0+0.0028*phoPt[i], true, usePrivatePF, usePFClusterIso );
     } else {
-      return photonPassesIsolation(i, 1.011, 5.931 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 6.641 + 0.0034*phoPt[i], true, usePrivatePF);
+      return photonPassesIsolation(i, 1.011, 5.931 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 6.641 + 0.0034*phoPt[i], true, usePrivatePF, usePFClusterIso);
     }
   } else {
     cout << "Warning: you are not using 25nsCuts. return false.\n";
@@ -2295,7 +2478,7 @@ bool RazorAnalyzer::photonPassLooseIso(int i, bool use25nsCuts, bool usePrivateP
 
 // 80X-v2.2 Cuts from EGamma Presentation
 // https://indico.cern.ch/event/491548/contributions/2384977/attachments/1377936/2093213/CutBasedPhotonID_25-11-2016.pdf
-bool RazorAnalyzer::photonPassMediumIso(int i, bool use25nsCuts, bool usePrivatePF){
+bool RazorAnalyzer::photonPassMediumIso(int i, bool use25nsCuts, bool usePrivatePF, bool usePFClusterIso){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
@@ -2312,11 +2495,12 @@ bool RazorAnalyzer::photonPassMediumIso(int i, bool use25nsCuts, bool usePrivate
 
 // 80X-v2.2 Cuts from EGamma Presentation
 // https://indico.cern.ch/event/491548/contributions/2384977/attachments/1377936/2093213/CutBasedPhotonID_25-11-2016.pdf
-bool RazorAnalyzer::photonPassTightIso(int i, bool use25nsCuts, bool usePrivatePF){
+bool RazorAnalyzer::photonPassTightIso(int i, bool use25nsCuts, bool usePrivatePF, bool usePFClusterIso){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
-        return photonPassesIsolation(i, 0.202, 0.264 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 2.362 + 0.0047*phoPt[i], true, usePrivatePF);
+      if(!usePFClusterIso)  return photonPassesIsolation(i, 0.202, 0.264 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 2.362 + 0.0047*phoPt[i], true, usePrivatePF);
+      else return photonPassesIsolation(i, 6.0 + 0.0056*phoPt[i], 0.264 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 8.0+0.0028*phoPt[i], true, usePrivatePF, true );
     } else {
       return photonPassesIsolation(i, 0.034, 0.586 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 2.617 + 0.0034*phoPt[i], true, usePrivatePF);
     }

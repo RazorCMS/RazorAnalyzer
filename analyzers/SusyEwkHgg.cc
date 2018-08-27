@@ -1345,6 +1345,9 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //------------------
       //good electron selection
       //------------------
+      string electronEraName = "";
+      if (dataset == "17Nov2017Rereco") electronEraName = "2017_94X";
+      else if (dataset == "Razor2016_MoriondRereco") electronEraName = "Summer16";
       vector<TLorentzVector> GoodElectrons;
       std::vector< ElectronCandidate > eleCand;
       for( int i = 0; i < nElectrons; i++ )
@@ -1358,20 +1361,28 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           if (overlap) continue;
           //TLorentzVector for this electron
           TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
-	  if( !isVetoElectron(i,true, true,dataset) ) continue;
-	  if ( !( passMVALooseElectronID(i,dataset) && passMVANonTrigVetoElectronIso(i) && fabs(ele_ip3dSignificance[i]) < 4. ) ) continue;//Only for electron WP test
+
+	  //DR definition for mini-isolation
+	  double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
+
+	  if(!(passEGammaPOGVetoElectronID(i,true,electronEraName) && 
+	       ((ele_chargedMiniIso[i] +  fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveArea90(i,electronEraName)*pow(dr/0.3,2)))/elePt[i] < 0.1) 
+		)) continue;
+	  //if ( !( passMVALooseElectronID(i,dataset) && passMVANonTrigVetoElectronIso(i) && fabs(ele_ip3dSignificance[i]) < 4. ) ) continue;//Only for electron WP test
 	  if( elePt[i] < 20 ) continue;
 	  if( abs(eleEta[i]) > 2.4 ) continue;
 	  nLooseElectrons++;
-          GoodElectrons.push_back(thisElectron);
-      	  if( isTightElectron(i) ) nTightElectrons++;
+          GoodElectrons.push_back(thisElectron);      	  
+	  if(passEGammaPOGTightElectronID(i,true,electronEraName) && 
+	     ((ele_chargedMiniIso[i] +  fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveArea90(i,electronEraName)*pow(dr/0.3,2)))/elePt[i] < 0.1) 
+	     ) nTightElectrons++;
 	  //Filling Electron Candidate
 	  ElectronCandidate tmp_eleCand;
 	  tmp_eleCand.Index = i;
 	  tmp_eleCand.electron = thisElectron;
 	  tmp_eleCand.eleCharge = eleCharge[i];
-	  //tmp_eleCand.isTightElectron = isTightElectron(i);
-	  tmp_eleCand.isTightElectron = (passMVALooseElectronID(i,dataset) && passMVANonTrigVetoElectronIso(i) && fabs(ele_ip3dSignificance[i]) < 4);//mvaLooseID + IP cut
+	  tmp_eleCand.isTightElectron = (passEGammaPOGTightElectronID(i,true,electronEraName) && 
+					 ((ele_chargedMiniIso[i] +  fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveArea90(i,electronEraName)*pow(dr/0.3,2)))/elePt[i] < 0.1));
           eleCand.push_back( tmp_eleCand );
 	}
 

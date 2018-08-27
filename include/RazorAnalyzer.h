@@ -67,7 +67,7 @@ class RazorAnalyzer: public RazorEvents {
         //functions in RazorAuxElectron.cc
 	float GetElectronScaleCorrection( double pt, double eta );
 	float GetElectronEffectiveAreaMean(int i, bool use25nsCuts = true);
-	float GetElectronEffectiveArea90(int i);
+	float GetElectronEffectiveArea90(int i, string EraName = "Spring15");
         bool isEGammaPOGVetoElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true, string EraName = "Spring15");
         bool isEGammaPOGLooseElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true, string EraName = "Spring15");
         bool isEGammaPOGMediumElectron(int i, bool applyID = true, bool applyIso = true, bool use25nsCuts = true, string EraName = "Spring15");
@@ -108,16 +108,17 @@ class RazorAnalyzer: public RazorEvents {
         bool photonPassesElectronVeto(int i);
 	void getPhotonEffAreaRun2( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
 	void getPhotonEffArea90( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
-        bool photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90, bool usePrivatePF = false);
+	void getPhotonEffAreaPFClusterIso( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
+        bool photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90, bool usePrivatePF = false, bool usePFClusterIso = false);
 	bool photonPassLooseIDWithoutEleVeto(int i, bool use25nsCuts = true);
 	bool photonPassMediumIDWithoutEleVeto(int i, bool use25nsCuts = true);
 	bool photonPassTightIDWithoutEleVeto(int i, bool use25nsCuts = true);
 	bool photonPassLooseID(int i, bool use25nsCuts = true);
 	bool photonPassMediumID(int i, bool use25nsCuts = true);
 	bool photonPassTightID(int i, bool use25nsCuts = true);
-	bool photonPassLooseIso(int i, bool use25nsCuts = true, bool usePrivatePF = false);
-	bool photonPassMediumIso(int i, bool use25nsCuts = true, bool usePrivatePF = false);
-	bool photonPassTightIso(int i, bool use25nsCuts = true, bool usePrivatePF = false);
+	bool photonPassLooseIso(int i, bool use25nsCuts = true, bool usePrivatePF = false, bool usePFClusterIso = false);
+	bool photonPassMediumIso(int i, bool use25nsCuts = true, bool usePrivatePF = false, bool usePFClusterIso = false);
+	bool photonPassTightIso(int i, bool use25nsCuts = true, bool usePrivatePF = false, bool usePFClusterIso = false);
         bool isLoosePhoton(int i, bool use25nsCuts = true);
         bool isMediumPhoton(int i, bool use25nsCuts = true);
         bool isTightPhoton(int i, bool use25nsCuts = true);
