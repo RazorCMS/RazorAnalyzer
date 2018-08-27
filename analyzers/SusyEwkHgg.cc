@@ -230,6 +230,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
     photonCorrector = new EnergyScaleCorrection_class(Form("%s/80X_2016", photonCorrectionPath.c_str()));
   } else if (analysisTag == "Razor2016_MoriondRereco") {
     photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
+    //photonCorrector = new EnergyScaleCorrection_class(Form("%s/Legacy2016_07Aug2017_FineEtaR9_v3_ele_unc", photonCorrectionPath.c_str()));
+    //photonCorrector_2017 = new EnergyScaleCorrection_class_2017(Form("%s/Legacy2016_07Aug2017_FineEtaR9_v3_ele_unc", photonCorrectionPath.c_str()));
   } else if (analysisTag == "Razor2017_92X") {
     photonCorrector_2017 = new EnergyScaleCorrection_class_2017(Form("%s/Run2017_17Nov2017_v1_ele_unc", photonCorrectionPath.c_str()));
   } else if (analysisTag == "Razor2017_17Nov2017Rereco") {
@@ -238,6 +240,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 
 
   if ( analysisTag != "Razor2017_92X" && analysisTag != "Razor2017_17Nov2017Rereco" ) {
+  //if ( analysisTag != "Razor2017_92X" &&  analysisTag != "Razor2017_17Nov2017Rereco"  &&  analysisTag != "Razor2016_MoriondRereco"  ) {
     if(!isData) {
       photonCorrector->doScale = false;
       photonCorrector->doSmearings = true;
@@ -1404,7 +1407,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
             }
 
         //R9 requirement, only R9<0.5 photons are allow to be candidates
-        if( phoR9[i] < 0.5 ) continue;
+        //if( phoR9[i] < 0.5 ) continue;
         if ( _phodebug ) std::cout << " pho_P9: " << phoR9[i] << std::endl;
 
         //ID cuts -- apply isolation after candidate pair selection
@@ -1525,6 +1528,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         if ( doPhotonScaleCorrection )
         {
           if ( analysisTag != "Razor2017_92X" &&  analysisTag != "Razor2017_17Nov2017Rereco"  )
+          //if ( analysisTag != "Razor2017_92X" &&  analysisTag != "Razor2017_17Nov2017Rereco"  &&  analysisTag != "Razor2016_MoriondRereco"  )
           {
             scale = photonCorrector->ScaleCorrection(run, (fabs(pho_superClusterEta[i]) < 1.5),
                                                      phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]));
@@ -1538,14 +1542,6 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
             //                                              phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]));
             //smear = photonCorrector_2017->smearingSigma(run, (fabs(pho_superClusterEta[i]) < 1.5),
              //                                              phoR9[i], pho_superClusterEta[i], phoE[i]/cosh(pho_superClusterEta[i]), 0, 0., 0.);
-            //new version (94X, not working)
-            //scale = photonCorrector_2017->scaleCorr(run, phoE[i]/cosh(pho_superClusterEta[i]), pho_superClusterEta[i], phoR9[i], 0, 0.);
-            //smear = photonCorrector_2017->smearingSigma(run, phoE[i]/cosh(pho_superClusterEta[i]), pho_superClusterEta[i], phoR9[i], 0, 0., 0.);
-            //scale = photonCorrector_2017->scaleCorr(run, phoE[i]/cosh(pho_superClusterEta[i]), pho_superClusterEta[i], phoR9[i], 12, 0.);
-            //smear = photonCorrector_2017->smearingSigma(run, phoE[i]/cosh(pho_superClusterEta[i]), pho_superClusterEta[i], phoR9[i], 12, 0., 0.);
-            //new version (94X, not working yet)
-            //const EnergyScaleCorrection_class_2017::ScaleCorrection_class_2017* scaleCorr = getScaleCorr(runNumber, et, scEtaAbs, photon.full5x5_r9(), gainSeedSC);  
-            //const EnergyScaleCorrection_class_2017::SmearCorrection_class_2017* smearCorr = getSmearCorr(runNumber, et, scEtaAbs, photon.full5x5_r9(), gainSeedSC);  
             
              const EnergyScaleCorrection_class_2017::ScaleCorrection_class_2017* scaleCorr = photonCorrector_2017->EnergyScaleCorrection_class_2017::getScaleCorr(run, phoE[i]/cosh(pho_superClusterEta[i]), pho_superClusterEta[i], phoR9[i], 12);
             const EnergyScaleCorrection_class_2017::SmearCorrection_class_2017* smearCorr = photonCorrector_2017->EnergyScaleCorrection_class_2017::getSmearCorr(run, phoE[i]/cosh(pho_superClusterEta[i]), pho_superClusterEta[i], phoR9[i], 12);
@@ -1710,8 +1706,10 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //---------------------------------------
       //bestCand[0] is the leading photon
       //bestCand[1] is the subleading photon
-      if( bestCand[0].photon.Pt()/HiggsCandidate.M() < 1./3. ) continue;
-      if( bestCand[1].photon.Pt()/HiggsCandidate.M() < 1./4. ) continue;
+      //if( bestCand[0].photon.Pt()/HiggsCandidate.M() < 1./3. || bestCand[1].photon.Pt()/HiggsCandidate.M() < 1./3. ) continue;
+      //if( bestCand[0].photon.Pt()/HiggsCandidate.M() < 1./4. && bestCand[1].photon.Pt()/HiggsCandidate.M() < 1./4. ) continue;
+      //if( bestCand[0].photon.Pt()/HiggsCandidate.M() < 1./3. ) continue;
+      //if( bestCand[1].photon.Pt()/HiggsCandidate.M() < 1./4. ) continue;
       if ( _phodebug ) std::cout << "pho PT :  " << bestCand[0].photon.Pt() << " and  " << bestCand[1].photon.Pt()
                                  << " Mgg : " << HiggsCandidate.M() << " pt1/Mgg = "   << bestCand[0].photon.Pt()/HiggsCandidate.M()
                                  << " pt2/Mgg = " << bestCand[1].photon.Pt()/HiggsCandidate.M() << std::endl;
