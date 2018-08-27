@@ -22,8 +22,8 @@ DoubleEG_2016H_06Aug2018
 
 do
 	echo "Sample " ${sample}
-	inputfilelist=${RazorAnalyzerDir}/lists/Run2/razorNtuplerV4p1/Data_2016_reMINIAOD/${sample}.cern.txt
-	nfiles=`cat $inputfilelist | wc | awk '{print $1}' `
+	inputfilelist=/src/RazorAnalyzer/lists/Run2/razorNtuplerV4p1/Data_2016_reMINIAOD/${sample}.cern.txt
+	nfiles=`cat ${CMSSW_BASE}$inputfilelist | wc | awk '{print $1}' `
 	maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
 	rm submit/${sample}_Job*.jdl
 	rm log/${sample}_Job*
