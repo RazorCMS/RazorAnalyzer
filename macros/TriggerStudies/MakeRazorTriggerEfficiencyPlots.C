@@ -54,13 +54,17 @@ const float bottomMargin = 0.12;
 //CMS STANDARD
 TString CMSText = "CMS";
 TString extraText   = "Preliminary";
-TString lumiText = "23.9 fb^{-1} (13 TeV)";
+//TString lumiText = "10.3 fb^{-1} (13 TeV)"; //2018Av1v2
+TString lumiText = "13.5 fb^{-1} (13 TeV)"; //2018Av1v2v3
+//TString lumiText = "6.8 fb^{-1} (13 TeV)"; //2018B
+//TString lumiText = "3.8 fb^{-1} (13 TeV)"; //2018C
+//TString lumiText = "24.3 fb^{-1} (13 TeV)"; //2018ABC
 //TString lumiText = "35.9 fb^{-1} (13 TeV)";
 //TString lumiText = "Simulation (13 TeV)";
 
 bool AddCMS( TCanvas* C );
 
-
+const int JET_CUT = 120;
 
 
 bool PassSelection( bool *HLTDecision, int year, int wp, double HLTMR, double HLTRSQ ) {
@@ -108,7 +112,8 @@ bool PassSelection( bool *HLTDecision, int year, int wp, double HLTMR, double HL
     //***********************************
     if (year == 2017) {
       if (wp == 6) {
-	pass = HLTDecision[108] || HLTDecision[110] ;
+	pass = HLTDecision[108] || HLTDecision[110] ; // dijet || quad-jet
+	//pass = HLTDecision[108] || HLTDecision[110] || HLTDecision[106] || HLTDecision[78] || HLTDecision[79] || HLTDecision[80] || HLTDecision[81] || HLTDecision[82] || HLTDecision[83] || HLTDecision[84] || HLTDecision[85] || HLTDecision[86] || HLTDecision[87] || HLTDecision[88];
       }
       if (wp == 7) {
 	pass = HLTDecision[109] || HLTDecision[111] ;
@@ -116,6 +121,9 @@ bool PassSelection( bool *HLTDecision, int year, int wp, double HLTMR, double HL
       if (wp == 8) {
 	pass = bool(HLTMR>200 && HLTRSQ>0.09 && (HLTMR+300)*(HLTRSQ+0.25)>300);
       }    
+      if (wp == 9) {
+	pass = HLTDecision[108] || HLTDecision[110] || HLTDecision[106] ; // rsq-only || dijet || quad-jet 
+      }
     }
     
     return pass;  
@@ -432,6 +440,8 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int year, int wp
     float allMuonPt = 0;
     float HLTMR = 0;
     float HLTRSQ = 0;
+    float leadingJetPt = 0;
+    float subleadingJetPt = 0;
 
     tree->SetBranchAddress("weight",&weight);
     tree->SetBranchAddress("box",&box);
@@ -452,6 +462,8 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int year, int wp
     tree->SetBranchAddress("Flag_eeBadScFilter",&Flag_eeBadScFilter);
     tree->SetBranchAddress("HLTMR",&HLTMR);
     tree->SetBranchAddress("HLTRSQ",&HLTRSQ);
+    tree->SetBranchAddress("leadingJetPt",&leadingJetPt);
+    tree->SetBranchAddress("subleadingJetPt",&subleadingJetPt);
     //  tree->SetBranchAddress("leadingMuonPt",&leadingMuonPt);
     //  tree->SetBranchAddress("allMuonPt",&allMuonPt);
 
@@ -467,6 +479,7 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int year, int wp
         if (ientry % 100000 == 0) cout << "Event " << ientry << endl;
         //Cuts
         if (!(NJets80 >= 2)) continue;
+        if (!(leadingJetPt>JET_CUT && subleadingJetPt>JET_CUT)) continue;
 
        
         //Select Electron Triggered Events
@@ -658,7 +671,7 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int year, int wp
     gPad->SetGridx();
     efficiency_Rsq->Draw("AP");
     efficiency_Rsq->SetTitle("");
-    efficiency_Rsq->GetXaxis()->SetRangeUser(0.0,1.3);
+    efficiency_Rsq->GetXaxis()->SetRangeUser(0.0,1.1);
     efficiency_Rsq->GetYaxis()->SetRangeUser(0.0,1.1);
     efficiency_Rsq->GetXaxis()->SetTitle("R^{2}");
     efficiency_Rsq->GetYaxis()->SetTitle("Efficiency");
@@ -701,7 +714,7 @@ void ProduceRazorTriggerEfficiencyPlots(const string inputfile, int year, int wp
     file->WriteTObject(efficiency_MRRsq, "Efficiency_MRRsq", "WriteDelete");
 
     file->Close();
-    delete file;       
+    //delete file;       
 
 }
 
@@ -772,7 +785,22 @@ void MakeRazorTriggerEfficiencyPlots( int option = 0) {
 
        //ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20171031/FullRazorInclusive_SingleElectron_Run2017C-F-PromptReco_GoldenLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_SingleElectronData_2017C-F");
        //ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20171127/FullRazorInclusive_SingleElectron_Run2017C-F-PromptReco_GoldenLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_SingleElectronData_2017C-F");
-       ProduceRazorTriggerEfficiencyPlots("/eos/cms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2018/V5p0_20180524//FullRazorInclusive_EGamma_2018A_PromptReco_GoodLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_EGammaData_2018A");
+       //ProduceRazorTriggerEfficiencyPlots("/eos/cms//store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2018/V5p0_20180524//FullRazorInclusive_EGamma_2018A_PromptReco_GoodLumi.root", 2017, 6, 11, "RazorTrigger_RsqMR300_Rsq0p09_MR200_All_EGammaData_2018A");
+
+       //wp=6 dijet||quadjet 
+       //10.3 fb-1 
+       //ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2018/V5p0_20180601/FullRazorInclusive_EGamma_2018A_v1v2_PromptReco_GoodLumi.root", 2017, 6, 11, "RazorTrigger_EGammaData_2018Av1v2_dijet_quadjet_JetPt120");
+       ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2018/V5p0_20180810/FullRazorInclusive_EGamma_2018A_PromptReco_v6_GoodLumi.root", 2017, 6, 11, "RazorTrigger_EGammaData_2018A_dijet_quadjet_JetPt120");
+       //24.3 fb-1 
+       //ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2018/V5p0_20180810/FullRazorInclusive_EGamma_2018ABCD_PromptReco_v7_GoodLumi.root", 2017, 6, 11, "RazorTrigger_EGammaData_2018ABCD_dijet_quadjet_JetPt120");
+       //ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2018/V5p0_20180810/FullRazorInclusive_EGamma_2018BCD_PromptReco_v7_GoodLumi.root", 2017, 6, 11, "RazorTrigger_EGammaData_2018BCD_dijet_quadjet_JetPt120");
+       //6.8 fb-1 
+       //ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2018/V5p0_20180810/FullRazorInclusive_EGamma_2018B_PromptReco_v7_GoodLumi.root", 2017, 6, 11, "RazorTrigger_EGammaData_2018B_dijet_quadjet_JetPt120");
+       //3.8 fb-1 
+       //ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2018/V5p0_20180810/FullRazorInclusive_EGamma_2018C_PromptReco_v7_GoodLumi.root", 2017, 6, 11, "RazorTrigger_EGammaData_2018C_dijet_quadjet_JetPt120");
+       //ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2018/V5p0_20180810/FullRazorInclusive_EGamma_2018D_PromptReco_v7_GoodLumi.root", 2017, 6, 11, "RazorTrigger_EGammaData_2018D_dijet_quadjet_JetPt120");
+       //wp=9 dijet||quadjet||rsq-only 
+       //ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2018/V5p0_20180601/FullRazorInclusive_EGamma_2018A_v1v2_PromptReco_GoodLumi.root", 2017, 9, 11, "RazorTrigger_EGammaData_2018Av1v2_dijet_qudjet_rsq-onlyJetPt120");
        
       // //wp=7 backup trigger
        //ProduceRazorTriggerEfficiencyPlots("/eos/cms/store/group/phys_susy/razor/Run2Analysis/FullRazorInclusive/2017/V4p0_20171031/FullRazorInclusive_SingleElectron_Run2017A-F-PromptReco_GoldenLumi.root", 2017, 7, 11, "RazorTrigger_RsqMR320_Rsq0p09_MR200_All_SingleElectronData_2017A-F");
