@@ -92,7 +92,7 @@ then
 	fi
 
 else
-	echo "XXXXYYYY ============= copy file failed, job abandoned"
+	echo "XXXXYYYY ============= copy file failed (${nRemote} -> ${nLocal}), job abandoned"
 fi
 
 
