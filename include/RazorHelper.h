@@ -233,6 +233,7 @@ class RazorHelper {
         void loadPileup_Razor2017_17Nov2017Rereco();
 	void loadBTag_Razor2017_17Nov2017Rereco();
         void loadLepton_Razor2017_17Nov2017Rereco();
+        void loadJECs_Razor2017_17Nov2017Rereco();
 
         // member data
         std::string tag;
