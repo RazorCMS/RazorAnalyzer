@@ -36,7 +36,7 @@ do
 	do
 		
 		jdl_file=submit/${sample}_Job${jobnumber}_Of_${maxjob}.jdl
-                noFail=`grep such log/${sample}_Job${jobnumber}_Of_${maxjob}*.out`
+                noFail=`grep YYYY log/${sample}_Job${jobnumber}_Of_${maxjob}*.out`
 		outRoot="/mnt/hadoop/store/user/zhicaiz/Run2Analysis/DelayedPhotonAnalysis/2016/jobs/${sample}_Job${jobnumber}_Of_${maxjob}.root"
 		
 		if [ -f ${outRoot} ]
