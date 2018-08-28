@@ -38,6 +38,7 @@ do
 		echo "Log = log/${sample}_Job${jobnumber}_Of_${maxjob}_PC.log" >> ${jdl_file}
 		echo "Output = log/${sample}_Job${jobnumber}_Of_${maxjob}_\$(Cluster).\$(Process).out" >> ${jdl_file}
 		echo "Error = log/${sample}_Job${jobnumber}_Of_${maxjob}_\$(Cluster).\$(Process).err" >> ${jdl_file}
+		echo 'Requirements=TARGET.OpSysAndVer=="CentOS7"' >> ${jdl_file}
 		echo "should_transfer_files = YES" >> ${jdl_file}
 		echo "RequestMemory = 2000" >> ${jdl_file}
 		echo "RequestCpus = 1" >> ${jdl_file}

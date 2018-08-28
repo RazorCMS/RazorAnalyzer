@@ -37,9 +37,9 @@ do
 		if [ -f ${outRoot} ]
                 then
                         echo "job ${sample}_Job${jobnumber}_Of_${maxjob} finished already "
-		elif [ -z "${noFail}" ]
-		then
-			echo "job ${sample}_Job${jobnumber}_Of_${maxjob} being processed now, be patient"
+		#elif [ -z "${noFail}" ]
+		#then
+		#	echo "job ${sample}_Job${jobnumber}_Of_${maxjob} being processed now, be patient"
 		else
 			echo "job ${sample}_Job${jobnumber}_Of_${maxjob} failed, now being resubmitted"
 			rm log/${sample}_Job${jobnumber}_Of_${maxjob}*
