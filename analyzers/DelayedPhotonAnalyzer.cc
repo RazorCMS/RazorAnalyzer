@@ -177,18 +177,22 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   IC_time_all=0;
   detID_all=0;
 
+ 
+  cout<< "[DEBUG] opening f_timeCalib"<<endl; 
   //TFile *f_timeCalib = TFile::Open("root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/EcalTiming/EcalTimeCalibConstants_Legacy2016_v1/EcalTimeCalibConstants_Legacy2016_v1.root","READ"); // use this if you run on lxplus
-  TFile *f_timeCalib = TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalTimeCalibConstants_Legacy2016_v1/EcalTimeCalibConstants_Legacy2016_v1.root","READ"); // use this if you run on Caltech T2
-  TTree *tree_timeCalib = (TTree*)f_timeCalib->Get("timeCalib");
-  
-  tree_timeCalib->SetBranchAddress("start_run", &start_run_tmp);
-  tree_timeCalib->SetBranchAddress("end_run", &end_run_tmp);
-  tree_timeCalib->SetBranchAddress("IC_time", &IC_time_all);
-  tree_timeCalib->SetBranchAddress("detID", &detID_all);
-  
-  int N_entries_timeCalib = tree_timeCalib->GetEntries();
+  TFile *f_timeCalib = 0;//TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalTimeCalibConstants_Legacy2016_v1/EcalTimeCalibConstants_Legacy2016_v1.root","READ"); // use this if you run on Caltech T2
+  TTree *tree_timeCalib = 0;//(TTree*)f_timeCalib->Get("timeCalib");
+   
   if(isData)
   { 
+	  f_timeCalib =TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalTimeCalibConstants_Legacy2016_v1/EcalTimeCalibConstants_Legacy2016_v1.root","READ"); // use this if you run on Caltech T2
+	  tree_timeCalib =(TTree*)f_timeCalib->Get("timeCalib");
+  	  int N_entries_timeCalib = tree_timeCalib->GetEntries();
+	  tree_timeCalib->SetBranchAddress("start_run", &start_run_tmp);
+	  tree_timeCalib->SetBranchAddress("end_run", &end_run_tmp);
+	  tree_timeCalib->SetBranchAddress("IC_time", &IC_time_all);
+	  tree_timeCalib->SetBranchAddress("detID", &detID_all);
+
 	  for(int i=0;i<N_entries_timeCalib;i++) {
 	    tree_timeCalib->GetEntry(i);
 	    start_run.push_back(start_run_tmp);
@@ -197,18 +201,22 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   }
 
 
+  cout<< "[DEBUG] opening f_timeCalib_rereco"<<endl; 
   //TFile *f_timeCalib_rereco = TFile::Open("root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/EcalTiming/EcalTimeCalibConstants_v08_offline/tree_EcalTimeCalibConstants_v08_offline.root","READ"); // use this if you run on lxplus 
-  TFile *f_timeCalib_rereco = TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalTimeCalibConstants_v08_offline/tree_EcalTimeCalibConstants_v08_offline.root","READ"); // use this if you run on Caltech T2
-  TTree *tree_timeCalib_rereco = (TTree*)f_timeCalib_rereco->Get("timeCalib");
+  TFile *f_timeCalib_rereco = 0;//TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalTimeCalibConstants_v08_offline/tree_EcalTimeCalibConstants_v08_offline.root","READ"); // use this if you run on Caltech T2
+  TTree *tree_timeCalib_rereco = 0;//(TTree*)f_timeCalib_rereco->Get("timeCalib");
   
-  tree_timeCalib_rereco->SetBranchAddress("start_run", &start_run_tmp);
-  tree_timeCalib_rereco->SetBranchAddress("end_run", &end_run_tmp);
-  tree_timeCalib_rereco->SetBranchAddress("IC_time", &IC_time_all);
-  tree_timeCalib_rereco->SetBranchAddress("detID", &detID_all);
-  
-  int N_entries_timeCalib_rereco = tree_timeCalib_rereco->GetEntries();
   if(isData)
   { 
+	  f_timeCalib_rereco = TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalTimeCalibConstants_v08_offline/tree_EcalTimeCalibConstants_v08_offline.root","READ"); // use this if you run on Caltech T2
+	  tree_timeCalib_rereco = (TTree*)f_timeCalib_rereco->Get("timeCalib");
+	  int N_entries_timeCalib_rereco = tree_timeCalib_rereco->GetEntries();
+	  tree_timeCalib_rereco->SetBranchAddress("start_run", &start_run_tmp);
+	  tree_timeCalib_rereco->SetBranchAddress("end_run", &end_run_tmp);
+	  tree_timeCalib_rereco->SetBranchAddress("IC_time", &IC_time_all);
+	  tree_timeCalib_rereco->SetBranchAddress("detID", &detID_all);
+
+
 	  for(int i=0;i<N_entries_timeCalib_rereco;i++) {
 	    tree_timeCalib_rereco->GetEntry(i);
 	    start_run_rereco.push_back(start_run_tmp);
@@ -226,19 +234,22 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   rms_G12_all=0;
   detID_all=0 ;
 
+  cout<< "[DEBUG] opening f_pedestal"<<endl; 
   //TFile *f_pedestal = TFile::Open("root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ"); // use this if you run on lxplus
-  TFile *f_pedestal = TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ"); // use this if you run on Caltech T2
-  TTree *tree_pedestal = (TTree*)f_pedestal->Get("pedestal");
+  TFile *f_pedestal = 0;//TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ"); // use this if you run on Caltech T2
+  TTree *tree_pedestal = 0;//(TTree*)f_pedestal->Get("pedestal");
   
-  tree_pedestal->SetBranchAddress("start_time_second", &start_time_tmp);
-  tree_pedestal->SetBranchAddress("end_time_second", &end_time_tmp);
-  tree_pedestal->SetBranchAddress("rms_G12", &rms_G12_all);
-  tree_pedestal->SetBranchAddress("detID", &detID_all);
-  
-  int N_entries_pedestal = tree_pedestal->GetEntries();
  
   if(isData)
   { 
+	  f_pedestal = TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ"); // use this if you run on Caltech T2
+	  tree_pedestal = (TTree*)f_pedestal->Get("pedestal");
+	  tree_pedestal->SetBranchAddress("start_time_second", &start_time_tmp);
+	  tree_pedestal->SetBranchAddress("end_time_second", &end_time_tmp);
+	  tree_pedestal->SetBranchAddress("rms_G12", &rms_G12_all);
+	  tree_pedestal->SetBranchAddress("detID", &detID_all);
+	  int N_entries_pedestal = tree_pedestal->GetEntries();
+ 
 
 	  cout << "Total Pedestal IOVs: " << N_entries_pedestal << "\n";
 	  for(int i=0;i<N_entries_pedestal;i++) {

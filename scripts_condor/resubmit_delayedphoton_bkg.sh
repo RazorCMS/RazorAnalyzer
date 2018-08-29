@@ -8,7 +8,7 @@ RazorAnalyzerDir=`pwd`
 cd -
 
 job_script=${RazorAnalyzerDir}/scripts_condor/runRazorJob_CaltechT2.sh
-filesPerJob=20
+filesPerJob=1
 
 for sample in \
 GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 \

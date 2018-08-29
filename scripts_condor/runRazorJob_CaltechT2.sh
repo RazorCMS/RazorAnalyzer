@@ -52,48 +52,30 @@ then
 		echo "************************************"
 		echo ""
 
-		nRemote=`cat inputfilelistForThisJob_${jobnumber}.txt | wc -l`
-		#copy file to local directory
-		echo "copy file to local directory ======"
+		echo " "; echo "Starting razor run job now"; echo " ";
+		echo ./RazorRun_T2 inputfilelistForThisJob_${jobnumber}.txt ${analysisType} -d=${isData} -n=${option} -f=${outputfile}
 
-		for ifile in `cat inputfilelistForThisJob_${jobnumber}.txt`
-		do
-			cp ${ifile} ./
-		done
+		./RazorRun_T2 inputfilelistForThisJob_${jobnumber}.txt ${analysisType} -d=${isData} -n=${option} -f=${outputfile}
 
-		ls razorNtuple_*.root > inputfilelistForThisJob_${jobnumber}_local.txt
-		nLocal=`cat inputfilelistForThisJob_${jobnumber}_local.txt |wc -l`
+		echo ${outputfile}
+		echo ${outputDirectory}
+		mkdir -p /mnt/hadoop/${outputDirectory}
 
-		if [ "${nRemote}" -eq "${nLocal}" ]
+		##^_^##
+		echo "RazorRun_T2 finished"
+		date
+
+		sleep 2
+		echo "I slept for 2 second" 
+
+		##job finished, copy file to T2
+		echo "copying output file to /mnt/hadoop/${outputDirectory}"
+		cp ${outputfile} /mnt/hadoop/${outputDirectory}
+		if [ -f /mnt/hadoop/${outputDirectory}/${outputfile} ]
 		then
-			echo " "; echo "Starting razor run job now"; echo " ";
-			echo ./RazorRun_T2 inputfilelistForThisJob_${jobnumber}_local.txt ${analysisType} -d=${isData} -n=${option} -f=${outputfile}
-
-			./RazorRun_T2 inputfilelistForThisJob_${jobnumber}_local.txt ${analysisType} -d=${isData} -n=${option} -f=${outputfile}
-
-			echo ${outputfile}
-			echo ${outputDirectory}
-			mkdir -p /mnt/hadoop/${outputDirectory}
-
-			##^_^##
-			echo "RazorRun_T2 finished"
-			date
-
-			sleep 2
-			echo "I slept for 2 second" 
-
-			##job finished, copy file to T2
-			echo "copying output file to /mnt/hadoop/${outputDirectory}"
-			cp ${outputfile} /mnt/hadoop/${outputDirectory}
-			if [ -f /mnt/hadoop/${outputDirectory}/${outputfile} ]
-			then
-				echo "ZZZZAAAA ============ good news, job finished successfully "
-			else
-				echo "YYYYZZZZ ============ somehow job failed, please consider resubmitting"
-			fi
-
+			echo "ZZZZAAAA ============ good news, job finished successfully "
 		else
-			echo "XXXXYYYY ============= copy file failed (${nRemote} -> ${nLocal}), job abandoned"
+			echo "YYYYZZZZ ============ somehow job failed, please consider resubmitting"
 		fi
 	else
 		echo echo "WWWWYYYY ============= failed to access file RazorRun_T2, job anandoned"
