@@ -39,7 +39,13 @@ do
                 noFail=`grep YYYY log/${sample}_Job${jobnumber}_Of_${maxjob}*.out`
 		outRoot="/mnt/hadoop/store/user/zhicaiz/Run2Analysis/DelayedPhotonAnalysis/2016/jobs/${sample}_Job${jobnumber}_Of_${maxjob}.root"
 		
-		if [ -f ${outRoot} ]
+		minimumsize=1000000
+                actualsize=0
+                if [ -f ${outRoot} ]
+                then
+                        actualsize=$(wc -c <"${outRoot}")
+                fi
+                if [ $actualsize -ge $minimumsize ]
 		then
 			echo "job ${sample}_Job${jobnumber}_Of_${maxjob} finished already "
                 #elif [ -z "${noFail}" ]
