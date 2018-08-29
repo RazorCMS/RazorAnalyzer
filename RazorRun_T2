@@ -5,7 +5,7 @@ if [ "$1" == "" ] || [ "$2" == "" ]; then
 else
     cp ${CMSSW_BASE}/src/RazorAnalyzer/bin/Run$2 .
 
-    xrdcp root://cmsxrootd.fnal.gov//store/user/zhicaiz/Run2Analysis/ScaleFactors/ScaleFactors_07Aug2017Rereco_2016data.tgz ./
+    cp /mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/ScaleFactors_07Aug2017Rereco_2016data.tgz ./
    
     tar vxzf ScaleFactors_07Aug2017Rereco_2016data.tgz
     tar vxzf JEC_Summer16_23Sep2016V3.tgz

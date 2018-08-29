@@ -178,7 +178,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   detID_all=0;
 
   //TFile *f_timeCalib = TFile::Open("root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/EcalTiming/EcalTimeCalibConstants_Legacy2016_v1/EcalTimeCalibConstants_Legacy2016_v1.root","READ"); // use this if you run on lxplus
-  TFile *f_timeCalib = TFile::Open("root://cmsxrootd.fnal.gov//store/user/zhicaiz/EcalTiming/EcalTimeCalibConstants_Legacy2016_v1/EcalTimeCalibConstants_Legacy2016_v1.root","READ"); // use this if you run on Caltech T2
+  TFile *f_timeCalib = TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalTimeCalibConstants_Legacy2016_v1/EcalTimeCalibConstants_Legacy2016_v1.root","READ"); // use this if you run on Caltech T2
   TTree *tree_timeCalib = (TTree*)f_timeCalib->Get("timeCalib");
   
   tree_timeCalib->SetBranchAddress("start_run", &start_run_tmp);
@@ -198,7 +198,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 
 
   //TFile *f_timeCalib_rereco = TFile::Open("root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/EcalTiming/EcalTimeCalibConstants_v08_offline/tree_EcalTimeCalibConstants_v08_offline.root","READ"); // use this if you run on lxplus 
-  TFile *f_timeCalib_rereco = TFile::Open("root://cmsxrootd.fnal.gov//store/user/zhicaiz/EcalTiming/EcalTimeCalibConstants_v08_offline/tree_EcalTimeCalibConstants_v08_offline.root","READ"); // use this if you run on Caltech T2
+  TFile *f_timeCalib_rereco = TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalTimeCalibConstants_v08_offline/tree_EcalTimeCalibConstants_v08_offline.root","READ"); // use this if you run on Caltech T2
   TTree *tree_timeCalib_rereco = (TTree*)f_timeCalib_rereco->Get("timeCalib");
   
   tree_timeCalib_rereco->SetBranchAddress("start_run", &start_run_tmp);
@@ -227,7 +227,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   detID_all=0 ;
 
   //TFile *f_pedestal = TFile::Open("root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ"); // use this if you run on lxplus
-  TFile *f_pedestal = TFile::Open("root://cmsxrootd.fnal.gov//store/user/zhicaiz/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ"); // use this if you run on Caltech T2
+  TFile *f_pedestal = TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ"); // use this if you run on Caltech T2
   TTree *tree_pedestal = (TTree*)f_pedestal->Get("pedestal");
   
   tree_pedestal->SetBranchAddress("start_time_second", &start_time_tmp);
