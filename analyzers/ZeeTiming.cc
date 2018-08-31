@@ -93,7 +93,7 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   TRandom3 random(3003);
   //bool doPhotonScaleCorrection = true;
 
-  string analysisTag = "Razor2016_80X";
+  string analysisTag = "Razor2016_07Aug2017Rereco";
   if ( label != "") analysisTag = label;
   
 
@@ -109,42 +109,46 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   IC_time_all=0;
   detID_all=0 ;
 
-  TFile f_timeCalib("/eos/cms/store/group/phys_susy/razor/EcalTiming/EcalTimeCalibConstants_Legacy2016_v1/EcalTimeCalibConstants_Legacy2016_v1.root","READ");
-  TTree *tree_timeCalib = (TTree*)f_timeCalib.Get("timeCalib");
-  
-  tree_timeCalib->SetBranchAddress("start_run", &start_run_tmp);
-  tree_timeCalib->SetBranchAddress("end_run", &end_run_tmp);
-  tree_timeCalib->SetBranchAddress("IC_time", &IC_time_all);
-  tree_timeCalib->SetBranchAddress("detID", &detID_all);
-  
-  int N_entries_timeCalib = tree_timeCalib->GetEntries();
- 
+
+  TFile *f_timeCalib = 0;
+  TTree *tree_timeCalib = 0;
+   
   if(isData)
   { 
-  for(int i=0;i<N_entries_timeCalib;i++) {
-    tree_timeCalib->GetEntry(i);
-    start_run.push_back(start_run_tmp);
-    end_run.push_back(end_run_tmp);
-  }
+	f_timeCalib =TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalTimeCalibConstants_Legacy2016_v1/EcalTimeCalibConstants_Legacy2016_v1.root","READ");
+	tree_timeCalib =(TTree*)f_timeCalib->Get("timeCalib");
+	int N_entries_timeCalib = tree_timeCalib->GetEntries();
+	tree_timeCalib->SetBranchAddress("start_run", &start_run_tmp);
+	tree_timeCalib->SetBranchAddress("end_run", &end_run_tmp);
+	tree_timeCalib->SetBranchAddress("IC_time", &IC_time_all);
+	tree_timeCalib->SetBranchAddress("detID", &detID_all);
+
+	for(int i=0;i<N_entries_timeCalib;i++) {
+		tree_timeCalib->GetEntry(i);
+		start_run.push_back(start_run_tmp);
+		end_run.push_back(end_run_tmp);
+    	}
   }
 
-  TFile f_timeCalib_rereco("/eos/cms/store/group/phys_susy/razor/EcalTiming/EcalTimeCalibConstants_v08_offline/tree_EcalTimeCalibConstants_v08_offline.root","READ");
-  TTree *tree_timeCalib_rereco = (TTree*)f_timeCalib_rereco.Get("timeCalib");
-  
-  tree_timeCalib_rereco->SetBranchAddress("start_run", &start_run_tmp);
-  tree_timeCalib_rereco->SetBranchAddress("end_run", &end_run_tmp);
-  tree_timeCalib_rereco->SetBranchAddress("IC_time", &IC_time_all);
-  tree_timeCalib_rereco->SetBranchAddress("detID", &detID_all);
-  
-  int N_entries_timeCalib_rereco = tree_timeCalib_rereco->GetEntries();
- 
+
+  TFile *f_timeCalib_rereco = 0;
+  TTree *tree_timeCalib_rereco = 0;
+
+
   if(isData)
   { 
-  for(int i=0;i<N_entries_timeCalib_rereco;i++) {
-    tree_timeCalib_rereco->GetEntry(i);
-    start_run_rereco.push_back(start_run_tmp);
-    end_run_rereco.push_back(end_run_tmp);
-  }
+	f_timeCalib_rereco = TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalTimeCalibConstants_v08_offline/tree_EcalTimeCalibConstants_v08_offline.root","READ");
+	tree_timeCalib_rereco = (TTree*)f_timeCalib_rereco->Get("timeCalib");
+	int N_entries_timeCalib_rereco = tree_timeCalib_rereco->GetEntries();
+	tree_timeCalib_rereco->SetBranchAddress("start_run", &start_run_tmp);
+	tree_timeCalib_rereco->SetBranchAddress("end_run", &end_run_tmp);
+	tree_timeCalib_rereco->SetBranchAddress("IC_time", &IC_time_all);
+	tree_timeCalib_rereco->SetBranchAddress("detID", &detID_all);
+	for(int i=0;i<N_entries_timeCalib_rereco;i++) {
+		tree_timeCalib_rereco->GetEntry(i);
+		start_run_rereco.push_back(start_run_tmp);
+		end_run_rereco.push_back(end_run_tmp);
+	}
   }
 
 
@@ -159,25 +163,26 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   rms_G12_all=0;
   detID_all=0 ;
 
-  // TFile f_pedestal("/eos/cms/store/group/phys_susy/razor/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ");
-  TFile f_pedestal("/eos/cms/store/group/phys_susy/razor/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ");
-  TTree *tree_pedestal = (TTree*)f_pedestal.Get("pedestal");
-  
-  tree_pedestal->SetBranchAddress("start_time_second", &start_time_tmp);
-  tree_pedestal->SetBranchAddress("end_time_second", &end_time_tmp);
-  tree_pedestal->SetBranchAddress("rms_G12", &rms_G12_all);
-  tree_pedestal->SetBranchAddress("detID", &detID_all);
-  
-  int N_entries_pedestal = tree_pedestal->GetEntries();
+  TFile *f_pedestal = 0;
+  TTree *tree_pedestal = 0;
+
   if(isData)
   { 
-  cout << "Total Pedestal IOVs: " << N_entries_pedestal << "\n";
-  for(int i=0;i<N_entries_pedestal;i++) {
-    cout << "Loading Pedestal IOV " << i << "\n";
-    tree_pedestal->GetEntry(i);
-    start_time.push_back(start_time_tmp);
-    end_time.push_back(end_time_tmp);
-  }
+	f_pedestal = TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ");
+	tree_pedestal = (TTree*)f_pedestal->Get("pedestal");
+	tree_pedestal->SetBranchAddress("start_time_second", &start_time_tmp);
+	tree_pedestal->SetBranchAddress("end_time_second", &end_time_tmp);
+	tree_pedestal->SetBranchAddress("rms_G12", &rms_G12_all);
+	tree_pedestal->SetBranchAddress("detID", &detID_all);
+	int N_entries_pedestal = tree_pedestal->GetEntries();
+
+	cout << "Total Pedestal IOVs: " << N_entries_pedestal << "\n";
+	for(int i=0;i<N_entries_pedestal;i++) {
+		cout << "Loading Pedestal IOV " << i << "\n";
+		tree_pedestal->GetEntry(i);
+		start_time.push_back(start_time_tmp);
+		end_time.push_back(end_time_tmp);
+	}
   }
 
   // //test 
@@ -495,9 +500,6 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
 	//double pedNoise = 1;
 	double ADCToGeV = isData ? getADCToGeV(runNum, isFromEB) : 1.0;
 	double sigmaE = pedNoise * ADCToGeV;
-
-	float C_EB = isData ? 1 : 0;
-        float N_EB = 1;
 
 	double sigmaT = N_EB / ((*ecalRechit_E)[rechitIndex] / sigmaE) + sqrt(2) * C_EB;
 

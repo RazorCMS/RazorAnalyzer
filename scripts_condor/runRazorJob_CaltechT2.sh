@@ -20,6 +20,8 @@ runDir=${currentDir}/zhicaiz_${code_dir_suffix}/
 rm -rf ${runDir}
 mkdir -p ${runDir}
 
+rm -rf /tmp/zhicaiz*
+
 if [ -f /cvmfs/cms.cern.ch/cmsset_default.sh ]
 then
 
