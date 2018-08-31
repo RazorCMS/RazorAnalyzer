@@ -37,6 +37,7 @@ class RazorHelper {
         double getMuonTrackScaleFactor(float pt, float eta, bool isReconstructed);
         double getTightElectronScaleFactor(float pt, float eta, bool isTight);
         double getVetoElectronScaleFactor(float pt, float eta, bool isVeto);
+        double getLooseElectronScaleFactor(float pt, float eta, bool isVeto);
         double getEleGSFTrackScaleFactor(float pt, float eta, bool isReconstructed);
 
 	//get photon eff scale factor
@@ -239,17 +240,22 @@ class RazorHelper {
         // for electrons
         TFile *eleTightEfficiencyFile;
         TFile *eleVetoEfficiencyFile;
+        TFile *eleLooseEfficiencyFile;
         TFile *eleEffSFFile;
         TFile *vetoEleEffSFFile;
         TFile *eleGSFTrackEffSFFile;
         TFile *eleGSFTrackEffFile;
 	TFile *eleTightEffFastsimSFFile;
+	TFile *eleLooseEffFastsimSFFile;
         TFile *eleVetoEffFastsimSFFile;
 	TH2D *eleTightEfficiencyHist;
+        TH2D *eleLooseEfficiencyHist;
         TH2D *eleVetoEfficiencyHist;
         TH2D *eleTightEffFastsimSFHist;
+        TH2D *eleLooseEffFastsimSFHist;
         TH2D *eleVetoEffFastsimSFHist;
         TH2D *eleTightEffSFHist;
+        TH2D *eleLooseEffSFHist;
         TH2D *eleVetoEffSFHist;
         TH2D *eleGSFTrackEffSFHist;
         TH2D *eleGSFTrackEffHist;
