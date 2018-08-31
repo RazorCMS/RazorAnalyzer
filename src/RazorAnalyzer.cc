@@ -228,6 +228,9 @@ void RazorAnalyzer::EnablePhotons(){
     fChain->SetBranchStatus("pho_sumChargedHadronPt", 1);
     fChain->SetBranchStatus("pho_sumNeutralHadronEt", 1);
     fChain->SetBranchStatus("pho_sumPhotonEt", 1);
+    fChain->SetBranchStatus("pho_ecalPFClusterIso", 1);
+    fChain->SetBranchStatus("pho_hcalPFClusterIso", 1);
+    fChain->SetBranchStatus("pho_trkSumPtHollowConeDR03", 1);
     fChain->SetBranchStatus("pho_sumWorstVertexChargedHadronPt", 1);
     fChain->SetBranchStatus("pho_pfIsoChargedHadronIso", 1);
     fChain->SetBranchStatus("pho_pfIsoChargedHadronIsoWrongVtx", 1);
@@ -2307,15 +2310,29 @@ void RazorAnalyzer::getPhotonEffArea90( float eta, double& effAreaChHad, double&
     }
 };
 
+void RazorAnalyzer::getPhotonEffAreaPFClusterIso( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho )
+{
+      effAreaChHad = 0.113;
+      effAreaNHad  = 0.108;
+      effAreaPho   = 0.167;
+ };
 
 //photon ID and isolation cuts from https://twiki.cern.ch/twiki/bin/viewauth/CMS/EgammaIDRecipesRun2
-bool RazorAnalyzer::photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90, bool usePrivatePF){
+bool RazorAnalyzer::photonPassesIsolation(int i, double PFChHadIsoCut, double PFNeuHadIsoCut, double PFPhotIsoCut, bool useEffectiveArea90, bool usePrivatePF, bool usePFClusterIso){
     //get effective area for isolation calculations
     double effAreaChargedHadrons = 0.0;
     double effAreaNeutralHadrons = 0.0;
     double effAreaPhotons = 0.0;
 
+    double effAreaChargedHadrons_ClusterIso = 0.0;
+    double effAreaNeutralHadrons_ClusterIso = 0.0;
+    double effAreaPhotons_ClusterIso = 0.0;
+
     //get the effective areas. results are passed to variables by reference
+    if(usePFClusterIso)
+      {
+        getPhotonEffAreaPFClusterIso( pho_superClusterEta[i] , effAreaChargedHadrons_ClusterIso, effAreaNeutralHadrons_ClusterIso, effAreaPhotons_ClusterIso);
+      }
     if (useEffectiveArea90) 
       {
 	getPhotonEffArea90( pho_superClusterEta[i] , effAreaChargedHadrons, effAreaNeutralHadrons, effAreaPhotons);
@@ -2328,16 +2345,19 @@ bool RazorAnalyzer::photonPassesIsolation(int i, double PFChHadIsoCut, double PF
     //Rho corrected PF charged hadron isolation
     double PFIsoCorrected_ChHad = fmax(pho_pfIsoChargedHadronIso[i] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.);
     if(usePrivatePF) PFIsoCorrected_ChHad = fmax(pho_sumChargedHadronPt[i] - fixedGridRhoFastjetAll*effAreaChargedHadrons, 0.);
+    if(usePFClusterIso) PFIsoCorrected_ChHad = fmax(pho_trkSumPtHollowConeDR03[i] - fixedGridRhoFastjetAll*effAreaChargedHadrons_ClusterIso, 0.);
     if(PFIsoCorrected_ChHad > PFChHadIsoCut) return false;
     
     //Rho corrected PF neutral hadron isolation
     double PFIsoCorrected_NeuHad = fmax(pho_pfIsoNeutralHadronIso[i] - fixedGridRhoFastjetAll*effAreaNeutralHadrons, 0.);
     if(usePrivatePF) PFIsoCorrected_NeuHad = fmax(pho_sumNeutralHadronEt[i] - fixedGridRhoFastjetAll*effAreaNeutralHadrons, 0.);
+    if(usePFClusterIso) PFIsoCorrected_NeuHad = fmax(pho_sumNeutralHadronEt[i] - fixedGridRhoFastjetAll*effAreaNeutralHadrons, 0.);
     if(PFIsoCorrected_NeuHad > PFNeuHadIsoCut) return false;
     
     //Rho corrected PF photon isolation
     double PFIsoCorrected_Photons = fmax(pho_pfIsoPhotonIso[i] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);
     if(usePrivatePF) PFIsoCorrected_Photons = fmax(pho_sumPhotonEt[i] - fixedGridRhoFastjetAll*effAreaPhotons, 0.);
+    if(usePFClusterIso) PFIsoCorrected_Photons = fmax(pho_ecalPFClusterIso[i] - fixedGridRhoFastjetAll*effAreaPhotons_ClusterIso, 0.);
     if(PFIsoCorrected_Photons > PFPhotIsoCut) return false;
 
     //photon passed all cuts
@@ -2440,13 +2460,14 @@ bool RazorAnalyzer::photonPassTightID(int i, bool use25nsCuts){
 
 // 80X-v2.2 Cuts from EGamma Presentation
 // https://indico.cern.ch/event/491548/contributions/2384977/attachments/1377936/2093213/CutBasedPhotonID_25-11-2016.pdf
-bool RazorAnalyzer::photonPassLooseIso(int i, bool use25nsCuts, bool usePrivatePF){
+bool RazorAnalyzer::photonPassLooseIso(int i, bool use25nsCuts, bool usePrivatePF, bool usePFClusterIso){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
-      return photonPassesIsolation(i, 1.295, 10.910 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 3.630 + 0.0047*phoPt[i], true, usePrivatePF );
+      if(!usePFClusterIso) return photonPassesIsolation(i, 1.295, 10.910 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 3.630 + 0.0047*phoPt[i], true, usePrivatePF, usePFClusterIso );
+      else return photonPassesIsolation(i, 20.0 + 0.0056*phoPt[i], 10.910 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 20.0+0.0028*phoPt[i], true, usePrivatePF, usePFClusterIso );
     } else {
-      return photonPassesIsolation(i, 1.011, 5.931 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 6.641 + 0.0034*phoPt[i], true, usePrivatePF);
+      return photonPassesIsolation(i, 1.011, 5.931 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 6.641 + 0.0034*phoPt[i], true, usePrivatePF, usePFClusterIso);
     }
   } else {
     cout << "Warning: you are not using 25nsCuts. return false.\n";
@@ -2457,7 +2478,7 @@ bool RazorAnalyzer::photonPassLooseIso(int i, bool use25nsCuts, bool usePrivateP
 
 // 80X-v2.2 Cuts from EGamma Presentation
 // https://indico.cern.ch/event/491548/contributions/2384977/attachments/1377936/2093213/CutBasedPhotonID_25-11-2016.pdf
-bool RazorAnalyzer::photonPassMediumIso(int i, bool use25nsCuts, bool usePrivatePF){
+bool RazorAnalyzer::photonPassMediumIso(int i, bool use25nsCuts, bool usePrivatePF, bool usePFClusterIso){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
@@ -2474,11 +2495,12 @@ bool RazorAnalyzer::photonPassMediumIso(int i, bool use25nsCuts, bool usePrivate
 
 // 80X-v2.2 Cuts from EGamma Presentation
 // https://indico.cern.ch/event/491548/contributions/2384977/attachments/1377936/2093213/CutBasedPhotonID_25-11-2016.pdf
-bool RazorAnalyzer::photonPassTightIso(int i, bool use25nsCuts, bool usePrivatePF){
+bool RazorAnalyzer::photonPassTightIso(int i, bool use25nsCuts, bool usePrivatePF, bool usePFClusterIso){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
-        return photonPassesIsolation(i, 0.202, 0.264 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 2.362 + 0.0047*phoPt[i], true, usePrivatePF);
+      if(!usePFClusterIso)  return photonPassesIsolation(i, 0.202, 0.264 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 2.362 + 0.0047*phoPt[i], true, usePrivatePF);
+      else return photonPassesIsolation(i, 6.0 + 0.0056*phoPt[i], 0.264 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 8.0+0.0028*phoPt[i], true, usePrivatePF, true );
     } else {
       return photonPassesIsolation(i, 0.034, 0.586 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 2.617 + 0.0034*phoPt[i], true, usePrivatePF);
     }
