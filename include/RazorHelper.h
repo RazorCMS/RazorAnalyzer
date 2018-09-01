@@ -36,6 +36,7 @@ class RazorHelper {
         double getVetoMuonScaleFactor(float pt, float eta, bool isVeto);
         double getMuonTrackScaleFactor(float pt, float eta, bool isReconstructed);
         double getTightElectronScaleFactor(float pt, float eta, bool isTight);
+        double getLooseElectronScaleFactor(float pt, float eta, bool isLoose);
         double getVetoElectronScaleFactor(float pt, float eta, bool isVeto);
         double getLooseElectronScaleFactor(float pt, float eta, bool isVeto);
         double getEleGSFTrackScaleFactor(float pt, float eta, bool isReconstructed);
@@ -51,6 +52,8 @@ class RazorHelper {
         void updateVetoMuonScaleFactors(float pt, float eta, bool isVeto,
             float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown);
         void updateTightElectronScaleFactors(float pt, float eta, bool isTight,
+            float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown);
+        void updateLooseElectronScaleFactors(float pt, float eta, bool isLoose,
             float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown);
         void updateVetoElectronScaleFactors(float pt, float eta, bool isVeto,
             float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown);

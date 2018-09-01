@@ -2238,8 +2238,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
             //for MC apply lepton eff scale factor
             if (!isData )
             {
-              if ( matchesGenElectron(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep1Pt, lep1Eta, true);
-              if ( matchesGenElectron(lep2Eta,lep2Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep2Pt, lep2Eta, true);
+              if ( matchesGenElectron(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getLooseElectronScaleFactor( lep1Pt, lep1Eta, true);
+              if ( matchesGenElectron(lep2Eta,lep2Phi)) leptonEffSF *=  helper->getLooseElectronScaleFactor( lep2Pt, lep2Eta, true);
             }
             //record Z candidate info
             dileptonMass   = ZCandidate.M();
@@ -2314,7 +2314,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
             if (!isData )
             {
               if ( matchesGenMuon(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep1Pt, lep1Eta, true);
-              if ( matchesGenElectron(lep2Eta,lep2Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep2Pt, lep2Eta, true);
+              if ( matchesGenElectron(lep2Eta,lep2Phi)) leptonEffSF *=  helper->getLooseElectronScaleFactor( lep2Pt, lep2Eta, true);
             }
             //record Z candidate inf
             dileptonMass   = ZCandidate.M();
@@ -2394,7 +2394,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 
           if (!isData )
           {
-            if ( matchesGenElectron(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep1Pt, lep1Eta, true);
+            if ( matchesGenElectron(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getLooseElectronScaleFactor( lep1Pt, lep1Eta, true);
           }
         } // end of if eleCand.size() > 0 loop
       }//end of one lepton category (check that razor box was not yet assigned)

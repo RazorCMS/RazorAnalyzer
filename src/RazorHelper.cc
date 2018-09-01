@@ -1686,7 +1686,7 @@ void RazorHelper::loadPileup_Razor2017_17Nov2017Rereco() {
 void RazorHelper::loadLepton_Razor2017_17Nov2017Rereco(){
 
     // electron efficiencies and scale factors
-    // LAST UPDATED: 18 October 2016
+    // LAST UPDATED: 31 August 2018
     std::cout << "RazorHelper: loading 2017 electron efficiency histograms" << std::endl;
     //eleTightEfficiencyFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
     //eleLooseEfficiencyFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
@@ -2143,6 +2143,14 @@ void RazorHelper::updateTightElectronScaleFactors(float pt, float eta, bool isTi
 
 }
 
+void RazorHelper::updateLooseElectronScaleFactors(float pt, float eta, bool isLoose,
+        float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown) {
+
+    updateScaleFactors( eleLooseEfficiencyHist, eleLooseEffSFHist, eleLooseEffFastsimSFHist,
+            pt, eta, isLoose, sf, sfUp, sfDown, sfFastsimUp, sfFastsimDown, 0.02 );
+
+}
+
 void RazorHelper::updateVetoElectronScaleFactors(float pt, float eta, bool isVeto,
         float &sf, float &sfUp, float &sfDown, float &sfFastsimUp, float &sfFastsimDown) {
 
@@ -2183,6 +2191,11 @@ double RazorHelper::getMuonTrackScaleFactor(float pt, float eta, bool isReconstr
 double RazorHelper::getTightElectronScaleFactor(float pt, float eta, bool isTight) {
     return getLeptonScaleFactor( eleTightEfficiencyHist, eleTightEffSFHist, eleTightEffFastsimSFHist,
             pt, eta, isTight );
+}
+
+double RazorHelper::getLooseElectronScaleFactor(float pt, float eta, bool isLoose) {
+    return getLeptonScaleFactor( eleLooseEfficiencyHist, eleLooseEffSFHist, eleLooseEffFastsimSFHist,
+            pt, eta, isLoose );
 }
 
 double RazorHelper::getVetoElectronScaleFactor(float pt, float eta, bool isVeto) {
