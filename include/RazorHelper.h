@@ -38,7 +38,6 @@ class RazorHelper {
         double getTightElectronScaleFactor(float pt, float eta, bool isTight);
         double getLooseElectronScaleFactor(float pt, float eta, bool isLoose);
         double getVetoElectronScaleFactor(float pt, float eta, bool isVeto);
-        double getLooseElectronScaleFactor(float pt, float eta, bool isVeto);
         double getEleGSFTrackScaleFactor(float pt, float eta, bool isReconstructed);
 
 	//get photon eff scale factor
