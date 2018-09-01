@@ -1688,35 +1688,38 @@ void RazorHelper::loadLepton_Razor2017_17Nov2017Rereco(){
     // electron efficiencies and scale factors
     // LAST UPDATED: 18 October 2016
     std::cout << "RazorHelper: loading 2017 electron efficiency histograms" << std::endl;
-    eleTightEfficiencyFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
-    eleVetoEfficiencyFile = TFile::Open("ElectronMVAIDScaleFactor_SUSYVLoose_2017_17Nov2017Rereco.root");
-    eleEffSFFile = TFile::Open("ElectronMVAIDScaleFactor_SUSYVLoose_2017_17Nov2017Rereco.root");
-    vetoEleEffSFFile = TFile::Open("ElectronMVAIDScaleFactor_SUSYVLoose_2017_17Nov2017Rereco.root");
-    eleGSFTrackEffSFFile = TFile::Open("efficiencySF_muEleTracking_2016_average.root");
+    //eleTightEfficiencyFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
+    //eleLooseEfficiencyFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
+    //eleVetoEfficiencyFile = TFile::Open("ElectronMVAIDScaleFactor_SUSYVLoose_2017_17Nov2017Rereco.root");
     eleGSFTrackEffFile = TFile::Open("Efficiency_PromptElectron_TTJets_25ns_Reco_Fullsim.root");
+    eleEffSFFile = TFile::Open("ElectronScaleFactors_Run2017.root");
+    looseEleEffSFFile = TFile::Open("efficiency_results_LooseElectronSelectionEffDenominatorGen_2017_17Nov2017Rereco_Golden.root");
+    vetoEleEffSFFile = TFile::Open("ElectronMVAIDScaleFactor_SUSYVLoose_2017_17Nov2017Rereco.root");
+    eleGSFTrackEffSFFile = TFile::Open("ElectronRecoEffScaleFactors_Run2017.root");
     eleTightEffFastsimSFFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
+    eleLooseEffFastsimSFFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
     eleVetoEffFastsimSFFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
 
-    eleTightEfficiencyHist = (TH2D*)eleTightEfficiencyFile->Get("ElectronEff_Tight_Fullsim");
-    eleVetoEfficiencyHist = (TH2D*)eleVetoEfficiencyFile->Get("ElectronEff_Veto_Fullsim");
+    // eleTightEfficiencyHist = (TH2D*)eleTightEfficiencyFile->Get("ElectronEff_Tight_Fullsim");
+    // eleLooseEfficiencyHist = (TH2D*)eleTightEfficiencyFile->Get("ElectronEff_Loose_Fullsim");
+    // eleVetoEfficiencyHist = (TH2D*)eleVetoEfficiencyFile->Get("ElectronEff_Veto_Fullsim");
+    // eleGSFTrackEffHist = (TH2D*)eleGSFTrackEffFile->Get("Efficiency_PtEta");
     // We don't have ID scale factors for Fastsim yet.
-    eleTightEffFastsimSFHist =  (TH2D*)eleTightEffFastsimSFFile->Get("ElectronTight_FastsimScaleFactor");
-    eleVetoEffFastsimSFHist = (TH2D*)eleVetoEffFastsimSFFile->Get("ElectronEff_Veto_Fullsim");
     eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_TightElectronSelectionEffDenominatorGen");
+    eleLooseEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_LooseElectronSelectionEffDenominatorGen");
     eleVetoEffSFHist = (TH2D*)vetoEleEffSFFile->Get("ScaleFactor_VetoElectronSelectionEffDenominatorGen");
-    eleGSFTrackEffHist = (TH2D*)eleGSFTrackEffFile->Get("Efficiency_PtEta");
-    // These scale factors are weighted according to the fraction of the 2016 run affected
-    // by the 'HIP' issue, under the assumption that tracking scale factors are 1 for runs
-    // not affected by the 'HIP'.
     eleGSFTrackEffSFHist = (TH2D*)eleGSFTrackEffSFFile->Get("h2_scaleFactorsEGamma");
+    eleTightEffFastsimSFHist =  (TH2D*)eleTightEffFastsimSFFile->Get("ElectronTight_FastsimScaleFactor");
+    eleLooseEffFastsimSFHist =  (TH2D*)eleLooseEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor");
+    eleVetoEffFastsimSFHist = (TH2D*)eleVetoEffFastsimSFFile->Get("ElectronEff_Veto_Fullsim");
 
     // muon efficiencies and scale factors
     // LAST UPDATED: 18 October 2016
     std::cout << "RazorHelper: loading 2017 muon efficiency histograms" << std::endl;
     muTightEfficiencyFile = TFile::Open("MuonIsoScaleFactor_2017_17Nov2017Rereco.root");
     muVetoEfficiencyFile = TFile::Open("MuonIsoScaleFactor_2017_17Nov2017Rereco.root");
-    muEffSFFile = TFile::Open("MuonIsoScaleFactor_2017_17Nov2017Rereco.root");
-    vetoMuEffSFFile = TFile::Open("MuonIsoScaleFactor_2017_17Nov2017Rereco.root");
+    muEffSFFile = TFile::Open("efficiency_results_TightMuonSelectionEffDenominatorGen_2017_17Nov2017Rereco_Golden.root");
+    vetoMuEffSFFile = TFile::Open("efficiency_results_VetoMuonSelectionEffDenominatorGen_2017_17Nov2017Rereco_Golden.root");
     muTrackEffSFFile = TFile::Open("efficiencySF_muEleTracking_2016_average.root");
     muTrackEffFile = TFile::Open("Efficiency_PromptMuon_TTJets_25ns_Reco_Fullsim.root");
     muTightEffFastsimSFFile = TFile::Open("MuonEffFastsimToFullsimCorrectionFactors.2016.root");

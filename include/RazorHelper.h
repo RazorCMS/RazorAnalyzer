@@ -253,6 +253,7 @@ class RazorHelper {
         TFile *eleVetoEfficiencyFile;
         TFile *eleLooseEfficiencyFile;
         TFile *eleEffSFFile;
+        TFile *looseEleEffSFFile;
         TFile *vetoEleEffSFFile;
         TFile *eleGSFTrackEffSFFile;
         TFile *eleGSFTrackEffFile;
