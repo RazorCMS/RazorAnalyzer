@@ -117,11 +117,19 @@ float DelayedPhotonAnalyzer::getPedestalNoise(TTree *tree, vector <uint> & start
   tree->GetEntry(i_entry);
   std::vector<int>::iterator p_id;
   p_id = std::find(detID_all->begin(), detID_all->end(), detID);
-  if (p_id == detID_all->end()) return pedestalNoise;
+  if (p_id == detID_all->end()) 
+  {
+	rms_G12_all->clear();
+	//rms_G12_all->shrink_to_fit();
+	return pedestalNoise;
+  }
   uint idx = std::distance(detID_all->begin(), p_id);
   
   if(idx<=rms_G12_all->size()) pedestalNoise = rms_G12_all->at(idx);  
   
+  rms_G12_all->clear();
+  //rms_G12_all->shrink_to_fit();
+
   return pedestalNoise;
 };
 
@@ -165,6 +173,22 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   helper = new RazorHelper(analysisTag, isData, false); 
 
 
+  //--------------------------------
+  //Photon Energy Scale and Resolution Corrections
+  //--------------------------------
+  std::string photonCorrectionPath = "./";//eos/cms/store/user/zhicaiz/Run2Analysis/ScaleFactors/PhotonCorrections/";
+  EnergyScaleCorrection_class *photonCorrector = 0;
+  if (analysisTag == "Razor2016_MoriondRereco") photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
+  else if (analysisTag == "Razor2016_07Aug2017Rereco") photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
+  if(!isData) {
+    photonCorrector->doScale = false;
+    photonCorrector->doSmearings = true;
+  } else {
+    photonCorrector->doScale = true;
+    photonCorrector->doSmearings = false;
+  }
+
+
   //*****************************************************************************
   //Load Pedestals
   //*****************************************************************************
@@ -177,14 +201,17 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 
   cout<< "[DEBUG] opening f_pedestal"<<endl; 
   //TFile *f_pedestal = TFile::Open("root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ"); // use this if you run on lxplus
-  TFile *f_pedestal = 0;//TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ"); // use this if you run on Caltech T2
-  TTree *tree_pedestal = 0;//(TTree*)f_pedestal->Get("pedestal");
+  //TFile *f_pedestal = 0;//TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ"); // use this if you run on Caltech T2
+  //TTree *tree_pedestal = 0;//(TTree*)f_pedestal->Get("pedestal");
   
- 
+  TFile *f_pedestal = new TFile("tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ");
+  TTree *tree_pedestal = (TTree*)f_pedestal->Get("pedestal");
+
   if(isData)
   { 
-	  f_pedestal = TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ"); // use this if you run on Caltech T2
-	  tree_pedestal = (TTree*)f_pedestal->Get("pedestal");
+	  //f_pedestal = TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ"); // use this if you run on Caltech T2
+	  //f_pedestal = new TFile("tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ"); // use this if you run on Caltech T2
+	  //tree_pedestal = (TTree*)f_pedestal->Get("pedestal");
 	  tree_pedestal->SetBranchAddress("start_time_second", &start_time_tmp);
 	  tree_pedestal->SetBranchAddress("end_time_second", &end_time_tmp);
 	  tree_pedestal->SetBranchAddress("rms_G12", &rms_G12_all);
@@ -659,21 +686,6 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
     float pho2SeedZ = 0;
 
     TVector3 vtx( pvX, pvY, pvZ );
-
-  //--------------------------------
-  //Photon Energy Scale and Resolution Corrections
-  //--------------------------------
-  std::string photonCorrectionPath = "./";//eos/cms/store/user/zhicaiz/Run2Analysis/ScaleFactors/PhotonCorrections/";
-  EnergyScaleCorrection_class *photonCorrector = 0;
-  if (analysisTag == "Razor2016_MoriondRereco") photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
-  else if (analysisTag == "Razor2016_07Aug2017Rereco") photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
-  if(!isData) {
-    photonCorrector->doScale = false;
-    photonCorrector->doSmearings = true;
-  } else {
-    photonCorrector->doScale = true;
-    photonCorrector->doSmearings = false;
-  }
 
   for(int ind_pho = 0; ind_pho < nPhotons; ind_pho++) 
   { //photon loop
@@ -1472,6 +1484,18 @@ if( !isData )
 	outputTree->Fill();		
 
    }//if nPho>=1
+
+
+JetCorrector.clear();
+JetCorrectorIOV.clear();
+
+jetE_all.clear();
+jetPt_all.clear();
+jetEta_all.clear();
+jetPhi_all.clear();
+GoodJetsJESUp.clear();
+GoodJetsJESDown.clear();
+
 }//event loop
 
 cout << "Writing output trees..." << endl;
@@ -1481,6 +1505,12 @@ SumWeights->Write();
 SumScaleWeights->Write();
 SumPdfWeights->Write();
 outFile->Close();
+f_pedestal->Close();
+
+start_time.clear();
+end_time.clear();
+delete helper;
+delete photonCorrector;
 
 }//analyzer function
 

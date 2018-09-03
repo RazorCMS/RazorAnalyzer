@@ -113,7 +113,8 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
 
   if(isData)
   { 
-	f_pedestal = TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ");
+	//f_pedestal = TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ");
+	f_pedestal = TFile::Open("tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ");
 	tree_pedestal = (TTree*)f_pedestal->Get("pedestal");
 	tree_pedestal->SetBranchAddress("start_time_second", &start_time_tmp);
 	tree_pedestal->SetBranchAddress("end_time_second", &end_time_tmp);

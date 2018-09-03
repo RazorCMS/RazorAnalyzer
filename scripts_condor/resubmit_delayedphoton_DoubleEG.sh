@@ -11,7 +11,6 @@ job_script=${RazorAnalyzerDir}/scripts_condor/runRazorJob_CaltechT2.sh
 filesPerJob=5
 
 for sample in \
-DoubleEG_2016B_ver1_06Aug2018 \
 DoubleEG_2016B_ver2_06Aug2018 \
 DoubleEG_2016C_06Aug2018 \
 DoubleEG_2016D_06Aug2018 \
