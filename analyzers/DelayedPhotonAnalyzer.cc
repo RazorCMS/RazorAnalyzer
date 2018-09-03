@@ -693,6 +693,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
       	if(phoPt[ind_pho] < 40) continue; // basic Pt cut
       	if(fabs(phoEta[ind_pho]) > 2.5) continue; // tracker region
       	if(fabs(phoEta[ind_pho]) > 1.4442 && fabs(phoEta[ind_pho]) < 1.566) continue; //the eta range for photon, this takes care of the gap between barrel and endcap
+	if(ecalRechit_ID->empty() ) continue;
 	//if(!photonPassLooseIso(ind_pho)) continue;
 	//if(!pho_passEleVeto[ind_pho]) continue;
       	//if(!(isEGammaPOGTightElectron(i))) continue;

@@ -64,11 +64,30 @@ then
 		cat inputfilelistForThisJob_${jobnumber}.txt
 		echo "************************************"
 		echo ""
+		#remove empty input files
+		for ifile in `cat inputfilelistForThisJob_${jobnumber}.txt`
+		do
+			minimumsize=100000
+                	actualsize=0
+                	if [ -f ${ifile} ]
+                	then
+                        	actualsize=$(wc -c <"${ifile}")
+                	fi
+			if [ $actualsize -ge ${minimumsize} ]
+                	then
+				echo ${ifile} >> inputfilelistForThisJob_${jobnumber}_filter.txt
+			fi
 
+		done
+		echo "************************************"
+		echo "Running on these input files after removing bad files"
+		cat inputfilelistForThisJob_${jobnumber}_filter.txt
+		echo "************************************"
+		
 		echo " "; echo "Starting razor run job now"; echo " ";
-		echo ./RazorRun_T2 inputfilelistForThisJob_${jobnumber}.txt ${analysisType} -d=${isData} -n=${option} -f=${outputfile}
+		echo ./RazorRun_T2 inputfilelistForThisJob_${jobnumber}_filter.txt ${analysisType} -d=${isData} -n=${option} -f=${outputfile}
 
-		./RazorRun_T2 inputfilelistForThisJob_${jobnumber}.txt ${analysisType} -d=${isData} -n=${option} -f=${outputfile}
+		./RazorRun_T2 inputfilelistForThisJob_${jobnumber}_filter.txt ${analysisType} -d=${isData} -n=${option} -f=${outputfile}
 
 		echo ${outputfile}
 		echo ${outputDirectory}

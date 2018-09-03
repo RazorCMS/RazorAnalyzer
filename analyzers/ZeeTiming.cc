@@ -342,6 +342,7 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
       if(fabs(eleEta[i]) > 2.5) continue;
       if(fabs(eleEta[i]) > 1.4442 && fabs(eleEta[i]) < 1.566) continue;
       if(!(isEGammaPOGTightElectron(i))) continue;
+      if(ecalRechit_ID->empty() ) continue;
       
       nEle++;
       TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
