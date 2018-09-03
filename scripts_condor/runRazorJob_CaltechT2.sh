@@ -44,6 +44,17 @@ then
 
 		#get grid proxy
 		export X509_USER_PROXY=${homeDir}x509_proxy
+		
+		#copy pedestal file
+		if [ ${isData} == "yes" ]
+                then
+                        date
+                        echo "copying pedestal file to local directory ========="
+                        #hadoop fs -get /store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root ./
+                        cp /mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root ./
+                        echo "done with copying pedestal file to local directory ========="
+                        date
+                fi
 
 		#run the job
 		cat ${CMSSW_BASE}${inputfilelist} | awk "NR > (${jobnumber}*${filePerJob}) && NR <= ((${jobnumber}+1)*${filePerJob})" > inputfilelistForThisJob_${jobnumber}.txt
@@ -53,11 +64,30 @@ then
 		cat inputfilelistForThisJob_${jobnumber}.txt
 		echo "************************************"
 		echo ""
+		#remove empty input files
+		for ifile in `cat inputfilelistForThisJob_${jobnumber}.txt`
+		do
+			minimumsize=100000
+                	actualsize=0
+                	if [ -f ${ifile} ]
+                	then
+                        	actualsize=$(wc -c <"${ifile}")
+                	fi
+			if [ $actualsize -ge ${minimumsize} ]
+                	then
+				echo ${ifile} >> inputfilelistForThisJob_${jobnumber}_filter.txt
+			fi
 
+		done
+		echo "************************************"
+		echo "Running on these input files after removing bad files"
+		cat inputfilelistForThisJob_${jobnumber}_filter.txt
+		echo "************************************"
+		
 		echo " "; echo "Starting razor run job now"; echo " ";
-		echo ./RazorRun_T2 inputfilelistForThisJob_${jobnumber}.txt ${analysisType} -d=${isData} -n=${option} -f=${outputfile}
+		echo ./RazorRun_T2 inputfilelistForThisJob_${jobnumber}_filter.txt ${analysisType} -d=${isData} -n=${option} -f=${outputfile}
 
-		./RazorRun_T2 inputfilelistForThisJob_${jobnumber}.txt ${analysisType} -d=${isData} -n=${option} -f=${outputfile}
+		./RazorRun_T2 inputfilelistForThisJob_${jobnumber}_filter.txt ${analysisType} -d=${isData} -n=${option} -f=${outputfile}
 
 		echo ${outputfile}
 		echo ${outputDirectory}

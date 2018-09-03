@@ -8,10 +8,9 @@ RazorAnalyzerDir=`pwd`
 cd -
 
 job_script=${RazorAnalyzerDir}/scripts_condor/runRazorJob_CaltechT2.sh
-filesPerJob=1
+filesPerJob=5
 
 for sample in \
-DoubleEG_2016B_ver1_06Aug2018 \
 DoubleEG_2016B_ver2_06Aug2018 \
 DoubleEG_2016C_06Aug2018 \
 DoubleEG_2016D_06Aug2018 \
@@ -33,7 +32,7 @@ do
 	do
 		jdl_file=submit/${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob}.jdl
 		#noFail=`grep YYYY log/${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob}*.out`
-		outRoot="/mnt/hadoop/store/user/zhicaiz/Run2Analysis/DelayedPhotonAnalysis/2016/jobs/${sample}_Job${jobnumber}_Of_${maxjob}.root"
+		outRoot="/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/DelayedPhotonAnalysis/2016/jobs/${sample}_Job${jobnumber}_Of_${maxjob}.root"
 
 		minimumsize=100000
                 actualsize=0
