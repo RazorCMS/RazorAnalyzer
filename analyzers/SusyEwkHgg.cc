@@ -2402,7 +2402,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //----------------
       //High-pt category
       //----------------
-      if( razorbox == None && HiggsCandidate.Pt() > 110. ) razorbox = HighPt;
+      //if( razorbox == None && HiggsCandidate.Pt() > 110. ) razorbox = HighPt;
 
       //------------
       //Hbb category
@@ -2495,7 +2495,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //----------------
       //High-pt category
       //----------------
-      //if( razorbox == None && HiggsCandidate.Pt() > 110. ) razorbox = HighPt;
+      if( razorbox == None && HiggsCandidate.Pt() > 110. ) razorbox = HighPt;
       
       //------------------------------------------------
       //I n v a ri a n t   m a s s   r e s o l u t i o n

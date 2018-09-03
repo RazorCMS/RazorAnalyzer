@@ -1730,7 +1730,7 @@ void RazorHelper::loadLepton_Razor2017_17Nov2017Rereco(){
     // We don't have ID scale factors for Fastsim yet.
     muTightEffFastsimSFHist = (TH2D*)muTightEffFastsimSFFile->Get("MuonTight_FastsimScaleFactor");
     muVetoEffFastsimSFHist = (TH2D*)muVetoEffFastsimSFFile->Get("MuonVeto_FastsimScaleFactor");
-    muTightEffSFHist = (TH2D*)muEffSFFile->Get("ScaleFactor_TightMuonSelectionEffDenominatorGen");
+    //muTightEffSFHist = (TH2D*)muEffSFFile->Get("ScaleFactor_TightMuonSelectionEffDenominatorGen");
     muVetoEffSFHist = (TH2D*)vetoMuEffSFFile->Get("ScaleFactor_VetoMuonSelectionEffDenominatorGen");
     muTrackEffHist = (TH2D*)muTrackEffFile->Get("Efficiency_PtEta");
     // These scale factors are weighted according to the fraction of the 2016 run affected

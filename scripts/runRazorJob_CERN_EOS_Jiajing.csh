@@ -27,7 +27,8 @@ pwd
 # env
 
 cp $CMSSW_BASE/src/RazorAnalyzer/RazorRun ./
-wget http://cmsdoc.cern.ch/~duanders/RazorRunAuxFiles_Expanded.tar.gz
+eos cp /eos/cms/store/user/jmao/razorRun2Analysis/RazorRunAuxFiles_Expanded.tar.gz ./
+#wget http://cmsdoc.cern.ch/~duanders/RazorRunAuxFiles_Expanded.tar.gz
 tar vxzf RazorRunAuxFiles_Expanded.tar.gz
 cp RazorRunAuxFiles_Expanded/* .
 tar vxzf JEC_Summer16_23Sep2016V3.tgz
