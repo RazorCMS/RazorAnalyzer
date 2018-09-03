@@ -409,9 +409,140 @@ void CombineScaleFactorsPOG() {
 }
 
 
+
+//Scale Factors from POG
+void CombineScaleFactors_2017_HggRazor() {
+
+
+  //--------------------------------------------------------------------------------------------------------------
+  // Settings 
+  //============================================================================================================== 
+  bool printdebug = false;
+
+  TFile *recoSFFile = new TFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2017/ElectronRecoEffScaleFactors_Run2017.root","READ");
+  TH2F *histRecoElectronSF = (TH2F*)recoSFFile->Get("EGamma_SF2D");
+ 
+  TFile *vetoMuonIDSFFile = new TFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2017/MuonIDScaleFactor_2017_17Nov2017Rereco.root","READ");
+  TH2F *histVetoMuonIDSF = (TH2F*)vetoMuonIDSFFile->Get("NUM_LooseID_DEN_genTracks_pt_abseta");
+
+  TFile *vetoMuonIsoSFFile = new TFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2017/MuonIsoScaleFactor_2017_17Nov2017Rereco.root","READ");
+  TH2F *histVetoMuonIsoSF = (TH2F*)vetoMuonIsoSFFile->Get("NUM_LooseRelIso_DEN_LooseID_pt_abseta");
+
+  TFile *looseElectronIDSFFile = new TFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2017/ElectronScaleFactors_Run2017.root","READ");
+  TH2F *histLooseElectronIDSF = (TH2F*)looseElectronIDSFFile->Get("Run2017_CutBasedLooseNoIso94X");
+
+   TFile *looseElectronIsoSFFile = new TFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2017/ElectronScaleFactors_Run2017.root","READ");
+  TH2F *histLooseElectronIsoSF = (TH2F*)looseElectronIsoSFFile->Get("Run2017_MVAVLooseTightIP2DMini");
+
+  //loose electrons 
+  const int NPtBinsLooseElectron = 4;
+  const int NEtaBinsLooseElectron = 5;
+  double ptBinsLooseElectron[NPtBinsLooseElectron+1] = {20, 35, 50, 100, 7000};
+  double etaBinsLooseElectron[NEtaBinsLooseElectron+1] = {0.0, 0.8, 1.444, 1.556, 2.0, 2.5};
+
+
+  //veto muons
+  const int NPtBinsVetoMuon = 6;
+  const int NEtaBinsVetoMuon = 4;
+  double ptBinsVetoMuon[NPtBinsVetoMuon+1] = {20, 25, 30, 40, 50, 60, 7000};
+  double etaBinsVetoMuon[NEtaBinsVetoMuon+1] = {0.0, 0.9, 1.2, 2.1, 2.4};
+ 
+
+  TH2F *outputLooseElectronSF = new TH2F( "ScaleFactor_LooseElectronSelectionEffDenominatorGen", ";p_{T} [GeV/c] ; #eta; Scale Factor", NPtBinsLooseElectron, ptBinsLooseElectron, NEtaBinsLooseElectron, etaBinsLooseElectron);
+  for (int i=1; i< NPtBinsLooseElectron+1; i++) {
+    for (int j=1; j< NEtaBinsLooseElectron+1; j++) {
+      double tmpPt = outputLooseElectronSF->GetXaxis()->GetBinCenter(i);
+      if (i == NPtBinsLooseElectron) tmpPt = outputLooseElectronSF->GetXaxis()->GetBinLowEdge(i) + 1;
+      double tmpEta = outputLooseElectronSF->GetYaxis()->GetBinCenter(j);
+
+      double recoEffSF = 0.5 * histRecoElectronSF->GetBinContent( histRecoElectronSF->GetXaxis()->FindFixBin(tmpEta), histRecoElectronSF->GetYaxis()->FindFixBin(tmpPt))
+  	+ 0.5 * histRecoElectronSF->GetBinContent( histRecoElectronSF->GetXaxis()->FindFixBin(-1*tmpEta), histRecoElectronSF->GetYaxis()->FindFixBin(tmpPt));
+      double recoEffSFErr = histRecoElectronSF->GetBinError( histRecoElectronSF->GetXaxis()->FindFixBin(tmpEta), histRecoElectronSF->GetYaxis()->FindFixBin(tmpPt));
+
+      double sfID = histLooseElectronIDSF->GetBinContent( histLooseElectronIDSF->GetXaxis()->FindFixBin(tmpEta),  histLooseElectronIDSF->GetYaxis()->FindFixBin(tmpPt));
+      double sfIDErr = histLooseElectronIDSF->GetBinError( histLooseElectronIDSF->GetXaxis()->FindFixBin(tmpEta),  histLooseElectronIDSF->GetYaxis()->FindFixBin(tmpPt));
+
+      double sfIso = histLooseElectronIsoSF->GetBinContent( histLooseElectronIsoSF->GetXaxis()->FindFixBin(tmpEta),  histLooseElectronIsoSF->GetYaxis()->FindFixBin(tmpPt));
+      double sfIsoErr = histLooseElectronIsoSF->GetBinError( histLooseElectronIsoSF->GetXaxis()->FindFixBin(tmpEta),  histLooseElectronIsoSF->GetYaxis()->FindFixBin(tmpPt));
+
+      double sf = sfID * sfIso * recoEffSF;
+      double sfErr = sf * sqrt( pow(sfIDErr / sfID,2) + pow(sfIsoErr/sfIso,2) + pow( recoEffSFErr/recoEffSF,2));
+
+      outputLooseElectronSF->SetBinContent( i,j, sf);
+      outputLooseElectronSF->SetBinError( i,j, sfErr);
+      cout << i << " " << j << " : " << tmpPt << " " << tmpEta << " : " 
+  	   << histLooseElectronIDSF->GetBinContent( histLooseElectronIDSF->GetXaxis()->FindFixBin(tmpEta),  histLooseElectronIDSF->GetYaxis()->FindFixBin(tmpPt)) << " +/- "
+  	   << histLooseElectronIDSF->GetBinError( histLooseElectronIDSF->GetXaxis()->FindFixBin(tmpEta),  histLooseElectronIDSF->GetYaxis()->FindFixBin(tmpPt)) << " * "
+  	   << " * "
+  	   << histLooseElectronIsoSF->GetBinContent( histLooseElectronIsoSF->GetXaxis()->FindFixBin(tmpEta),  histLooseElectronIsoSF->GetYaxis()->FindFixBin(tmpPt)) << " +/- "
+  	   << histLooseElectronIsoSF->GetBinError( histLooseElectronIsoSF->GetXaxis()->FindFixBin(tmpEta),  histLooseElectronIsoSF->GetYaxis()->FindFixBin(tmpPt)) << " * "
+  	   << " * "
+  	   << recoEffSF << " +/- " << recoEffSFErr
+  	   << " = "
+  	   << sf << " +/- " << sfErr << "\n";
+    }
+  }
+
+
+  TH2F *outputVetoMuonSF = new TH2F( "ScaleFactor_VetoMuonSelectionEffDenominatorGen", ";p_{T} [GeV/c] ; #eta; Scale Factor", NPtBinsVetoMuon, ptBinsVetoMuon, NEtaBinsVetoMuon, etaBinsVetoMuon);
+  for (int i=1; i< NPtBinsVetoMuon+1; i++) {
+    for (int j=1; j< NEtaBinsVetoMuon+1; j++) {
+      double tmpPt = outputVetoMuonSF->GetXaxis()->GetBinCenter(i);
+      if (i == NPtBinsVetoMuon) tmpPt = outputVetoMuonSF->GetXaxis()->GetBinLowEdge(i) + 1;
+      double tmpEta = outputVetoMuonSF->GetYaxis()->GetBinCenter(j);
+
+      double recoEffSF = 1;
+
+      double sfID = histVetoMuonIDSF->GetBinContent( histVetoMuonIDSF->GetXaxis()->FindFixBin(tmpPt),  histVetoMuonIDSF->GetYaxis()->FindFixBin(tmpEta));
+      double sfIDErr = histVetoMuonIDSF->GetBinError( histVetoMuonIDSF->GetXaxis()->FindFixBin(tmpPt),  histVetoMuonIDSF->GetYaxis()->FindFixBin(tmpEta));
+
+      double sfIso = histVetoMuonIsoSF->GetBinContent( histVetoMuonIsoSF->GetXaxis()->FindFixBin(tmpPt),  histVetoMuonIsoSF->GetYaxis()->FindFixBin(tmpEta));
+      double sfIsoErr = histVetoMuonIsoSF->GetBinError( histVetoMuonIsoSF->GetXaxis()->FindFixBin(tmpPt),  histVetoMuonIsoSF->GetYaxis()->FindFixBin(tmpEta));
+
+      double sf = sfID * sfIso * recoEffSF;
+      double sfErr = sf * sqrt( pow(sfIDErr / sfID,2) + pow(sfIsoErr/sfIso,2) );
+
+      outputVetoMuonSF->SetBinContent( i,j, sf);
+      outputVetoMuonSF->SetBinError( i,j, sfErr);
+      cout << i << " " << j << " : " << tmpPt << " " << tmpEta << " : " 
+  	   << histVetoMuonIDSF->GetBinContent( histVetoMuonIDSF->GetXaxis()->FindFixBin(tmpPt),  histVetoMuonIDSF->GetYaxis()->FindFixBin(tmpEta)) << " +/- "
+  	   << histVetoMuonIDSF->GetBinError( histVetoMuonIDSF->GetXaxis()->FindFixBin(tmpPt),  histVetoMuonIDSF->GetYaxis()->FindFixBin(tmpEta)) << " * "
+  	   << " * " 
+  	   << histVetoMuonIsoSF->GetBinContent( histVetoMuonIsoSF->GetXaxis()->FindFixBin(tmpPt),  histVetoMuonIsoSF->GetYaxis()->FindFixBin(tmpEta)) << " +/- "
+  	   << histVetoMuonIsoSF->GetBinError( histVetoMuonIsoSF->GetXaxis()->FindFixBin(tmpPt),  histVetoMuonIDSF->GetYaxis()->FindFixBin(tmpEta)) << " * "
+  	   << " * " 		
+  	   << " 1 " << " +/- 0.003 "
+  	   << " = "
+  	   << sf << " +/- " << sfErr << "\n";
+    }
+  }
+
+ 
+
+  //--------------------------------------------------------------------------------------------------------------
+  // Output
+  //==============================================================================================================
+  TFile *file = TFile::Open("efficiency_results_LooseElectronSelectionEffDenominatorGen_2017_17Nov2017Rereco_Golden.root", "RECREATE");
+  file->cd();
+  file->WriteTObject(outputLooseElectronSF, "ScaleFactor_LooseElectronSelectionEffDenominatorGen", "WriteDelete");
+  file->Close();
+  delete file;       
+
+  file = TFile::Open("efficiency_results_VetoMuonSelectionEffDenominatorGen_2017_17Nov2017Rereco_Golden.root", "RECREATE");
+  file->cd();
+  file->WriteTObject(outputVetoMuonSF, "ScaleFactor_VetoMuonSelectionEffDenominatorGen", "WriteDelete");
+  file->Close();
+  delete file; 
+
+ 
+
+}
+
 void CombineScaleFactors() {
 
-  CombineScaleFactorsRazor();
+  //CombineScaleFactorsRazor();
   //CombineScaleFactorsPOG();
+
+  CombineScaleFactors_2017_HggRazor();
 
 }
