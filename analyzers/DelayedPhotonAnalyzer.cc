@@ -166,65 +166,6 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 
 
   //*****************************************************************************
-  //Load Intercalibration constants
-  //*****************************************************************************
-  vector <uint> start_run;//start run of all IOV 
-  vector <uint> end_run;//end run of all IOV
-  vector <uint> start_run_rereco;// for SepRereco tags
-  vector <uint> end_run_rereco;// for SepRereco tags
-  start_run_tmp=0; 
-  end_run_tmp=0;
-  IC_time_all=0;
-  detID_all=0;
-
- 
-  cout<< "[DEBUG] opening f_timeCalib"<<endl; 
-  //TFile *f_timeCalib = TFile::Open("root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/EcalTiming/EcalTimeCalibConstants_Legacy2016_v1/EcalTimeCalibConstants_Legacy2016_v1.root","READ"); // use this if you run on lxplus
-  TFile *f_timeCalib = 0;//TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalTimeCalibConstants_Legacy2016_v1/EcalTimeCalibConstants_Legacy2016_v1.root","READ"); // use this if you run on Caltech T2
-  TTree *tree_timeCalib = 0;//(TTree*)f_timeCalib->Get("timeCalib");
-   
-  if(isData)
-  { 
-	  f_timeCalib =TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalTimeCalibConstants_Legacy2016_v1/EcalTimeCalibConstants_Legacy2016_v1.root","READ"); // use this if you run on Caltech T2
-	  tree_timeCalib =(TTree*)f_timeCalib->Get("timeCalib");
-  	  int N_entries_timeCalib = tree_timeCalib->GetEntries();
-	  tree_timeCalib->SetBranchAddress("start_run", &start_run_tmp);
-	  tree_timeCalib->SetBranchAddress("end_run", &end_run_tmp);
-	  tree_timeCalib->SetBranchAddress("IC_time", &IC_time_all);
-	  tree_timeCalib->SetBranchAddress("detID", &detID_all);
-
-	  for(int i=0;i<N_entries_timeCalib;i++) {
-	    tree_timeCalib->GetEntry(i);
-	    start_run.push_back(start_run_tmp);
-	    end_run.push_back(end_run_tmp);
-	  }
-  }
-
-
-  cout<< "[DEBUG] opening f_timeCalib_rereco"<<endl; 
-  //TFile *f_timeCalib_rereco = TFile::Open("root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/EcalTiming/EcalTimeCalibConstants_v08_offline/tree_EcalTimeCalibConstants_v08_offline.root","READ"); // use this if you run on lxplus 
-  TFile *f_timeCalib_rereco = 0;//TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalTimeCalibConstants_v08_offline/tree_EcalTimeCalibConstants_v08_offline.root","READ"); // use this if you run on Caltech T2
-  TTree *tree_timeCalib_rereco = 0;//(TTree*)f_timeCalib_rereco->Get("timeCalib");
-  
-  if(isData)
-  { 
-	  f_timeCalib_rereco = TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalTimeCalibConstants_v08_offline/tree_EcalTimeCalibConstants_v08_offline.root","READ"); // use this if you run on Caltech T2
-	  tree_timeCalib_rereco = (TTree*)f_timeCalib_rereco->Get("timeCalib");
-	  int N_entries_timeCalib_rereco = tree_timeCalib_rereco->GetEntries();
-	  tree_timeCalib_rereco->SetBranchAddress("start_run", &start_run_tmp);
-	  tree_timeCalib_rereco->SetBranchAddress("end_run", &end_run_tmp);
-	  tree_timeCalib_rereco->SetBranchAddress("IC_time", &IC_time_all);
-	  tree_timeCalib_rereco->SetBranchAddress("detID", &detID_all);
-
-
-	  for(int i=0;i<N_entries_timeCalib_rereco;i++) {
-	    tree_timeCalib_rereco->GetEntry(i);
-	    start_run_rereco.push_back(start_run_tmp);
-	    end_run_rereco.push_back(end_run_tmp);
-	  }
-  }
-
-  //*****************************************************************************
   //Load Pedestals
   //*****************************************************************************
   vector <uint> start_time;//start run of all IOV 
@@ -807,8 +748,8 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
       	double rawSeedHitTime =  (*ecalRechit_T)[seedhitIndex];
 
       	//apply intercalibration2      
-      	double IC_time_SeptRereco = isData ? getTimeCalibConstant(tree_timeCalib_rereco, start_run_rereco,end_run_rereco,runNum, (*ecalRechit_ID)[seedhitIndex]) : 0;
-      	double IC_time_LagacyRereco = isData ? getTimeCalibConstant(tree_timeCalib, start_run,end_run,runNum, (*ecalRechit_ID)[seedhitIndex]) : 0;
+      	double IC_time_SeptRereco = 0.0;//isData ? getTimeCalibConstant(tree_timeCalib_rereco, start_run_rereco,end_run_rereco,runNum, (*ecalRechit_ID)[seedhitIndex]) : 0;
+      	double IC_time_LagacyRereco = 0.0;//isData ? getTimeCalibConstant(tree_timeCalib, start_run,end_run,runNum, (*ecalRechit_ID)[seedhitIndex]) : 0;
       	double calibratedSeedHitTime = rawSeedHitTime + IC_time_LagacyRereco - IC_time_SeptRereco;
 
       	//apply TOF correction
@@ -839,8 +780,8 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
       
         	double rawT = (*ecalRechit_T)[rechitIndex];
         	//apply intercalibration
-		double IC_time_SeptRereco_this = isData ? (getTimeCalibConstant(tree_timeCalib_rereco, start_run_rereco,end_run_rereco,runNum, (*ecalRechit_ID)[rechitIndex]) ) : 0.0;
-        	double IC_time_LagacyRereco_this = isData ? (getTimeCalibConstant(tree_timeCalib, start_run,end_run,runNum, (*ecalRechit_ID)[rechitIndex])) : 0.0;
+		double IC_time_SeptRereco_this = 0.0;//isData ? (getTimeCalibConstant(tree_timeCalib_rereco, start_run_rereco,end_run_rereco,runNum, (*ecalRechit_ID)[rechitIndex]) ) : 0.0;
+        	double IC_time_LagacyRereco_this = 0.0;//isData ? (getTimeCalibConstant(tree_timeCalib, start_run,end_run,runNum, (*ecalRechit_ID)[rechitIndex])) : 0.0;
         	double calibratedSeedHitTime_this = rawT + IC_time_LagacyRereco_this - IC_time_SeptRereco_this;
 
 		
