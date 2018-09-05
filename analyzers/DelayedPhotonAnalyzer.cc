@@ -25,9 +25,9 @@ const bool photonOrderByTime = true;
 //const double TR_SMEAR = 0.2210;
 const int N_pt_divide = 19;
 double pt_divide[N_pt_divide] = {43.0, 46.0, 49.0, 52.0, 55.0, 58.0, 61.0, 64.0, 67.0, 70.0, 73.0, 78.0, 84.0, 91.0, 100.0, 115.0, 140.0, 190.0, 1000.0};
-double timecorr_shift[N_pt_divide] = {297.23882956, 299.88942371, 299.58682186, 296.55051592, 297.82429357, 296.73789649, 300.51467104, 294.55208642, 298.48368472, 294.53657758, 301.94212261, 302.44469007, 285.42567597, 288.48507597, 287.93654712, 271.41143916, 280.89547738, 274.39073135, 215.47477966};
-double timecorr_smear_aa = 7484.0*87484.0 - 4432.8*4432.8;
-double timecorr_smear_bb = 2.0*208.9*208.9 - 2.0*101.3*101.3;
+double timecorr_shift[N_pt_divide] = {279.55830453, 282.25640682, 277.0733433, 275.3098825, 276.43934474, 275.90998681, 278.09668779, 274.0069242, 284.08296168, 276.51825729, 281.25709939, 287.52977548, 265.15903281, 268.680688, 272.04019131, 257.83532044, 268.70625335, 271.39248559, 203.65352479};
+double timecorr_smear_aa = 9777.1*9777.1 - 4633.5*4633.5;
+double timecorr_smear_bb = 2.0*221.0*221.0 - 2.0*100.5*100.5;
 
 #define _phodebug 0
 
@@ -201,17 +201,17 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 
   cout<< "[DEBUG] opening f_pedestal"<<endl; 
   //TFile *f_pedestal = TFile::Open("root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ"); // use this if you run on lxplus
-  //TFile *f_pedestal = 0;//TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ"); // use this if you run on Caltech T2
-  //TTree *tree_pedestal = 0;//(TTree*)f_pedestal->Get("pedestal");
+  TFile *f_pedestal = 0;//TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ"); // use this if you run on Caltech T2
+  TTree *tree_pedestal = 0;//(TTree*)f_pedestal->Get("pedestal");
   
-  TFile *f_pedestal = new TFile("tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ");
-  TTree *tree_pedestal = (TTree*)f_pedestal->Get("pedestal");
+  //TFile *f_pedestal = new TFile("tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ");
+  //TTree *tree_pedestal = (TTree*)f_pedestal->Get("pedestal");
 
   if(isData)
   { 
 	  //f_pedestal = TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ"); // use this if you run on Caltech T2
-	  //f_pedestal = new TFile("tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ"); // use this if you run on Caltech T2
-	  //tree_pedestal = (TTree*)f_pedestal->Get("pedestal");
+	  f_pedestal = new TFile("tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ"); // use this if you run on Caltech T2
+	  tree_pedestal = (TTree*)f_pedestal->Get("pedestal");
 	  tree_pedestal->SetBranchAddress("start_time_second", &start_time_tmp);
 	  tree_pedestal->SetBranchAddress("end_time_second", &end_time_tmp);
 	  tree_pedestal->SetBranchAddress("rms_G12", &rms_G12_all);

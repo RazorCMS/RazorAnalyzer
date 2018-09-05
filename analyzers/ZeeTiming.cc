@@ -1,14 +1,28 @@
 #include "ZeeTiming.h"
 #include "JetCorrectorParameters.h"
+#include "RazorHelper.h"
 
 //C++ includes
 #include <sys/stat.h>
+#include <random>
+
 
 //ROOT includes
 #include "TH1F.h"
 
+
+
+
+
 using namespace std;
 const double SPEED_OF_LIGHT = 29.9792458; // speed of light in cm / ns
+
+
+const int N_pt_divide = 19;
+double pt_divide[N_pt_divide] = {43.0, 46.0, 49.0, 52.0, 55.0, 58.0, 61.0, 64.0, 67.0, 70.0, 73.0, 78.0, 84.0, 91.0, 100.0, 115.0, 140.0, 190.0, 1000.0};
+double timecorr_shift[N_pt_divide] = {279.55830453, 282.25640682, 277.0733433, 275.3098825, 276.43934474, 275.90998681, 278.09668779, 274.0069242, 284.08296168, 276.51825729, 281.25709939, 287.52977548, 265.15903281, 268.680688, 272.04019131, 257.83532044, 268.70625335, 271.39248559, 203.65352479};
+double timecorr_smear_aa = 9777.1*9777.1 - 4633.5*4633.5;
+double timecorr_smear_bb = 2.0*221.0*221.0 - 2.0*100.5*100.5;
 
 
 float ZeeTiming::getTimeCalibConstant(TTree *tree, vector <uint> & start_run, vector <uint> & end_run, uint run, uint detID) {
@@ -95,7 +109,9 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
 
   string analysisTag = "Razor2016_07Aug2017Rereco";
   if ( label != "") analysisTag = label;
-  
+
+  RazorHelper *helper = 0;
+  helper = new RazorHelper(analysisTag, isData, false);
 
 
   //*****************************************************************************
@@ -166,6 +182,7 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   float mass;
   float t1_TOF2, t2_TOF2;
   float t1, t2;
+  float t1_SmearToData, t2_SmearToData;
   float t1_seed, t2_seed;
   float seed1_pedestal, seed2_pedestal;
   float seed1_transpCorr, seed2_transpCorr;
@@ -209,6 +226,8 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   outputTree->Branch("mass", &mass, "mass/F");
   outputTree->Branch("t1", &t1, "t1/F");
   outputTree->Branch("t2", &t2, "t2/F");
+  outputTree->Branch("t1_SmearToData", &t1_SmearToData, "t1_SmearToData/F");
+  outputTree->Branch("t2_SmearToData", &t2_SmearToData, "t2_SmearToData/F");
   outputTree->Branch("t1_TOF2", &t1_TOF2, "t1_TOF2/F");
   outputTree->Branch("t2_TOF2", &t2_TOF2, "t2_TOF2/F");
   outputTree->Branch("t1_seed", &t1_seed, "t1_seed/F");
@@ -269,6 +288,8 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
     mass = 0;
     t1 = -999;
     t2 = -999;
+    t1_SmearToData = -999;
+    t2_SmearToData = -999;
     t1_TOF2 = -999;
     t2_TOF2 = -999;
     t1_seed = -999;
@@ -313,11 +334,20 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
 
 
     //get NPU
+     if( !isData )
+    {
     for (int i=0; i < nBunchXing; ++i) {
       if (BunchXing[i] == 0) {
-	NPU = nPUmean[i];
-      }   
+        NPU = nPUmean[i];
+      }
     }
+    pileupWeight = helper->getPileupWeight(NPU);
+    pileupWeightUp = helper->getPileupWeightUp(NPU) / pileupWeight;
+    pileupWeightDown = helper->getPileupWeightDown(NPU) / pileupWeight;
+
+
+    }
+   
     run = runNum;
     lumi = lumiNum;
     event = eventNum;
@@ -478,6 +508,44 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
       t1raw_seed = ele1_seedtimeraw;
       t2raw_seed = ele2_seedtimeraw;
        //cout << "ele2: " << ele2.Pt() << " " << ele2_seedtime << "\n";
+
+if(!isData)
+{
+        double TR_SMEAR1 = 0.0;
+        double TR_SMEAR2 = 0.0;
+        double TR_SHIFT1 = 0.0;
+        double TR_SHIFT2 = 0.0;
+        int pt_bin1 = 0;
+        int pt_bin2 = 0;
+        for(int ipt = 0; ipt <N_pt_divide; ipt++)
+        {
+                if(ele1Pt>pt_divide[ipt]) pt_bin1 ++;
+                if(ele2Pt>pt_divide[ipt]) pt_bin2 ++;
+        }
+
+        if(pt_bin1 >= N_pt_divide) pt_bin1 = N_pt_divide-1;
+        if(pt_bin2 >= N_pt_divide) pt_bin2 = N_pt_divide-1;
+
+        TR_SHIFT1 = 0.001*timecorr_shift[pt_bin1];
+        TR_SHIFT2 = 0.001*timecorr_shift[pt_bin2];
+
+        if(ele1Pt>0.0) TR_SMEAR1 = 0.001*sqrt((timecorr_smear_aa/(ele1Pt*ele1Pt) + timecorr_smear_bb)/2.0);
+        if(ele2Pt>0.0) TR_SMEAR2 = 0.001*sqrt((timecorr_smear_aa/(ele2Pt*ele2Pt) + timecorr_smear_bb)/2.0);
+
+        std::random_device rd;
+        std::mt19937 e2(rd());
+        std::normal_distribution<> dist1(t1, TR_SMEAR1);
+        std::normal_distribution<> dist2(t2, TR_SMEAR2);
+        t1_SmearToData = dist1(e2) + TR_SHIFT1;
+        t2_SmearToData = dist2(e2) + TR_SHIFT2;
+}
+else
+{
+        t1_SmearToData = t1;
+        t2_SmearToData = t2;
+}
+
+
     }
 
     //Fill Event
