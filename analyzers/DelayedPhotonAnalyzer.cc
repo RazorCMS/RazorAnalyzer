@@ -21,7 +21,7 @@ const float EE_Z = 317.0;
 const double JET_CUT = 30.;
 const int NUM_PDF_WEIGHTS = 60;
 
-const bool photonOrderByTime = true;
+const bool photonOrderByTime = false;
 //const double TR_SMEAR = 0.2210;
 const int N_pt_divide = 19;
 double pt_divide[N_pt_divide] = {43.0, 46.0, 49.0, 52.0, 55.0, 58.0, 61.0, 64.0, 67.0, 70.0, 73.0, 78.0, 84.0, 91.0, 100.0, 115.0, 140.0, 190.0, 1000.0};
@@ -290,6 +290,14 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   bool pho2passIsoLoose_privatePF, pho2passIsoMedium_privatePF, pho2passIsoTight_privatePF;
   bool pho2passIsoLoose_PFClusterIso, pho2passIsoMedium_PFClusterIso, pho2passIsoTight_PFClusterIso;
 
+  // XYZ rechit where photon is detected
+  float pho1SeedX;
+  float pho1SeedY;
+  float pho1SeedZ;
+  float pho2SeedX;
+  float pho2SeedY;
+  float pho2SeedZ;
+
   int n_Jets;
   int n_Jets_JESUp, n_Jets_JESDown;
   float jet1E, jet1Pt, jet1Eta, jet1Phi;
@@ -380,6 +388,9 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   outputTree->Branch("pho1Pt_scaleDown", &pho1Pt_scaleDown, "pho1Pt_scaleDown/F");
   outputTree->Branch("pho1Eta", &pho1Eta, "pho1Eta/F");
   outputTree->Branch("pho1Phi", &pho1Phi, "pho1Phi/F");  
+  outputTree->Branch("pho1SeedX", &pho1SeedX, "pho1SeedX/F");
+  outputTree->Branch("pho1SeedY", &pho1SeedY, "pho1SeedY/F");
+  outputTree->Branch("pho1SeedZ", &pho1SeedZ, "pho1SeedZ/F");
   outputTree->Branch("pho1SeedE", &pho1SeedE, "pho1SeedE/F");
   outputTree->Branch("pho1SeedPt", &pho1SeedPt, "pho1SeedPt/F");
   outputTree->Branch("pho1SeedEta", &pho1SeedEta, "pho1SeedEta/F");
@@ -437,6 +448,9 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   outputTree->Branch("pho2Pt_scaleDown", &pho2Pt_scaleDown, "pho2Pt_scaleDown/F");
   outputTree->Branch("pho2Eta", &pho2Eta, "pho2Eta/F");
   outputTree->Branch("pho2Phi", &pho2Phi, "pho2Phi/F");  
+  outputTree->Branch("pho2SeedX", &pho2SeedX, "pho2SeedX/F");
+  outputTree->Branch("pho2SeedY", &pho2SeedY, "pho2SeedY/F");
+  outputTree->Branch("pho2SeedZ", &pho2SeedZ, "pho2SeedZ/F");
   outputTree->Branch("pho2SeedE", &pho2SeedE, "pho2SeedE/F");
   outputTree->Branch("pho2SeedPt", &pho2SeedPt, "pho2SeedPt/F");
   outputTree->Branch("pho2SeedEta", &pho2SeedEta, "pho2SeedEta/F");
@@ -594,6 +608,13 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
     pho2passIsoLoose_privatePF = false, pho2passIsoMedium_privatePF = false, pho2passIsoTight_privatePF = false;
     pho2passIsoLoose_PFClusterIso = false, pho2passIsoMedium_PFClusterIso = false, pho2passIsoTight_PFClusterIso = false;
 
+    pho1SeedX = -999;
+    pho1SeedY = -999;
+    pho1SeedZ = -999;
+    pho2SeedX = -999;
+    pho2SeedY = -999;
+    pho2SeedZ = -999;
+
     n_Jets = 0;
     n_Jets_JESUp = 0;
     n_Jets_JESDown = 0;
@@ -677,13 +698,6 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
     TLorentzVector pho2_scaleDown = makeTLorentzVector(0,0,0,0);
 
 
-    // XYZ rechit where photon is detected
-    float pho1SeedX = 0;
-    float pho1SeedY = 0;
-    float pho1SeedZ = 0;
-    float pho2SeedX = 0;
-    float pho2SeedY = 0;
-    float pho2SeedZ = 0;
 
     TVector3 vtx( pvX, pvY, pvZ );
 
@@ -805,12 +819,13 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
         	//double pedNoise = 1;
         	double ADCToGeV = isData ? getADCToGeV(runNum, isFromEB) : 1;
         	double sigmaE = pedNoise * ADCToGeV;
-  
-        	double sigmaT = N_EB / ((*ecalRechit_E)[rechitIndex] / sigmaE) + sqrt(2) * C_EB;
-		if(!isData) sigmaT = 1.0 / ((*ecalRechit_E)[rechitIndex] / sigmaE);
+ 
+		double sigmaT2 = N_EB*N_EB / ((*ecalRechit_E)[rechitIndex] * (*ecalRechit_E)[rechitIndex] / (sigmaE*sigmaE)) + 2.0 * C_EB * C_EB;
 
-        	tmpSumWeightedTime += corrT * ( 1.0 / (sigmaT*sigmaT) );
-        	tmpSumWeight += ( 1.0 / (sigmaT*sigmaT) );
+        	if(!isData) sigmaT2 = 1.0 / ((*ecalRechit_E)[rechitIndex] * (*ecalRechit_E)[rechitIndex] / (sigmaE*sigmaE));
+
+		tmpSumWeightedTime += corrT * ( 1.0 / sigmaT2 );
+		tmpSumWeight += ( 1.0 / sigmaT2 );
         	// cout << "\n";
         	tmpSumE += (*ecalRechit_E)[rechitIndex];	
 		
@@ -1501,18 +1516,25 @@ GoodJetsJESDown.clear();
 
 cout << "Writing output trees..." << endl;
 outputTree->Write();
+cout << "Writing NEvents histogram..." << endl;
 NEvents->Write();
+cout << "Writing SumWeights histogram..." << endl;
 SumWeights->Write();
+cout << "Writing SumScaleWeights histogram..." << endl;
 SumScaleWeights->Write();
+cout << "Writing SumPdfWeights histogram..." << endl;
 SumPdfWeights->Write();
 outFile->Close();
-f_pedestal->Close();
 
+if(isData)
+{
+f_pedestal->Close();
 start_time.clear();
 end_time.clear();
+}
+
 delete helper;
 delete photonCorrector;
-
 }//analyzer function
 
 

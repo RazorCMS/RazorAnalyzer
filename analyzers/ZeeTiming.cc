@@ -429,14 +429,14 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
 	double ADCToGeV = isData ? getADCToGeV(runNum, isFromEB) : 1.0;
 	double sigmaE = pedNoise * ADCToGeV;
 
-	double sigmaT = N_EB / ((*ecalRechit_E)[rechitIndex] / sigmaE) + sqrt(2) * C_EB;
+	double sigmaT2 = N_EB*N_EB / ((*ecalRechit_E)[rechitIndex] * (*ecalRechit_E)[rechitIndex] / (sigmaE*sigmaE)) + 2.0 * C_EB * C_EB;
 
- 	if(!isData) sigmaT = 1.0 / ((*ecalRechit_E)[rechitIndex] / sigmaE);
+ 	if(!isData) sigmaT2 = 1.0 / ((*ecalRechit_E)[rechitIndex] * (*ecalRechit_E)[rechitIndex] / (sigmaE*sigmaE));
 
-	tmpSumWeightedTime += corrT * ( 1.0 / (sigmaT*sigmaT) );
-	tmpSumWeightedTime_TOF2 += rawT_this * ( 1.0 / (sigmaT*sigmaT) );
-	tmpSumWeight += ( 1.0 / (sigmaT*sigmaT) );
-	tmpSumWeight_TOF2 += ( 1.0 / (sigmaT*sigmaT) );
+	tmpSumWeightedTime += corrT * ( 1.0 / sigmaT2 );
+	tmpSumWeightedTime_TOF2 += rawT_this * ( 1.0 / sigmaT2 );
+	tmpSumWeight += ( 1.0 / sigmaT2 );
+	tmpSumWeight_TOF2 += ( 1.0 / sigmaT2 );
 	// cout << "\n";
       }
       double weightedTime = tmpSumWeightedTime / tmpSumWeight;
