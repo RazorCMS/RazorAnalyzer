@@ -8,7 +8,7 @@ RazorAnalyzerDir=`pwd`
 cd -
 
 job_script=${RazorAnalyzerDir}/scripts_condor/runRazorJob_CaltechT2.sh
-filesPerJob=5
+filesPerJob=15
 
 for sample in \
 DoubleEG_2016B_ver1_06Aug2018 \

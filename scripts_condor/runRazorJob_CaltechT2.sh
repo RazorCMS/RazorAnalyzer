@@ -67,7 +67,7 @@ then
 		#remove empty input files
 		for ifile in `cat inputfilelistForThisJob_${jobnumber}.txt`
 		do
-			minimumsize=100000
+			minimumsize=60000
                 	actualsize=0
                 	if [ -f ${ifile} ]
                 	then

@@ -8,9 +8,10 @@ RazorAnalyzerDir=`pwd`
 cd -
 
 job_script=${RazorAnalyzerDir}/scripts_condor/runRazorJob_CaltechT2.sh
-filesPerJob=5
+filesPerJob=15
 
 for sample in \
+DoubleEG_2016B_ver1_06Aug2018 \
 DoubleEG_2016B_ver2_06Aug2018 \
 DoubleEG_2016C_06Aug2018 \
 DoubleEG_2016D_06Aug2018 \
@@ -32,9 +33,9 @@ do
 	do
 		jdl_file=submit/${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob}.jdl
 		#noFail=`grep YYYY log/${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob}*.out`
-		outRoot="/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/DelayedPhotonAnalysis/2016/jobs/${sample}_Job${jobnumber}_Of_${maxjob}.root"
+		outRoot="/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/DelayedPhotonAnalysis/2016/orderByPt/jobs/${sample}_Job${jobnumber}_Of_${maxjob}.root"
 
-		minimumsize=100000
+		minimumsize=50000
                 actualsize=0
                 if [ -f ${outRoot} ]
                 then
@@ -42,7 +43,8 @@ do
                 fi
                 if [ $actualsize -ge $minimumsize ]
                 then
-                        echo "job ${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob} finished already "
+                        finished=yes
+			#echo "job ${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob} finished already "
 		#elif [ -z "${noFail}" ]
 		#then
 		#	echo "job ${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob} being processed now, be patient"

@@ -1,0 +1,12 @@
+Universe = vanilla
+Executable = /data/zhicaiz/release/RazorAnalyzer/CMSSW_9_4_9/src/RazorAnalyzer/scripts_condor/runRazorJob_CaltechT2.sh
+Arguments = DelayedPhotonAnalyzer_GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_Job15_Of_17 /store/group/phys_susy/razor/Run2Analysis/DelayedPhotonAnalysis/2016/orderByTime/jobs/ DelayedPhotonAnalyzer /src/RazorAnalyzer/lists/Run2/razorNtuplerV4p1/MC_Summer16_reMINIAOD/GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8.cern.txt no 10 25 15 GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_Job15_Of_17.root
+Log = log/DelayedPhotonAnalyzer_GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_Job15_Of_17_PC.log
+Output = log/DelayedPhotonAnalyzer_GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_Job15_Of_17_$(Cluster).$(Process).out
+Error = log/DelayedPhotonAnalyzer_GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_Job15_Of_17_$(Cluster).$(Process).err
+Requirements=TARGET.OpSysAndVer=="CentOS7"
+should_transfer_files = YES
+RequestMemory = 2000
+RequestCpus = 1
+when_to_transfer_output = ON_EXIT
+Queue 1

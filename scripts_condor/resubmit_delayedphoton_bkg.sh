@@ -8,7 +8,7 @@ RazorAnalyzerDir=`pwd`
 cd -
 
 job_script=${RazorAnalyzerDir}/scripts_condor/runRazorJob_CaltechT2.sh
-filesPerJob=1
+filesPerJob=25
 
 for sample in \
 GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8 \
@@ -49,7 +49,8 @@ do
                 fi
                 if [ $actualsize -ge $minimumsize ]
 		then
-			echo "job ${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob} finished already "
+			finished=yes
+			#echo "job ${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob} finished already "
                 #elif [ -z "${noFail}" ]
                 #then
                 #        echo "job ${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob} being processed now, be patient"
