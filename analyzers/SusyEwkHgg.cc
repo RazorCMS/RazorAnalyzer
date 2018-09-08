@@ -1347,7 +1347,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //------------------
       string electronEraName = "";
       if (dataset == "17Nov2017Rereco") electronEraName = "2017_94X";
-      else if (dataset == "Razor2016_MoriondRereco") electronEraName = "Summer16";
+      else if (dataset == "80X") electronEraName = "Summer16";
       vector<TLorentzVector> GoodElectrons;
       std::vector< ElectronCandidate > eleCand;
       for( int i = 0; i < nElectrons; i++ )
