@@ -82,12 +82,10 @@ int main( int argc, char** argv )
 
   std::ifstream ifs( argv[1], std::ifstream::in );
   assert(ifs);
-  //while(std::getline(ifs,line)) n++;
 
   std::string rootFileName;
   TFile* fin; 
   TTree* tree;
-  //TChain* chain = new TChain( tree_name.c_str() ); 
 
   while ( ifs.good() ){
           ifs >> rootFileName;
@@ -95,8 +93,6 @@ int main( int argc, char** argv )
           if ( rootFileName.find("#") != std::string::npos ) continue;
           if ( _debug ) std::cout << rootFileName << std::endl;
           fin = new TFile( rootFileName.c_str());
-          //fin = new TFile( rootFileName.c_str(), "UPDATE");
-          //assert( fin );
           if ( _debug ) std::cout << "[INFO]: file: " << rootFileName << " passed check\n\n"<< std::endl;
 
           //------------------------
@@ -115,30 +111,13 @@ int main( int argc, char** argv )
   //********************************************************
   //Print output
   //********************************************************
-  //std::string outputFile = argv[2];
   TFile* fout = new TFile( outputFile.c_str(), "RECREATE");
   TTree* razortree;
-  razortree = (TTree*)tree->CloneTree(0);
-  //razortree = (TTree*)tree->CloneTree("HLTDecision[82]");
-
-
-
-  for(int iEntry=0;iEntry<nentries;iEntry++){
-
-          if ( iEntry%100000 == 0 ) std::cout << "[INFO]: " << iEntry << " entry" << std::endl;
-
-          tree->GetEntry(iEntry);
-          if("HLTDecision[82]==1") razortree->Fill();
-  //tree->Fill();
-
-  }
-
+  //2016
+  //razortree = (TTree*)tree->CopyTree("HLTDecision[82]");
+  //2017
+  razortree = (TTree*)tree->CopyTree("HLTDecision[54]");
   razortree->Write();
-  //tree->Write();
-
-  int m = 2*n;
-  std::cout << "m = " << m << "\n" << std::endl;
-
 
   fout->Close();
   fin->Close();
