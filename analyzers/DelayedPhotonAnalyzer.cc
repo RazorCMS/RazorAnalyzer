@@ -21,13 +21,13 @@ const float EE_Z = 317.0;
 const double JET_CUT = 30.;
 const int NUM_PDF_WEIGHTS = 60;
 
-const bool photonOrderByTime = true;
+const bool photonOrderByTime = false;
 //const double TR_SMEAR = 0.2210;
 const int N_pt_divide = 19;
 double pt_divide[N_pt_divide] = {43.0, 46.0, 49.0, 52.0, 55.0, 58.0, 61.0, 64.0, 67.0, 70.0, 73.0, 78.0, 84.0, 91.0, 100.0, 115.0, 140.0, 190.0, 1000.0};
-double timecorr_shift[N_pt_divide] = {297.23882956, 299.88942371, 299.58682186, 296.55051592, 297.82429357, 296.73789649, 300.51467104, 294.55208642, 298.48368472, 294.53657758, 301.94212261, 302.44469007, 285.42567597, 288.48507597, 287.93654712, 271.41143916, 280.89547738, 274.39073135, 215.47477966};
-double timecorr_smear_aa = 7484.0*87484.0 - 4432.8*4432.8;
-double timecorr_smear_bb = 2.0*208.9*208.9 - 2.0*101.3*101.3;
+double timecorr_shift[N_pt_divide] = {288.28550207, 289.6675194, 284.2890644, 283.03874656, 284.79336503, 282.01494549, 286.37322984, 281.46956883, 291.66911725, 286.68414145, 286.66262505, 302.88663135, 271.95653102, 275.64683038, 277.47298218, 269.60340772, 275.25417754, 279.40268076, 232.3565695};
+double timecorr_smear_aa = 9444.9*9444.9 - 4754.3*4754.3;
+double timecorr_smear_bb = 2.0*220.0*220.0 - 2.0*100.3*100.3;
 
 #define _phodebug 0
 
@@ -117,11 +117,19 @@ float DelayedPhotonAnalyzer::getPedestalNoise(TTree *tree, vector <uint> & start
   tree->GetEntry(i_entry);
   std::vector<int>::iterator p_id;
   p_id = std::find(detID_all->begin(), detID_all->end(), detID);
-  if (p_id == detID_all->end()) return pedestalNoise;
+  if (p_id == detID_all->end()) 
+  {
+	rms_G12_all->clear();
+	//rms_G12_all->shrink_to_fit();
+	return pedestalNoise;
+  }
   uint idx = std::distance(detID_all->begin(), p_id);
   
   if(idx<=rms_G12_all->size()) pedestalNoise = rms_G12_all->at(idx);  
   
+  rms_G12_all->clear();
+  //rms_G12_all->shrink_to_fit();
+
   return pedestalNoise;
 };
 
@@ -165,56 +173,21 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   helper = new RazorHelper(analysisTag, isData, false); 
 
 
-  //*****************************************************************************
-  //Load Intercalibration constants
-  //*****************************************************************************
-  vector <uint> start_run;//start run of all IOV 
-  vector <uint> end_run;//end run of all IOV
-  vector <uint> start_run_rereco;// for SepRereco tags
-  vector <uint> end_run_rereco;// for SepRereco tags
-  start_run_tmp=0; 
-  end_run_tmp=0;
-  IC_time_all=0;
-  detID_all=0;
-
-  //TFile *f_timeCalib = TFile::Open("root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/EcalTiming/EcalTimeCalibConstants_Legacy2016_v1/EcalTimeCalibConstants_Legacy2016_v1.root","READ"); // use this if you run on lxplus
-  TFile *f_timeCalib = TFile::Open("root://cmsxrootd.fnal.gov//store/user/zhicaiz/EcalTiming/EcalTimeCalibConstants_Legacy2016_v1/EcalTimeCalibConstants_Legacy2016_v1.root","READ"); // use this if you run on Caltech T2
-  TTree *tree_timeCalib = (TTree*)f_timeCalib->Get("timeCalib");
-  
-  tree_timeCalib->SetBranchAddress("start_run", &start_run_tmp);
-  tree_timeCalib->SetBranchAddress("end_run", &end_run_tmp);
-  tree_timeCalib->SetBranchAddress("IC_time", &IC_time_all);
-  tree_timeCalib->SetBranchAddress("detID", &detID_all);
-  
-  int N_entries_timeCalib = tree_timeCalib->GetEntries();
-  if(isData)
-  { 
-	  for(int i=0;i<N_entries_timeCalib;i++) {
-	    tree_timeCalib->GetEntry(i);
-	    start_run.push_back(start_run_tmp);
-	    end_run.push_back(end_run_tmp);
-	  }
+  //--------------------------------
+  //Photon Energy Scale and Resolution Corrections
+  //--------------------------------
+  std::string photonCorrectionPath = "./";//eos/cms/store/user/zhicaiz/Run2Analysis/ScaleFactors/PhotonCorrections/";
+  EnergyScaleCorrection_class *photonCorrector = 0;
+  if (analysisTag == "Razor2016_MoriondRereco") photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
+  else if (analysisTag == "Razor2016_07Aug2017Rereco") photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
+  if(!isData) {
+    photonCorrector->doScale = false;
+    photonCorrector->doSmearings = true;
+  } else {
+    photonCorrector->doScale = true;
+    photonCorrector->doSmearings = false;
   }
 
-
-  //TFile *f_timeCalib_rereco = TFile::Open("root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/EcalTiming/EcalTimeCalibConstants_v08_offline/tree_EcalTimeCalibConstants_v08_offline.root","READ"); // use this if you run on lxplus 
-  TFile *f_timeCalib_rereco = TFile::Open("root://cmsxrootd.fnal.gov//store/user/zhicaiz/EcalTiming/EcalTimeCalibConstants_v08_offline/tree_EcalTimeCalibConstants_v08_offline.root","READ"); // use this if you run on Caltech T2
-  TTree *tree_timeCalib_rereco = (TTree*)f_timeCalib_rereco->Get("timeCalib");
-  
-  tree_timeCalib_rereco->SetBranchAddress("start_run", &start_run_tmp);
-  tree_timeCalib_rereco->SetBranchAddress("end_run", &end_run_tmp);
-  tree_timeCalib_rereco->SetBranchAddress("IC_time", &IC_time_all);
-  tree_timeCalib_rereco->SetBranchAddress("detID", &detID_all);
-  
-  int N_entries_timeCalib_rereco = tree_timeCalib_rereco->GetEntries();
-  if(isData)
-  { 
-	  for(int i=0;i<N_entries_timeCalib_rereco;i++) {
-	    tree_timeCalib_rereco->GetEntry(i);
-	    start_run_rereco.push_back(start_run_tmp);
-	    end_run_rereco.push_back(end_run_tmp);
-	  }
-  }
 
   //*****************************************************************************
   //Load Pedestals
@@ -226,19 +199,25 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   rms_G12_all=0;
   detID_all=0 ;
 
+  cout<< "[DEBUG] opening f_pedestal"<<endl; 
   //TFile *f_pedestal = TFile::Open("root://cms-xrd-global.cern.ch//store/group/phys_susy/razor/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ"); // use this if you run on lxplus
-  TFile *f_pedestal = TFile::Open("root://cmsxrootd.fnal.gov//store/user/zhicaiz/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ"); // use this if you run on Caltech T2
-  TTree *tree_pedestal = (TTree*)f_pedestal->Get("pedestal");
+  TFile *f_pedestal = 0;//TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1.root","READ"); // use this if you run on Caltech T2
+  TTree *tree_pedestal = 0;//(TTree*)f_pedestal->Get("pedestal");
   
-  tree_pedestal->SetBranchAddress("start_time_second", &start_time_tmp);
-  tree_pedestal->SetBranchAddress("end_time_second", &end_time_tmp);
-  tree_pedestal->SetBranchAddress("rms_G12", &rms_G12_all);
-  tree_pedestal->SetBranchAddress("detID", &detID_all);
-  
-  int N_entries_pedestal = tree_pedestal->GetEntries();
- 
+  //TFile *f_pedestal = new TFile("tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ");
+  //TTree *tree_pedestal = (TTree*)f_pedestal->Get("pedestal");
+
   if(isData)
   { 
+	  //f_pedestal = TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ"); // use this if you run on Caltech T2
+	  f_pedestal = new TFile("tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ"); // use this if you run on Caltech T2
+	  tree_pedestal = (TTree*)f_pedestal->Get("pedestal");
+	  tree_pedestal->SetBranchAddress("start_time_second", &start_time_tmp);
+	  tree_pedestal->SetBranchAddress("end_time_second", &end_time_tmp);
+	  tree_pedestal->SetBranchAddress("rms_G12", &rms_G12_all);
+	  tree_pedestal->SetBranchAddress("detID", &detID_all);
+	  int N_entries_pedestal = tree_pedestal->GetEntries();
+ 
 
 	  cout << "Total Pedestal IOVs: " << N_entries_pedestal << "\n";
 	  for(int i=0;i<N_entries_pedestal;i++) {
@@ -310,6 +289,14 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   bool pho2passEleVeto, pho2passIsoLoose, pho2passIsoMedium, pho2passIsoTight, pho2isStandardPhoton, pho2isPromptPhoton, pho2isDelayedPhoton;
   bool pho2passIsoLoose_privatePF, pho2passIsoMedium_privatePF, pho2passIsoTight_privatePF;
   bool pho2passIsoLoose_PFClusterIso, pho2passIsoMedium_PFClusterIso, pho2passIsoTight_PFClusterIso;
+
+  // XYZ rechit where photon is detected
+  float pho1SeedX;
+  float pho1SeedY;
+  float pho1SeedZ;
+  float pho2SeedX;
+  float pho2SeedY;
+  float pho2SeedZ;
 
   int n_Jets;
   int n_Jets_JESUp, n_Jets_JESDown;
@@ -401,6 +388,9 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   outputTree->Branch("pho1Pt_scaleDown", &pho1Pt_scaleDown, "pho1Pt_scaleDown/F");
   outputTree->Branch("pho1Eta", &pho1Eta, "pho1Eta/F");
   outputTree->Branch("pho1Phi", &pho1Phi, "pho1Phi/F");  
+  outputTree->Branch("pho1SeedX", &pho1SeedX, "pho1SeedX/F");
+  outputTree->Branch("pho1SeedY", &pho1SeedY, "pho1SeedY/F");
+  outputTree->Branch("pho1SeedZ", &pho1SeedZ, "pho1SeedZ/F");
   outputTree->Branch("pho1SeedE", &pho1SeedE, "pho1SeedE/F");
   outputTree->Branch("pho1SeedPt", &pho1SeedPt, "pho1SeedPt/F");
   outputTree->Branch("pho1SeedEta", &pho1SeedEta, "pho1SeedEta/F");
@@ -458,6 +448,9 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   outputTree->Branch("pho2Pt_scaleDown", &pho2Pt_scaleDown, "pho2Pt_scaleDown/F");
   outputTree->Branch("pho2Eta", &pho2Eta, "pho2Eta/F");
   outputTree->Branch("pho2Phi", &pho2Phi, "pho2Phi/F");  
+  outputTree->Branch("pho2SeedX", &pho2SeedX, "pho2SeedX/F");
+  outputTree->Branch("pho2SeedY", &pho2SeedY, "pho2SeedY/F");
+  outputTree->Branch("pho2SeedZ", &pho2SeedZ, "pho2SeedZ/F");
   outputTree->Branch("pho2SeedE", &pho2SeedE, "pho2SeedE/F");
   outputTree->Branch("pho2SeedPt", &pho2SeedPt, "pho2SeedPt/F");
   outputTree->Branch("pho2SeedEta", &pho2SeedEta, "pho2SeedEta/F");
@@ -615,6 +608,13 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
     pho2passIsoLoose_privatePF = false, pho2passIsoMedium_privatePF = false, pho2passIsoTight_privatePF = false;
     pho2passIsoLoose_PFClusterIso = false, pho2passIsoMedium_PFClusterIso = false, pho2passIsoTight_PFClusterIso = false;
 
+    pho1SeedX = -999;
+    pho1SeedY = -999;
+    pho1SeedZ = -999;
+    pho2SeedX = -999;
+    pho2SeedY = -999;
+    pho2SeedZ = -999;
+
     n_Jets = 0;
     n_Jets_JESUp = 0;
     n_Jets_JESDown = 0;
@@ -698,30 +698,8 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
     TLorentzVector pho2_scaleDown = makeTLorentzVector(0,0,0,0);
 
 
-    // XYZ rechit where photon is detected
-    float pho1SeedX = 0;
-    float pho1SeedY = 0;
-    float pho1SeedZ = 0;
-    float pho2SeedX = 0;
-    float pho2SeedY = 0;
-    float pho2SeedZ = 0;
 
     TVector3 vtx( pvX, pvY, pvZ );
-
-  //--------------------------------
-  //Photon Energy Scale and Resolution Corrections
-  //--------------------------------
-  std::string photonCorrectionPath = "./";//eos/cms/store/user/zhicaiz/Run2Analysis/ScaleFactors/PhotonCorrections/";
-  EnergyScaleCorrection_class *photonCorrector = 0;
-  if (analysisTag == "Razor2016_MoriondRereco") photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
-  else if (analysisTag == "Razor2016_07Aug2017Rereco") photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
-  if(!isData) {
-    photonCorrector->doScale = false;
-    photonCorrector->doSmearings = true;
-  } else {
-    photonCorrector->doScale = true;
-    photonCorrector->doSmearings = false;
-  }
 
   for(int ind_pho = 0; ind_pho < nPhotons; ind_pho++) 
   { //photon loop
@@ -729,6 +707,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
       	if(phoPt[ind_pho] < 40) continue; // basic Pt cut
       	if(fabs(phoEta[ind_pho]) > 2.5) continue; // tracker region
       	if(fabs(phoEta[ind_pho]) > 1.4442 && fabs(phoEta[ind_pho]) < 1.566) continue; //the eta range for photon, this takes care of the gap between barrel and endcap
+	if(ecalRechit_ID->empty() ) continue;
 	//if(!photonPassLooseIso(ind_pho)) continue;
 	//if(!pho_passEleVeto[ind_pho]) continue;
       	//if(!(isEGammaPOGTightElectron(i))) continue;
@@ -796,8 +775,8 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
       	double rawSeedHitTime =  (*ecalRechit_T)[seedhitIndex];
 
       	//apply intercalibration2      
-      	double IC_time_SeptRereco = isData ? getTimeCalibConstant(tree_timeCalib_rereco, start_run_rereco,end_run_rereco,runNum, (*ecalRechit_ID)[seedhitIndex]) : 0;
-      	double IC_time_LagacyRereco = isData ? getTimeCalibConstant(tree_timeCalib, start_run,end_run,runNum, (*ecalRechit_ID)[seedhitIndex]) : 0;
+      	double IC_time_SeptRereco = 0.0;//isData ? getTimeCalibConstant(tree_timeCalib_rereco, start_run_rereco,end_run_rereco,runNum, (*ecalRechit_ID)[seedhitIndex]) : 0;
+      	double IC_time_LagacyRereco = 0.0;//isData ? getTimeCalibConstant(tree_timeCalib, start_run,end_run,runNum, (*ecalRechit_ID)[seedhitIndex]) : 0;
       	double calibratedSeedHitTime = rawSeedHitTime + IC_time_LagacyRereco - IC_time_SeptRereco;
 
       	//apply TOF correction
@@ -828,8 +807,8 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
       
         	double rawT = (*ecalRechit_T)[rechitIndex];
         	//apply intercalibration
-		double IC_time_SeptRereco_this = isData ? (getTimeCalibConstant(tree_timeCalib_rereco, start_run_rereco,end_run_rereco,runNum, (*ecalRechit_ID)[rechitIndex]) ) : 0.0;
-        	double IC_time_LagacyRereco_this = isData ? (getTimeCalibConstant(tree_timeCalib, start_run,end_run,runNum, (*ecalRechit_ID)[rechitIndex])) : 0.0;
+		double IC_time_SeptRereco_this = 0.0;//isData ? (getTimeCalibConstant(tree_timeCalib_rereco, start_run_rereco,end_run_rereco,runNum, (*ecalRechit_ID)[rechitIndex]) ) : 0.0;
+        	double IC_time_LagacyRereco_this = 0.0;//isData ? (getTimeCalibConstant(tree_timeCalib, start_run,end_run,runNum, (*ecalRechit_ID)[rechitIndex])) : 0.0;
         	double calibratedSeedHitTime_this = rawT + IC_time_LagacyRereco_this - IC_time_SeptRereco_this;
 
 		
@@ -840,12 +819,13 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
         	//double pedNoise = 1;
         	double ADCToGeV = isData ? getADCToGeV(runNum, isFromEB) : 1;
         	double sigmaE = pedNoise * ADCToGeV;
-  
-        	double sigmaT = N_EB / ((*ecalRechit_E)[rechitIndex] / sigmaE) + sqrt(2) * C_EB;
-		if(!isData) sigmaT = 1.0 / ((*ecalRechit_E)[rechitIndex] / sigmaE);
+ 
+		double sigmaT2 = N_EB*N_EB / ((*ecalRechit_E)[rechitIndex] * (*ecalRechit_E)[rechitIndex] / (sigmaE*sigmaE)) + 2.0 * C_EB * C_EB;
 
-        	tmpSumWeightedTime += corrT * ( 1.0 / (sigmaT*sigmaT) );
-        	tmpSumWeight += ( 1.0 / (sigmaT*sigmaT) );
+        	if(!isData) sigmaT2 = 1.0 / ((*ecalRechit_E)[rechitIndex] * (*ecalRechit_E)[rechitIndex] / (sigmaE*sigmaE));
+
+		tmpSumWeightedTime += corrT * ( 1.0 / sigmaT2 );
+		tmpSumWeight += ( 1.0 / sigmaT2 );
         	// cout << "\n";
         	tmpSumE += (*ecalRechit_E)[rechitIndex];	
 		
@@ -1520,16 +1500,41 @@ if( !isData )
 	outputTree->Fill();		
 
    }//if nPho>=1
+
+
+JetCorrector.clear();
+JetCorrectorIOV.clear();
+
+jetE_all.clear();
+jetPt_all.clear();
+jetEta_all.clear();
+jetPhi_all.clear();
+GoodJetsJESUp.clear();
+GoodJetsJESDown.clear();
+
 }//event loop
 
 cout << "Writing output trees..." << endl;
 outputTree->Write();
+cout << "Writing NEvents histogram..." << endl;
 NEvents->Write();
+cout << "Writing SumWeights histogram..." << endl;
 SumWeights->Write();
+cout << "Writing SumScaleWeights histogram..." << endl;
 SumScaleWeights->Write();
+cout << "Writing SumPdfWeights histogram..." << endl;
 SumPdfWeights->Write();
 outFile->Close();
 
+if(isData)
+{
+f_pedestal->Close();
+start_time.clear();
+end_time.clear();
+}
+
+delete helper;
+delete photonCorrector;
 }//analyzer function
 
 

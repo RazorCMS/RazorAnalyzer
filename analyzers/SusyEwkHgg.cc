@@ -1347,7 +1347,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //------------------
       string electronEraName = "";
       if (dataset == "17Nov2017Rereco") electronEraName = "2017_94X";
-      else if (dataset == "Razor2016_MoriondRereco") electronEraName = "Summer16";
+      else if (dataset == "80X") electronEraName = "Summer16";
       vector<TLorentzVector> GoodElectrons;
       std::vector< ElectronCandidate > eleCand;
       for( int i = 0; i < nElectrons; i++ )
@@ -2238,8 +2238,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
             //for MC apply lepton eff scale factor
             if (!isData )
             {
-              if ( matchesGenElectron(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep1Pt, lep1Eta, true);
-              if ( matchesGenElectron(lep2Eta,lep2Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep2Pt, lep2Eta, true);
+              if ( matchesGenElectron(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getLooseElectronScaleFactor( lep1Pt, lep1Eta, true);
+              if ( matchesGenElectron(lep2Eta,lep2Phi)) leptonEffSF *=  helper->getLooseElectronScaleFactor( lep2Pt, lep2Eta, true);
             }
             //record Z candidate info
             dileptonMass   = ZCandidate.M();
@@ -2314,7 +2314,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
             if (!isData )
             {
               if ( matchesGenMuon(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep1Pt, lep1Eta, true);
-              if ( matchesGenElectron(lep2Eta,lep2Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep2Pt, lep2Eta, true);
+              if ( matchesGenElectron(lep2Eta,lep2Phi)) leptonEffSF *=  helper->getLooseElectronScaleFactor( lep2Pt, lep2Eta, true);
             }
             //record Z candidate inf
             dileptonMass   = ZCandidate.M();
@@ -2394,7 +2394,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 
           if (!isData )
           {
-            if ( matchesGenElectron(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep1Pt, lep1Eta, true);
+            if ( matchesGenElectron(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getLooseElectronScaleFactor( lep1Pt, lep1Eta, true);
           }
         } // end of if eleCand.size() > 0 loop
       }//end of one lepton category (check that razor box was not yet assigned)
@@ -2402,7 +2402,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //----------------
       //High-pt category
       //----------------
-      if( razorbox == None && HiggsCandidate.Pt() > 110. ) razorbox = HighPt;
+      //if( razorbox == None && HiggsCandidate.Pt() > 110. ) razorbox = HighPt;
 
       //------------
       //Hbb category
@@ -2495,7 +2495,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //----------------
       //High-pt category
       //----------------
-      //if( razorbox == None && HiggsCandidate.Pt() > 110. ) razorbox = HighPt;
+      if( razorbox == None && HiggsCandidate.Pt() > 110. ) razorbox = HighPt;
       
       //------------------------------------------------
       //I n v a ri a n t   m a s s   r e s o l u t i o n
