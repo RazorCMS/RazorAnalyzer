@@ -1426,7 +1426,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         //--loose ID (default)--
         if (doRequireID)
         {
-          if (analysisTag != "Razor2017_92X")
+          if (analysisTag != "Razor2017_92X" && analysisTag != "Razor2017_17Nov2017Rereco" )
           {
             if ( !photonPassLooseIDWithoutEleVeto(i) )
             {
@@ -1449,7 +1449,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         //---------------
         if (doRequireTightID)
         {
-          if (analysisTag != "Razor2017_92X")
+          if (analysisTag != "Razor2017_92X" && analysisTag != "Razor2017_17Nov2017Rereco" )
           {
             if ( !photonPassTightIDWithoutEleVeto(i) )
             {
@@ -1485,7 +1485,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         //-------------------
         if (doRequireIso)
         {
-          if (analysisTag != "Razor2017_92X")
+          if (analysisTag != "Razor2017_92X" && analysisTag != "Razor2017_17Nov2017Rereco" )
           {
             if (!(photonPassLooseIso(i))) continue;
           }
@@ -1499,7 +1499,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         //--------------------
         if (doRequireTightIso)
         {
-          if (analysisTag != "Razor2017_92X")
+          if (analysisTag != "Razor2017_92X" && analysisTag != "Razor2017_17Nov2017Rereco" )
           {
             if (!(photonPassTightIso(i))) continue;
           }
@@ -1641,7 +1641,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         tmp_phoCand.sigmaEOverE = pho_RegressionEUncertainty[i]/pho_RegressionE[i];
         tmp_phoCand._passEleVeto = pho_passEleVeto[i];
         tmp_phoCand.scale = scale;
-        if (analysisTag != "Razor2017_92X") tmp_phoCand._passIso = photonPassLooseIso(i);
+        if (analysisTag != "Razor2017_92X" && analysisTag != "Razor2017_17Nov2017Rereco" ) tmp_phoCand._passIso = photonPassLooseIso(i);
         else tmp_phoCand._passIso = photonPassLooseIso_2017(i);
         phoCand.push_back( tmp_phoCand );
         nSelectedPhotons++;
@@ -1812,7 +1812,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //******************************************************
       //compute photon efficiency scale factor
       //******************************************************
-      if ( analysisTag == "Razor2017_92X" )
+      if ( analysisTag == "Razor2017_92X" || analysisTag == "Razor2017_17Nov2017Rereco" )
       {
         photonEffSF = helper->getPhotonScaleFactor(leadPhoPt, leadPhoEta, true) *
                       helper->getPhotonScaleFactor(trailingPhoPt, trailingPhoEta, true);
@@ -2590,16 +2590,71 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           TLorentzVector thisJetJESDown = makeTLorentzVector(jetPtJESDown, jetEta[i], jetPhi[i], jetEJESDown);
           //Propagate uncertainties to the MET
           if (jetPtJESUp > 20)
-          {
-            MetXCorr_JESUp += -1 * (thisJetJESUp.Px() - thisJet.Px());
-            MetYCorr_JESUp += -1 * (thisJetJESUp.Py() - thisJet.Py());
+          { 
+                          MetXCorr_JESUp += -1 * (thisJetJESUp.Px() - thisJet.Px());
+                          MetYCorr_JESUp += -1 * (thisJetJESUp.Py() - thisJet.Py());
           }
           if (jetPtJESDown > 20)
           {
-            MetXCorr_JESDown += -1 * (thisJetJESDown.Px() - thisJet.Px());
-            MetYCorr_JESDown += -1 * (thisJetJESDown.Py() - thisJet.Py());
+                          MetXCorr_JESDown += -1 * (thisJetJESDown.Px() - thisJet.Px());
+                          MetYCorr_JESDown += -1 * (thisJetJESDown.Py() - thisJet.Py());
           }
-
+/*
+          //2017 MET RECIPE V1
+          if (jetPtJESUp > 20)
+          { 
+                  if(thisJet.Pt() < 75. &&  (fabs(thisJet.Eta()) > 2.65 || fabs(thisJet.Eta()) < 3.139) )
+                  {
+                          MetXCorr_JESUp += (JEC-1) * (thisJetJESUp.Px() - thisJet.Px());
+                          MetYCorr_JESUp += (JEC-1) * (thisJetJESUp.Py() - thisJet.Py());
+                  }
+                  else
+                  {
+                          MetXCorr_JESUp += -1 * (thisJetJESUp.Px() - thisJet.Px());
+                          MetYCorr_JESUp += -1 * (thisJetJESUp.Py() - thisJet.Py());
+                  }
+          }
+          if (jetPtJESDown > 20)
+          {
+                  if(thisJet.Pt() < 75. &&  (fabs(thisJet.Eta()) > 2.65 || fabs(thisJet.Eta()) < 3.139) )
+                  {
+                          MetXCorr_JESDown += (JEC-1) * (thisJetJESDown.Px() - thisJet.Px());
+                          MetYCorr_JESDown += (JEC-1) * (thisJetJESDown.Py() - thisJet.Py());
+                  }
+                  else
+                  {
+                          MetXCorr_JESDown += -1 * (thisJetJESDown.Px() - thisJet.Px());
+                          MetYCorr_JESDown += -1 * (thisJetJESDown.Py() - thisJet.Py());
+                  }
+          }
+          //2017 MET RECIPE V2
+          if (jetPtJESUp > 20)
+          { 
+                  if(thisJet.Pt() < 75. &&  (fabs(thisJet.Eta()) > 2.65 || fabs(thisJet.Eta()) < 3.139) )
+                  {
+                          MetXCorr_JESUp += JEC * (thisJetJESUp.Px() - thisJet.Px());
+                          MetYCorr_JESUp += JEC * (thisJetJESUp.Py() - thisJet.Py());
+                  }
+                  else
+                  {
+                          MetXCorr_JESUp += -1 * (thisJetJESUp.Px() - thisJet.Px());
+                          MetYCorr_JESUp += -1 * (thisJetJESUp.Py() - thisJet.Py());
+                  }
+          }
+          if (jetPtJESDown > 20)
+          {
+                  if(thisJet.Pt() < 75. &&  (fabs(thisJet.Eta()) > 2.65 || fabs(thisJet.Eta()) < 3.139) )
+                  {
+                          MetXCorr_JESDown += JEC * (thisJetJESDown.Px() - thisJet.Px());
+                          MetYCorr_JESDown += JEC * (thisJetJESDown.Py() - thisJet.Py());
+                  }
+                  else
+                  {
+                          MetXCorr_JESDown += -1 * (thisJetJESDown.Px() - thisJet.Px());
+                          MetYCorr_JESDown += -1 * (thisJetJESDown.Py() - thisJet.Py());
+                  }
+          }
+*/          
           if ( jetPtJESUp > JET_CUT )
           {
             GoodJetsJESUp.push_back(thisJetJESUp);
