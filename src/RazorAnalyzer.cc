@@ -35,6 +35,7 @@ void RazorAnalyzer::EnableAll(){
     EnablePileup();
     EnableMC();
     EnableGenParticles();
+    EnableEcalRechits();
 }
 
 void RazorAnalyzer::EnableAllWithEcalRechits(){

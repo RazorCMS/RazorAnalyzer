@@ -42,6 +42,12 @@
       Float_t                 fJetPileupId;
       Int_t                   fJetPartonFlavor;
       Float_t                 fJetJEC;
+      Int_t                   fJetNPhotons;
+      Float_t                 fJetPhotonsE[1000];
+      Float_t                 fJetPhotonsEta[1000];
+      Float_t                 fJetPhotonsPhi[1000];
+      Float_t                 fJetPhotonsTime[1000];
+      
 
     public:
       /// this is the main element
@@ -81,8 +87,15 @@
         fJetPileupId                                 = 0.0;
         fJetPartonFlavor                             = 0;
         fJetJEC                                      = 0;
+	fJetNPhotons                                 = 0;
+	for ( int i = 0; i < 1000; i++ ) {
+	  fJetPhotonsE[i] = 0.0;
+	  fJetPhotonsEta[i] = 0.0;
+	  fJetPhotonsPhi[i] = 0.0;
+	  fJetPhotonsTime[i] = 0.0;
+	}
       }
-    
+      
       /// load a JetTree
       void LoadTree(const char* file){
         f_ = TFile::Open(file);
@@ -117,8 +130,12 @@
         tree_->Branch("Area",&fJetArea,"Area/F"); 
         tree_->Branch("PileupId",&fJetPileupId,"PileupId/F"); 
         tree_->Branch("PartonFlavor",&fJetPartonFlavor,"PartonFlavor/I"); 
-        tree_->Branch("JEC",&fJetJEC,"JEC/F"); 
-
+        tree_->Branch("JEC",&fJetJEC,"JEC/F");
+	tree_->Branch("JetNPhotons", &fJetNPhotons, "JetNPhotons/I");
+	tree_->Branch("JetPhotonsE", fJetPhotonsE, "JetPhotonsE[JetNPhotons]/F");
+	tree_->Branch("JetPhotonsEta", fJetPhotonsEta, "JetPhotonsEta[JetNPhotons]/F");
+	tree_->Branch("JetPhotonsPhi", fJetPhotonsPhi, "JetPhotonsPhi[JetNPhotons]/F");
+	tree_->Branch("JetPhotonsTime", fJetPhotonsTime, "JetPhotonsTime[JetNPhotons]/F");
       } 
 
       // initialze a JetTree
@@ -151,6 +168,11 @@
 	tree_->SetBranchAddress("PileupId",&fJetPileupId);
         tree_->SetBranchAddress("PartonFlavor",&fJetPartonFlavor);
         tree_->SetBranchAddress("JEC",&fJetJEC);
+	tree_->SetBranchAddress("JetNPhotons", &fJetNPhotons);
+        tree_->SetBranchAddress("JetPhotonsE", fJetPhotonsE);
+        tree_->SetBranchAddress("JetPhotonsEta", fJetPhotonsEta);
+        tree_->SetBranchAddress("JetPhotonsPhi", fJetPhotonsPhi);
+        tree_->SetBranchAddress("JetPhotonsTime", fJetPhotonsTime);
 
         gErrorIgnoreLevel = currentState;
       }

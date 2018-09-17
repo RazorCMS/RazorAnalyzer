@@ -7,6 +7,13 @@
 //ROOT includes
 #include "TH1F.h"
 
+
+struct MatchedPhoton
+{
+  TLorentzVector pho;
+  float time;
+};
+
 using namespace std;
 
 void DelayedJets::Analyze(bool isData, int Option, string outputfilename, string label)
@@ -63,6 +70,7 @@ void DelayedJets::Analyze(bool isData, int Option, string outputfilename, string
 	if(jetPt[i]*JEC < 20) continue;
 	
 	
+	jetTree->fJetNPhotons = 0;
 	//***********************
 	//Fill Jet Variables
 	//***********************
@@ -90,17 +98,40 @@ void DelayedJets::Analyze(bool isData, int Option, string outputfilename, string
 	//Match to Photons
 	int matchedIndex = -1;
 	float minDR = 9999;
+	std::vector<MatchedPhoton> matchedPhotons;
 	
-	for(int j = 0; j < nPhotons; j++){
-	  double tmpDR = deltaR( phoEta[j], phoPhi[j], jetEta[i],jetPhi[i]);
-	  if ( tmpDR < 0.4 && tmpDR < minDR ) 
-	    {		
-	      matchedIndex = j;
-	      minDR = tmpDR;
-	    }
-	}
+	for( int j = 0; j < nPhotons; j++ )
+	  {
+	    double tmpDR = deltaR( phoEta[j], phoPhi[j], jetEta[i],jetPhi[i]);
+	    if ( tmpDR < 0.4 ) 
+	      {
+		MatchedPhoton pho;
+		TVector3 vec;
+		vec.SetPtEtaPhi( phoPt[j], phoEta[j], phoPhi[j] );
+		TLorentzVector thisPhoton;
+		thisPhoton.SetVectM( vec, .0 );
+		pho.pho  = thisPhoton;
+		//std::cout << "here" << std::endl;
+		//std::cout << jentry << "nPhotons: "  << nPhotons <<  " j: "  << j << " index: "<< pho_SeedRechitIndex->at(j) << " " << ecalRechit_T->at(0) << std::endl;
+		std::cout << jentry << "nPhotons: "  << nPhotons <<  " j: "  << j << " index: "<< pho_SeedRechitIndex->at(j)  << std::endl;
+		//std::cout << "there" << std::endl;
+		if ( ecalRechit_T->size() != 0 ) pho.time = ecalRechit_T->at(pho_SeedRechitIndex->at(j));
+		matchedPhotons.push_back(pho);
+		jetTree->fJetNPhotons++;
+		//matchedIndex = j;
+		//minDR = tmpDR;
+	      }
+	  }
 	
-	
+	int ctr = 0;
+	for ( auto tmp : matchedPhotons)
+	  {
+	    jetTree->fJetPhotonsE[ctr] = tmp.pho.E();
+	    jetTree->fJetPhotonsEta[ctr] = tmp.pho.Eta();
+	    jetTree->fJetPhotonsPhi[ctr] = tmp.pho.Phi();
+	    jetTree->fJetPhotonsTime[ctr] = tmp.time;
+	    ctr++;
+	  }
 	if ( matchedIndex >= 0 )
 	  {
 	    std::cout << "found photon candidate, candidate time: " << pho_SeedRechitIndex->at(matchedIndex) << std::endl;
