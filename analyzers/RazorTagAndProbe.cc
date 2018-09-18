@@ -47,6 +47,9 @@ void RazorTagAndProbe::Analyze(bool isData, int option, string outputfilename, s
     //11: pass Iso loose
     //12: pass Iso medium
     //13: pass Iso tight
+    //14: pass delayed photon ID + Iso loose
+    //15: pass delayed photon ID + Iso medium
+    //16: pass delayed photon ID + Iso tight
 
     //***************************************************
     //ones and tens digit refers to numerator cuts
@@ -64,6 +67,9 @@ void RazorTagAndProbe::Analyze(bool isData, int option, string outputfilename, s
     //11: pass Iso loose
     //12: pass Iso medium
     //13: pass Iso tight
+    //14: pass delayed photon ID + Iso loose
+    //15: pass delayed photon ID + Iso medium
+    //16: pass delayed photon ID + Iso tight
     //50 - 99: pass HLT Filter ( see specific mapping in the code below )
 
     //Define 25ns for photons
@@ -91,6 +97,9 @@ void RazorTagAndProbe::Analyze(bool isData, int option, string outputfilename, s
     else if (denominatorType == 11) cout << "Denominator Type : Iso Loose\n";
     else if (denominatorType == 12) cout << "Denominator Type : Iso Medium\n";
     else if (denominatorType == 13) cout << "Denominator Type : Iso Tight\n";
+    else if (denominatorType == 14) cout << "Denominator Type : delayed photon ID + Iso Loose\n";
+    else if (denominatorType == 15) cout << "Denominator Type : delayed photon ID + Iso Medium\n";
+    else if (denominatorType == 16) cout << "Denominator Type : delayed photon ID + Iso Tight\n";
     else if (denominatorType == 23) cout << "Denominator Type : EGamma ID+Iso Loose\n";
     else if (denominatorType == 24) cout << "Denominator Type : EGamma ID+Iso Medium\n";
     else if (denominatorType == 25) cout << "Denominator Type : EGamma ID+Iso Tight\n";
@@ -109,6 +118,9 @@ void RazorTagAndProbe::Analyze(bool isData, int option, string outputfilename, s
     else if (numeratorType == 11) cout << "Numerator Type : Iso Loose\n";
     else if (numeratorType == 12) cout << "Numerator Type : Iso Medium\n";
     else if (numeratorType == 13) cout << "Numerator Type : Iso Tight\n";
+    else if (numeratorType == 14) cout << "Numerator Type : delayed photon ID + Iso Loose\n";
+    else if (numeratorType == 15) cout << "Numerator Type : delayed photon ID + Iso Medium\n";
+    else if (numeratorType == 16) cout << "Numerator Type : delayed photon ID + Iso Tight\n";
     else if (numeratorType >= 50) cout << "Numerator Type : pass HLT Filters\n";
 
     Float_t ELE_MASS = 0.000511;
@@ -675,6 +687,16 @@ void RazorTagAndProbe::Analyze(bool isData, int option, string outputfilename, s
 	    if (denominatorType == 5) {
 	      if ( !isTightPhotonWithoutEleVeto(indexProbe, _is25ns) ) continue;
 	    }
+	    if (denominatorType == 14) {
+	      if ( !isLooseDelayedPhotonWithoutEleVeto(indexProbe, _is25ns) ) continue;
+	    }
+	    if (denominatorType == 15) {
+	      if ( !isMediumDelayedPhotonWithoutEleVeto(indexProbe, _is25ns) ) continue;
+	    }
+	    if (denominatorType == 16) {
+	      if ( !isTightDelayedPhotonWithoutEleVeto(indexProbe, _is25ns) ) continue;
+	    }
+
 
 	    TLorentzVector vprobe;
 	    vprobe.SetPtEtaPhiM(phoPt[indexProbe], phoEta[indexProbe], phoPhi[indexProbe], ELE_MASS);
@@ -700,12 +722,29 @@ void RazorTagAndProbe::Analyze(bool isData, int option, string outputfilename, s
 	    if (numeratorType == 5) {
 	      pass = isTightPhotonWithoutEleVeto(indexProbe, _is25ns);
 	    }
+	    if (numeratorType == 14) {
+	      pass = isLooseDelayedPhotonWithoutEleVeto(indexProbe, _is25ns);
+	    }
+	    if (numeratorType == 15) {
+	      pass = isMediumDelayedPhotonWithoutEleVeto(indexProbe, _is25ns);
+	    }
+	    if (numeratorType == 16) {
+	      pass = isTightDelayedPhotonWithoutEleVeto(indexProbe, _is25ns);
+	    }
 	    if (numeratorType == 50) {	     
 	      pass = matchPhotonHLTFilters(indexProbe, "DiPhoton30_18_WithPixMatch_Leg1");
 	    }
 	    if (numeratorType == 51) {	     
 	      pass = matchPhotonHLTFilters(indexProbe, "DiPhoton30_18_WithPixMatch_Leg2");
 	    }
+	    if (numeratorType == 52) {	     
+	      pass = matchPhotonHLTFilters(indexProbe, "Photon42_Photon25_Mass15_Leg1");
+	    }
+	    if (numeratorType == 53) {	     
+	      pass = matchPhotonHLTFilters(indexProbe, "Photon42_Photon25_Mass15_Leg2");
+	    }
+
+
 	    TPPair->pass = pass;
 	    // cout << " TP Pass: " << TPPair->pass << "\n";
 

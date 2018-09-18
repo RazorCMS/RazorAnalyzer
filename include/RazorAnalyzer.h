@@ -106,6 +106,7 @@ class RazorAnalyzer: public RazorEvents {
 
         //functions in RazorAuxPhoton.cc
         bool photonPassesElectronVeto(int i);
+	double getPhotonSminorSmajor(int ind_pho, bool isSminor = true);
 	void getPhotonEffAreaRun2( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
 	void getPhotonEffArea90( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
 	void getPhotonEffAreaPFClusterIso( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho );
@@ -113,6 +114,9 @@ class RazorAnalyzer: public RazorEvents {
 	bool photonPassLooseIDWithoutEleVeto(int i, bool use25nsCuts = true);
 	bool photonPassMediumIDWithoutEleVeto(int i, bool use25nsCuts = true);
 	bool photonPassTightIDWithoutEleVeto(int i, bool use25nsCuts = true);
+	bool photonPassLooseDelayedIDWithoutEleVeto(int i, bool use25nsCuts = true);
+	bool photonPassMediumDelayedIDWithoutEleVeto(int i, bool use25nsCuts = true);
+	bool photonPassTightDelayedIDWithoutEleVeto(int i, bool use25nsCuts = true);
 	bool photonPassLooseID(int i, bool use25nsCuts = true);
 	bool photonPassMediumID(int i, bool use25nsCuts = true);
 	bool photonPassTightID(int i, bool use25nsCuts = true);
@@ -125,6 +129,9 @@ class RazorAnalyzer: public RazorEvents {
         bool isLoosePhotonWithoutEleVeto(int i, bool use25nsCuts = true);
         bool isMediumPhotonWithoutEleVeto(int i, bool use25nsCuts = true);
         bool isTightPhotonWithoutEleVeto(int i, bool use25nsCuts = true);
+        bool isLooseDelayedPhotonWithoutEleVeto(int i, bool use25nsCuts = true);
+        bool isMediumDelayedPhotonWithoutEleVeto(int i, bool use25nsCuts = true);
+        bool isTightDelayedPhotonWithoutEleVeto(int i, bool use25nsCuts = true);
 	bool matchPhotonHLTFilters( int i, string HLTFilter);
 	void getPhotonEffAreaExo15004( float eta, double& effAreaPho );
 	bool photonPassLooseIDWithoutEleVetoExo15004(int i);

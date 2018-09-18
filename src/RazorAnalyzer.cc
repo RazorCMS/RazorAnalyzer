@@ -2216,6 +2216,71 @@ bool RazorAnalyzer::photonPassesElectronVeto(int i){
     return (pho_passEleVeto[i]);
 }
 
+double RazorAnalyzer::getPhotonSminorSmajor(int ind_pho, bool isSminor){
+	double etaAverage = 0.0;
+        double phiAverage = 0.0;
+        double mTotalWeight = 0.0;
+        double tmpSumE = 0.0;
+        double phoSetaeta = 0.0;
+	double phoSphiphi = 0.0;
+        double phoSetaphi = 0.0;
+        double phoSminor = 0.0;
+        double phoSmajor = 0.0;
+	
+
+	if(ecalRechit_ID->empty()) return 0.0;
+
+
+	uint seedhitIndex =  (*pho_SeedRechitIndex)[ind_pho];
+	bool isFromEB = bool( (*ecalRechit_ID)[seedhitIndex] < 840000000 );
+	
+		
+	for (uint k=0; k<(*pho_EcalRechitIndex)[ind_pho].size(); ++k)
+        {
+		uint rechitIndex = (*pho_EcalRechitIndex)[ind_pho][k];
+		if((*ecalRechit_E)[rechitIndex] < 1.0) continue;
+		tmpSumE += (*ecalRechit_E)[rechitIndex];
+	}	
+	for (uint k=0; k<(*pho_EcalRechitIndex)[ind_pho].size(); ++k)
+        {
+                uint rechitIndex = (*pho_EcalRechitIndex)[ind_pho][k];
+                if((*ecalRechit_E)[rechitIndex] < 1.0) continue;
+                double thisWeight = max(4.2+log(((*ecalRechit_E)[rechitIndex])/tmpSumE),0.0);
+                mTotalWeight += thisWeight;
+	        float thisIPhiIY =  1.0 * iPhi_or_iY_from_detID( (*ecalRechit_ID)[rechitIndex] , isFromEB);
+                float thisIEtaIX =  1.0 * iEta_or_iX_from_detID( (*ecalRechit_ID)[rechitIndex] , isFromEB);
+
+                etaAverage += thisWeight * (thisIEtaIX) ;
+                phiAverage += thisWeight * (thisIPhiIY) ;
+        }
+
+	etaAverage = etaAverage / mTotalWeight;
+        phiAverage = phiAverage / mTotalWeight;
+	
+	for (uint k=0; k<(*pho_EcalRechitIndex)[ind_pho].size(); ++k)
+        {
+                uint rechitIndex = (*pho_EcalRechitIndex)[ind_pho][k];
+                if((*ecalRechit_E)[rechitIndex] < 1.0) continue;
+                double thisWeight = max(4.2+log(((*ecalRechit_E)[rechitIndex])/tmpSumE),0.0);
+		float thisIPhiIY =  1.0 * iPhi_or_iY_from_detID( (*ecalRechit_ID)[rechitIndex] , isFromEB);
+                float thisIEtaIX =  1.0 * iEta_or_iX_from_detID( (*ecalRechit_ID)[rechitIndex] , isFromEB);
+		phoSetaeta += thisWeight * (thisIEtaIX - etaAverage) * (thisIEtaIX - etaAverage);
+                phoSphiphi += thisWeight * (thisIPhiIY - phiAverage) * (thisIPhiIY - phiAverage);
+                phoSetaphi += thisWeight * (thisIEtaIX - etaAverage) * (thisIPhiIY - phiAverage);
+        }
+	if(tmpSumE>0.0)
+        {
+		phoSetaeta = phoSetaeta / mTotalWeight;
+                phoSphiphi = phoSphiphi / mTotalWeight;
+                phoSetaphi = phoSetaphi / mTotalWeight;
+                phoSminor = 0.5 * (phoSetaeta + phoSphiphi - pow(pow(phoSetaeta - phoSphiphi,2.0) + 4.0*pow(phoSetaphi,2.0),0.5));
+                phoSmajor = 0.5 * (phoSetaeta + phoSphiphi + pow(pow(phoSetaeta - phoSphiphi,2.0) + 4.0*pow(phoSetaphi,2.0),0.5));
+        }
+		
+	if (isSminor) return phoSminor;
+	else return phoSmajor;	
+}
+
 //Spring 15 values
 void RazorAnalyzer::getPhotonEffAreaRun2( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho )
 {
@@ -2431,6 +2496,74 @@ bool RazorAnalyzer::photonPassTightIDWithoutEleVeto(int i, bool use25nsCuts){
 }
 
 
+// 80X values from EGamma Presentation
+// https://indico.cern.ch/event/491517/contributions/2349134/attachments/1359450/2056689/CutBasedPhotonID_24-10-2016.pdf
+bool RazorAnalyzer::photonPassLooseDelayedIDWithoutEleVeto(int i, bool use25nsCuts ){
+
+  bool pass = true;
+
+  if (use25nsCuts) {
+    if(fabs(pho_superClusterEta[i]) < 1.479){    
+      if(phoFull5x5SigmaIetaIeta[i] > 0.01031) pass = false;   
+    } else { 
+      if(phoFull5x5SigmaIetaIeta[i] > 0.03013) pass = false;    
+    }
+  }  else {
+    cout << "Warning: you are not using 25nsCuts. return false.\n";
+    pass = false;
+  }
+
+  double phoSminor = getPhotonSminorSmajor(i, true);
+  if(phoSminor < 0.15 || phoSminor > 0.7) pass = false;
+  
+  return pass;
+}
+
+// 80X values from EGamma Presentation
+// https://indico.cern.ch/event/491517/contributions/2349134/attachments/1359450/2056689/CutBasedPhotonID_24-10-2016.pdf
+bool RazorAnalyzer::photonPassMediumDelayedIDWithoutEleVeto(int i, bool use25nsCuts){
+  bool pass = true;
+
+  if (use25nsCuts) {
+    if(fabs(pho_superClusterEta[i]) < 1.479){    
+      if(phoFull5x5SigmaIetaIeta[i] > 0.01022) pass = false;   
+    } else { 
+      if(phoFull5x5SigmaIetaIeta[i] > 0.03001) pass = false;    
+    }
+  } else {
+    cout << "Warning: you are not using 25nsCuts. return false.\n";
+    pass = false;
+  }
+
+  double phoSminor = getPhotonSminorSmajor(i, true);
+  if(phoSminor < 0.15 || phoSminor > 0.5) pass = false;
+  
+  return pass;
+}
+
+// 80X values from EGamma Presentation
+// https://indico.cern.ch/event/491517/contributions/2349134/attachments/1359450/2056689/CutBasedPhotonID_24-10-2016.pdf
+bool RazorAnalyzer::photonPassTightDelayedIDWithoutEleVeto(int i, bool use25nsCuts){
+  bool pass = true;
+
+  if (use25nsCuts) {
+    if(fabs(pho_superClusterEta[i]) < 1.479){    
+      if(phoFull5x5SigmaIetaIeta[i] > 0.00994) pass = false;   
+    } else { 
+      if(phoFull5x5SigmaIetaIeta[i] > 0.03000) pass = false;    
+    }
+  } else {
+    cout << "Warning: you are not using 25nsCuts. return false.\n";
+    pass = false;
+  }
+
+  double phoSminor = getPhotonSminorSmajor(i, true);
+  if(phoSminor < 0.15 || phoSminor > 0.3) pass = false;
+
+  return pass;
+}
+
+
 bool RazorAnalyzer::photonPassLooseID(int i, bool use25nsCuts){
 
   bool pass = true;
@@ -2568,6 +2701,35 @@ bool RazorAnalyzer::isTightPhotonWithoutEleVeto(int i, bool use25nsCuts){
 }
 
 
+bool RazorAnalyzer::isLooseDelayedPhotonWithoutEleVeto(int i, bool use25nsCuts){
+
+  bool pass = true;
+
+  if (!photonPassLooseDelayedIDWithoutEleVeto(i,use25nsCuts)) pass = false;
+  if(!photonPassLooseIso(i,use25nsCuts,false,true)) pass = false;
+
+  return pass;
+}
+
+bool RazorAnalyzer::isMediumDelayedPhotonWithoutEleVeto(int i, bool use25nsCuts){
+  bool pass = true;
+
+  if (!photonPassMediumDelayedIDWithoutEleVeto(i,use25nsCuts)) pass = false;
+  if(!photonPassMediumIso(i,use25nsCuts,false,true)) pass = false;
+
+  return pass;
+}
+
+bool RazorAnalyzer::isTightDelayedPhotonWithoutEleVeto(int i, bool use25nsCuts){
+  bool pass = true;
+
+  if (!photonPassTightDelayedIDWithoutEleVeto(i,use25nsCuts)) pass = false;
+  if(!photonPassTightIso(i,use25nsCuts,false,true)) pass = false;
+
+  return pass;
+}
+
+
 bool RazorAnalyzer::matchPhotonHLTFilters(int i, string HLTFilter){
   bool match = false;
 
@@ -2590,6 +2752,28 @@ bool RazorAnalyzer::matchPhotonHLTFilters(int i, string HLTFilter){
       match = true;
     }
   }
+
+
+  if (HLTFilter == "Photon42_Photon25_Mass15_Leg1") {
+    if ( 
+	//Data filters
+	pho_passHLTFilter[i][4] 
+	//MC filters
+
+	 ) {
+      match = true;
+    }
+  }
+   
+  if (HLTFilter == "Photon42_Photon25_Mass15_Leg2") {
+    if ( 
+	//Data filters
+	pho_passHLTFilter[i][5] 
+	 ) {
+      match = true;
+    }
+  }
+   
    
   return match;
 }
