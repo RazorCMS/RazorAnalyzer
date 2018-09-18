@@ -21,51 +21,66 @@
       };
 
       /// variables
+      UInt_t                  fi_evt;
       Float_t                 fWeight;
       UInt_t                  fRunNumber;
       UInt_t                  fLumiSectionNumber;
       UInt_t                  fEventNumber;
       Bool_t                  fJetEventNumberParity;
       Float_t                 fJetGenPt;
-      Float_t                 fJetGenEta; 
+      Float_t                 fJetGenEta;
       Float_t                 fJetGenPhi;
       Float_t                 fJetRawPt;
-      Float_t                 fJetPt; 
-      Float_t                 fJetEta; 
-      Float_t                 fJetPhi; 
+      Float_t                 fJetPt;
+      Float_t                 fJetEta;
+      Float_t                 fJetPhi;
       UInt_t                  fJetTriggerBit;
-      Float_t                 fRho; 
-      Float_t                 fNVertices; 
+      Float_t                 fRho;
+      Float_t                 fNVertices;
       Float_t                 fJetCSV;
       Float_t                 fJetCISV;
       Float_t                 fJetArea;
       Float_t                 fJetPileupId;
       Int_t                   fJetPartonFlavor;
       Float_t                 fJetJEC;
+      //All Photons Match To the Jet (Take Seed RecHit as a reference)
       Int_t                   fJetNPhotons;
-      Float_t                 fJetPhotonsE[1000];
-      Float_t                 fJetPhotonsEta[1000];
-      Float_t                 fJetPhotonsPhi[1000];
-      Float_t                 fJetPhotonsTime[1000];
-      
+      Float_t                 fJetPhotonE[1000];
+      Float_t                 fJetPhotonEta[1000];
+      Float_t                 fJetPhotonPhi[1000];
+      Float_t                 fJetPhotonSeedRecHitE[1000];
+      Float_t                 fJetPhotonSeedRecHitEta[1000];
+      Float_t                 fJetPhotonSeedRecHitPhi[1000];
+      Float_t                 fJetPhotonSeedRecHitTime[1000];
+      //All RecHits matched to the Jet through the Photons
+      Int_t                   fJetNRecHits;
+      Float_t                 fJetRecHitE[1000];
+      Float_t                 fJetRecHitEta[1000];
+      Float_t                 fJetRecHitPhi[1000];
+      Float_t                 fJetRecHitTime[1000];
 
     public:
       /// this is the main element
       TTree *tree_;
       TFile *f_;
-  
+
       /// hold the names of variables to facilitate things (filled during Init)
       std::vector<std::string> variables_;
 
-      /// default constructor  
+      /// default constructor
       JetTree()  {};
       /// default destructor
-      ~JetTree(){ 
-        if (f_) f_->Close();  
+      ~JetTree(){
+        if (f_) f_->Close();
       };
-    
+
       /// initialize varibles and fill list of available variables
-      void InitVariables() {
+      void InitVariables()
+      {
+        fi_evt = 0;
+        ResetVariables();
+      }
+      void ResetVariables() {
         fWeight			                     = 0.0;
         fRunNumber		                     = 0.0;
         fLumiSectionNumber	                     = 0.0;
@@ -82,20 +97,30 @@
         fRho  			                     = 0.0;
         fNVertices 		                     = 0.0;
         fJetCSV                                      = 0.0;
-        fJetCISV                                     = 0.0;        
+        fJetCISV                                     = 0.0;
         fJetArea                                     = 0.0;
         fJetPileupId                                 = 0.0;
         fJetPartonFlavor                             = 0;
         fJetJEC                                      = 0;
-	fJetNPhotons                                 = 0;
+        fJetNPhotons                                 = 0;
+        fJetNRecHits                                 = 0;
 	for ( int i = 0; i < 1000; i++ ) {
-	  fJetPhotonsE[i] = 0.0;
-	  fJetPhotonsEta[i] = 0.0;
-	  fJetPhotonsPhi[i] = 0.0;
-	  fJetPhotonsTime[i] = 0.0;
+    //All Photons
+	  fJetPhotonE[i] = 0.0;
+	  fJetPhotonEta[i] = 0.0;
+	  fJetPhotonPhi[i] = 0.0;
+    fJetPhotonSeedRecHitE[i]  = 0.0;
+    fJetPhotonSeedRecHitEta[i]  = 0.0;
+    fJetPhotonSeedRecHitPhi[i]  = 0.0;
+	  fJetPhotonSeedRecHitTime[i] = 0.0;
+    //All RecHits
+    fJetRecHitE[i]    = 0.0;
+    fJetRecHitEta[i]  = 0.0;
+    fJetRecHitPhi[i]  = 0.0;
+	  fJetRecHitTime[i] = 0.0;
 	}
       }
-      
+
       /// load a JetTree
       void LoadTree(const char* file){
         f_ = TFile::Open(file);
@@ -103,40 +128,51 @@
         tree_ = dynamic_cast<TTree*>(f_->Get("Jets"));
         assert(tree_);
       }
-    
+
       /// create a JetTree
       void CreateTree(){
         tree_ = new TTree("Jets","Jets");
         f_ = 0;
 
         //book the branches
+        tree_->Branch("i_evt",&fi_evt,"i_evt/i");
         tree_->Branch("weight",&fWeight,"weight/F");
         tree_->Branch("run",&fRunNumber,"run/i");
         tree_->Branch("lumi",&fLumiSectionNumber,"lumi/i");
         tree_->Branch("event",&fEventNumber,"event/i");
-        tree_->Branch("EventNumberParity",&fJetEventNumberParity,"EventNumberParity/O"); 
-        tree_->Branch("genpt",&fJetGenPt,"genpt/F"); 
-        tree_->Branch("geneta",&fJetGenEta,"geneta/F"); 
-        tree_->Branch("genphi",&fJetGenPhi,"genphi/F"); 
-        tree_->Branch("rawpt",&fJetRawPt,"rawpt/F"); 
-        tree_->Branch("pt",&fJetPt,"pt/F"); 
-        tree_->Branch("eta",&fJetEta,"eta/F"); 
-        tree_->Branch("phi",&fJetPhi,"phi/F"); 
-        tree_->Branch("triggerBit",&fJetTriggerBit,"triggerBit/i"); 
-        tree_->Branch("rho",&fRho,"rho/F"); 
-        tree_->Branch("vertices",&fNVertices,"vertices/F"); 
-        tree_->Branch("CSV",&fJetCSV,"CSV/F"); 
-        tree_->Branch("CISV",&fJetCISV,"CISV/F");        
-        tree_->Branch("Area",&fJetArea,"Area/F"); 
-        tree_->Branch("PileupId",&fJetPileupId,"PileupId/F"); 
-        tree_->Branch("PartonFlavor",&fJetPartonFlavor,"PartonFlavor/I"); 
+        tree_->Branch("EventNumberParity",&fJetEventNumberParity,"EventNumberParity/O");
+        tree_->Branch("genpt",&fJetGenPt,"genpt/F");
+        tree_->Branch("geneta",&fJetGenEta,"geneta/F");
+        tree_->Branch("genphi",&fJetGenPhi,"genphi/F");
+        tree_->Branch("rawpt",&fJetRawPt,"rawpt/F");
+        tree_->Branch("pt",&fJetPt,"pt/F");
+        tree_->Branch("eta",&fJetEta,"eta/F");
+        tree_->Branch("phi",&fJetPhi,"phi/F");
+        tree_->Branch("triggerBit",&fJetTriggerBit,"triggerBit/i");
+        tree_->Branch("rho",&fRho,"rho/F");
+        tree_->Branch("vertices",&fNVertices,"vertices/F");
+        tree_->Branch("CSV",&fJetCSV,"CSV/F");
+        tree_->Branch("CISV",&fJetCISV,"CISV/F");
+        tree_->Branch("Area",&fJetArea,"Area/F");
+        tree_->Branch("PileupId",&fJetPileupId,"PileupId/F");
+        tree_->Branch("PartonFlavor",&fJetPartonFlavor,"PartonFlavor/I");
         tree_->Branch("JEC",&fJetJEC,"JEC/F");
-	tree_->Branch("JetNPhotons", &fJetNPhotons, "JetNPhotons/I");
-	tree_->Branch("JetPhotonsE", fJetPhotonsE, "JetPhotonsE[JetNPhotons]/F");
-	tree_->Branch("JetPhotonsEta", fJetPhotonsEta, "JetPhotonsEta[JetNPhotons]/F");
-	tree_->Branch("JetPhotonsPhi", fJetPhotonsPhi, "JetPhotonsPhi[JetNPhotons]/F");
-	tree_->Branch("JetPhotonsTime", fJetPhotonsTime, "JetPhotonsTime[JetNPhotons]/F");
-      } 
+        //All Photons Matched to Jets
+        tree_->Branch("JetNPhotons", &fJetNPhotons, "JetNPhotons/I");
+        tree_->Branch("JetPhotonE", fJetPhotonE, "JetPhotonE[JetNPhotons]/F");
+        tree_->Branch("JetPhotonEta", fJetPhotonEta, "JetPhotonEta[JetNPhotons]/F");
+        tree_->Branch("JetPhotonPhi", fJetPhotonPhi, "JetPhotonPhi[JetNPhotons]/F");
+        tree_->Branch("JetPhotonSeedRecHitE", fJetPhotonSeedRecHitE, "JetPhotonSeedRecHitE[JetNPhotons]/F");
+        tree_->Branch("JetPhotonSeedRecHitEta", fJetPhotonSeedRecHitEta, "JetPhotonSeedRecHitEta[JetNPhotons]/F");
+        tree_->Branch("JetPhotonSeedRecHitPhi", fJetPhotonSeedRecHitPhi, "JetPhotonSeedRecHitPhi[JetNPhotons]/F");
+        tree_->Branch("JetPhotonSeedRecHitTime", fJetPhotonSeedRecHitTime, "JetPhotonSeedRecHitTime[JetNPhotons]/F");
+        //All RecHits Matched to Jets
+        tree_->Branch("JetNRecHits", &fJetNRecHits, "JetNRecHits/I");
+        tree_->Branch("JetRecHitE", fJetRecHitE, "JetRecHitE[JetNRecHits]/F");
+        tree_->Branch("JetRecHitEta", fJetRecHitEta, "JetRecHitEta[JetNRecHits]/F");
+        tree_->Branch("JetRecHitPhi", fJetRecHitPhi, "JetRecHitPhi[JetNRecHits]/F");
+        tree_->Branch("JetRecHitTime", fJetRecHitTime, "JetRecHitTime[JetNRecHits]/F");
+      }
 
       // initialze a JetTree
       void InitTree(){
@@ -147,6 +183,7 @@
         //Set branch address
         Int_t currentState = gErrorIgnoreLevel;
 
+        tree_->SetBranchAddress("i_evt",&fi_evt);
         tree_->SetBranchAddress("weight",&fWeight);
         tree_->SetBranchAddress("run",&fRunNumber);
         tree_->SetBranchAddress("lumi",&fLumiSectionNumber);
@@ -164,20 +201,28 @@
         tree_->SetBranchAddress("vertices",&fNVertices);
         tree_->SetBranchAddress("CSV",&fJetCSV);
         tree_->SetBranchAddress("CISV",&fJetCISV);
-	tree_->SetBranchAddress("Area",&fJetArea);
-	tree_->SetBranchAddress("PileupId",&fJetPileupId);
+        tree_->SetBranchAddress("Area",&fJetArea);
+        tree_->SetBranchAddress("PileupId",&fJetPileupId);
         tree_->SetBranchAddress("PartonFlavor",&fJetPartonFlavor);
         tree_->SetBranchAddress("JEC",&fJetJEC);
-	tree_->SetBranchAddress("JetNPhotons", &fJetNPhotons);
-        tree_->SetBranchAddress("JetPhotonsE", fJetPhotonsE);
-        tree_->SetBranchAddress("JetPhotonsEta", fJetPhotonsEta);
-        tree_->SetBranchAddress("JetPhotonsPhi", fJetPhotonsPhi);
-        tree_->SetBranchAddress("JetPhotonsTime", fJetPhotonsTime);
-
+        tree_->SetBranchAddress("JetNPhotons", &fJetNPhotons);
+        tree_->SetBranchAddress("JetPhotonE", fJetPhotonE);
+        tree_->SetBranchAddress("JetPhotonEta", fJetPhotonEta);
+        tree_->SetBranchAddress("JetPhotonPhi", fJetPhotonPhi);
+        tree_->SetBranchAddress("JetPhotonSeedRecHitE", fJetPhotonSeedRecHitE);
+        tree_->SetBranchAddress("JetPhotonSeedRecHitEta", fJetPhotonSeedRecHitEta);
+        tree_->SetBranchAddress("JetPhotonSeedRecHitPhi", fJetPhotonSeedRecHitPhi);
+        tree_->SetBranchAddress("JetPhotonSeedRecHitTime", fJetPhotonSeedRecHitTime);
+        //All RecHits Matched to Jet
+        tree_->SetBranchAddress("JetNRecHits", &fJetNRecHits);
+        tree_->SetBranchAddress("JetRecHitE", fJetRecHitE);
+        tree_->SetBranchAddress("JetRecHitEta", fJetRecHitEta);
+        tree_->SetBranchAddress("JetRecHitPhi", fJetRecHitPhi);
+        tree_->SetBranchAddress("JetRecHitTime", fJetRecHitTime);
         gErrorIgnoreLevel = currentState;
       }
 
-  }; 
+  };
 
 
 #endif
