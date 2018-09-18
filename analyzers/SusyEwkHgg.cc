@@ -1365,7 +1365,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  //DR definition for mini-isolation
 	  double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
 
-	  if(!(passEGammaPOGVetoElectronID(i,true,electronEraName) && 
+	  if(!(passEGammaPOGLooseElectronID(i,true,electronEraName) && 
 	       ((ele_chargedMiniIso[i] +  fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveArea90(i,electronEraName)*pow(dr/0.3,2)))/elePt[i] < 0.1) 
 		)) continue;
 	  //if ( !( passMVALooseElectronID(i,dataset) && passMVANonTrigVetoElectronIso(i) && fabs(ele_ip3dSignificance[i]) < 4. ) ) continue;//Only for electron WP test
