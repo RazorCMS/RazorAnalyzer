@@ -47,8 +47,8 @@ int DoMixSamples( string inputfile1, string inputfile2, double weightFactor1, do
   //TKey *key;
 
 
-  TTree *inputTree1 = (TTree*)inputFile1->Get("HggRazor");
-  TTree *inputTree2 = (TTree*)inputFile2->Get("HggRazor");
+  TTree *inputTree1 = (TTree*)inputFile1->Get("HggRazorLeptons");
+  TTree *inputTree2 = (TTree*)inputFile2->Get("HggRazorLeptons");
   cout << "Processing tree " << inputTree1->GetName() << endl;
   
   //create new tree
@@ -65,7 +65,7 @@ int DoMixSamples( string inputfile1, string inputfile2, double weightFactor1, do
   inputTree1->SetBranchAddress("weight", &weight);
     
   for (int n=0;n<inputTree1->GetEntries();n++) { 
-    if (n%1000000==0) cout << "Processed Event " << n << "\n";
+    if (n%10000==0) cout << "Processed Event " << n << "\n";
     inputTree1->GetEntry(n);
     weight = weight * weightFactor1;
     outputTree1->Fill(); 
@@ -84,7 +84,7 @@ int DoMixSamples( string inputfile1, string inputfile2, double weightFactor1, do
   list->Add(outputTree1);
   list->Add(outputTree2);
   TTree *outputTree = TTree::MergeTrees(list);
-  outputTree->SetName("HggRazor");
+  outputTree->SetName("HggRazorLeptons");
   outputTree->Write();
 
   cout << "Number of Input Events From File 1: " << inputTree1->GetEntries() << "\n";
@@ -164,6 +164,7 @@ int DoMixSamples( string inputfile1, string inputfile2, double weightFactor1, do
   inputFile1->Close();
   inputFile2->Close();
   cout << "Closing output file." << endl;
+  outputFile->Purge(); 
   outputFile->Close();
   delete outputFile;
   delete list;
@@ -174,26 +175,30 @@ int DoMixSamples( string inputfile1, string inputfile2, double weightFactor1, do
 
 void MixSignalSamples() {
 
+ cout << "test\n";
+
+  vector<double> ZBRScan;
+  vector<string> ZBRScanLabel;
+  // ZBRScan.push_back( 0.1 ); ZBRScanLabel.push_back("BR1090");
+  // ZBRScan.push_back( 0.2 ); ZBRScanLabel.push_back("BR2080");
+  // ZBRScan.push_back( 0.3 ); ZBRScanLabel.push_back("BR3070");
+  // ZBRScan.push_back( 0.4 ); ZBRScanLabel.push_back("BR4060");
+  ZBRScan.push_back( 0.5 ); ZBRScanLabel.push_back("BR5050");
+  // ZBRScan.push_back( 0.6 ); ZBRScanLabel.push_back("BR6040");
+  // ZBRScan.push_back( 0.7 ); ZBRScanLabel.push_back("BR7030");
+  // ZBRScan.push_back( 0.8 ); ZBRScanLabel.push_back("BR8020");
+  // ZBRScan.push_back( 0.9 ); ZBRScanLabel.push_back("BR9010");
+
+ 
   int samples[36] = { 127,150,175,200,225,250,275,300,325,350,375,400,425,450,475,500,525,550,575,600,625,650,675,700,725,750,775,800,825,850,875,900,925,950,975,1000};
-
-  // for (int i=29; i<36; i++) {
-  //   cout << "Sample : " << i << " : " << samples[i] << "\n";
-  //   DoMixSamples(Form("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/HggRazor/2016/V3p12_PhotonCorrDec06_JECSep23V3_20170219/FastsimSignal/combined/SMS-TChiHH_%i_1pb_weighted.root",samples[i]),Form("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/HggRazor/2016/V3p12_PhotonCorrDec06_JECSep23V3_20170219/FastsimSignal/combined/SMS-TChiHZ_%i_1pb_weighted.root",samples[i]), 0.25, 0.5, Form("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/HggRazor/2016/V3p12_PhotonCorrDec06_JECSep23V3_20170219/FastsimSignal/combined/SMS-TChiHHHZ_BR5050_%i_1pb_weighted.root",samples[i]));    
-  // }
-
-
- // for (int i=29; i<36; i++) {
- //    cout << "Sample : " << i << " : " << samples[i] << "\n";
- //    DoMixSamples(Form("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/HggRazor/2016/V3p12_PhotonCorrDec06_JECSep23V3_20170219/FastsimSignal/combined/SMS-TChiHH_%i_1pb_weighted.root",samples[i]),Form("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/HggRazor/2016/V3p12_PhotonCorrDec06_JECSep23V3_20170219/FastsimSignal/combined/SMS-TChiHZ_%i_1pb_weighted.root",samples[i]), 0.5625, 0.375, Form("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/HggRazor/2016/V3p12_PhotonCorrDec06_JECSep23V3_20170219/FastsimSignal/combined/SMS-TChiHHHZ_BR7525_%i_1pb_weighted.root",samples[i]));    
- //  }
-
- for (int i=29; i<36; i++) {
-    cout << "Sample : " << i << " : " << samples[i] << "\n";
-    DoMixSamples(Form("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/HggRazor/2016/V3p12_PhotonCorrDec06_JECSep23V3_20170219/FastsimSignal/combined/SMS-TChiHH_%i_1pb_weighted.root",samples[i]),Form("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/HggRazor/2016/V3p12_PhotonCorrDec06_JECSep23V3_20170219/FastsimSignal/combined/SMS-TChiHZ_%i_1pb_weighted.root",samples[i]), 0.0625, 0.375, Form("/afs/cern.ch/user/s/sixie/eos/cms/store/group/phys_susy/razor/Run2Analysis/HggRazor/2016/V3p12_PhotonCorrDec06_JECSep23V3_20170219/FastsimSignal/combined/SMS-TChiHHHZ_BR2575_%i_1pb_weighted.root",samples[i]));    
+  for (uint s = 0; s < ZBRScan.size(); s++) {
+    for (int i=1; i<36; i++) {
+      cout << "Sample : " << i << " : " << samples[i] << "\n";
+      DoMixSamples(Form("/eos/cms/store/group/phys_susy/razor/Run2Analysis/SusyEwkHgg/signal/jobs_0908/TChiHHjobs/combined/TChiHH_%i_1pb_weighted.root",samples[i]),Form("/eos/cms/store/group/phys_susy/razor/Run2Analysis/SusyEwkHgg/signal/jobs_0908/TChiHZjobs/combined/TChiHZ_%i_1pb_weighted.root",samples[i]), ZBRScan[s]*ZBRScan[s], 2*ZBRScan[s]*(1-ZBRScan[s]), Form("/eos/cms/store/group/phys_susy/razor/Run2Analysis/SusyEwkHgg/signal/jobs_0908/TChiHHHZMixedSamples/TChiHHHZ_%s_%i_1pb_weighted.root",ZBRScanLabel[s].c_str(),samples[i]));   
+    }
+  
   }
-
-
-
+  
 }
 
 
