@@ -182,12 +182,15 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   float t1_TOF2, t2_TOF2;
   float t1, t2;
   float t1_SmearToData, t2_SmearToData;
+  float t1_seed_SmearToData, t2_seed_SmearToData;
+  float t1_ShiftToData, t2_ShiftToData;
+  float t1_seed_ShiftToData, t2_seed_ShiftToData;
   float t1_seed, t2_seed;
   float seed1_pedestal, seed2_pedestal;
   float seed1_transpCorr, seed2_transpCorr;
   float t1raw_seed, t2raw_seed;
-  float ele1E, ele1Pt, ele1Eta, ele1Phi;
-  float ele2E, ele2Pt, ele2Eta, ele2Phi;
+  float ele1E, ele1Pt, ele1Eta, ele1Phi, ele1SeedE;
+  float ele2E, ele2Pt, ele2Eta, ele2Phi, ele2SeedE;
   int  ele1SeedIEta, ele1SeedIPhi, ele1SeedIX, ele1SeedIY;
   bool ele1IsEB;
   int  ele2SeedIEta, ele2SeedIPhi, ele2SeedIX, ele2SeedIY; 
@@ -226,7 +229,13 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   outputTree->Branch("t1", &t1, "t1/F");
   outputTree->Branch("t2", &t2, "t2/F");
   outputTree->Branch("t1_SmearToData", &t1_SmearToData, "t1_SmearToData/F");
+  outputTree->Branch("t1_seed_SmearToData", &t1_seed_SmearToData, "t1_seed_SmearToData/F");
+  outputTree->Branch("t1_ShiftToData", &t1_ShiftToData, "t1_ShiftToData/F");
+  outputTree->Branch("t1_seed_ShiftToData", &t1_seed_ShiftToData, "t1_seed_ShiftToData/F");
   outputTree->Branch("t2_SmearToData", &t2_SmearToData, "t2_SmearToData/F");
+  outputTree->Branch("t2_seed_SmearToData", &t2_seed_SmearToData, "t2_seed_SmearToData/F");
+  outputTree->Branch("t2_ShiftToData", &t2_ShiftToData, "t2_ShiftToData/F");
+  outputTree->Branch("t2_seed_ShiftToData", &t2_seed_ShiftToData, "t2_seed_ShiftToData/F");
   outputTree->Branch("t1_TOF2", &t1_TOF2, "t1_TOF2/F");
   outputTree->Branch("t2_TOF2", &t2_TOF2, "t2_TOF2/F");
   outputTree->Branch("t1_seed", &t1_seed, "t1_seed/F");
@@ -238,6 +247,7 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   outputTree->Branch("t1raw_seed", &t1raw_seed, "t1raw_seed/F");
   outputTree->Branch("t2raw_seed", &t2raw_seed, "t2raw_seed/F");
   outputTree->Branch("ele1E", &ele1E, "ele1E/F");
+  outputTree->Branch("ele1SeedE", &ele1SeedE, "ele1SeedE/F");
   outputTree->Branch("ele1Pt", &ele1Pt, "ele1Pt/F");
   outputTree->Branch("ele1Eta", &ele1Eta, "ele1Eta/F");
   outputTree->Branch("ele1Phi", &ele1Phi, "ele1Phi/F");
@@ -247,6 +257,7 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   outputTree->Branch("ele1SeedIX", &ele1SeedIX, "ele1SeedIX/I");
   outputTree->Branch("ele1SeedIY", &ele1SeedIY, "ele1SeedIY/I");
   outputTree->Branch("ele2E", &ele2E, "ele2E/F");
+  outputTree->Branch("ele2SeedE", &ele2SeedE, "ele2SeedE/F");
   outputTree->Branch("ele2Pt", &ele2Pt, "ele2Pt/F");
   outputTree->Branch("ele2Eta", &ele2Eta, "ele2Eta/F");
   outputTree->Branch("ele2Phi", &ele2Phi, "ele2Phi/F");
@@ -288,7 +299,13 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
     t1 = -999;
     t2 = -999;
     t1_SmearToData = -999;
+    t1_seed_SmearToData = -999;
+    t1_ShiftToData = -999;
+    t1_seed_ShiftToData = -999;
     t2_SmearToData = -999;
+    t2_seed_SmearToData = -999;
+    t2_ShiftToData = -999;
+    t2_seed_ShiftToData = -999;
     t1_TOF2 = -999;
     t2_TOF2 = -999;
     t1_seed = -999;
@@ -300,10 +317,12 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
     t1raw_seed = -999;
     t2raw_seed = -999;
     ele1E = -999; 
+    ele1SeedE = -999; 
     ele1Pt = -999;
     ele1Eta = -999;
     ele1Phi = -999;
     ele2E = -999;
+    ele2SeedE = -999; 
     ele2Pt = -999;
     ele2Eta = -999;
     ele2Phi = -999;
@@ -367,7 +386,7 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
     double ele2_seedtimeraw = 0;
 
     for(int i = 0; i < nElectrons; i++){
-      if(elePt[i] < 35) continue;
+      //if(elePt[i] < 35) continue;
       if(fabs(eleEta[i]) > 2.5) continue;
       if(fabs(eleEta[i]) > 1.4442 && fabs(eleEta[i]) < 1.566) continue;
       if(!(isEGammaPOGTightElectron(i))) continue;
@@ -380,6 +399,7 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
       uint seedhitIndex =  (*ele_SeedRechitIndex)[i];
       bool isFromEB = bool( (*ecalRechit_ID)[seedhitIndex] < 840000000 );
       double rawSeedHitTime =  (*ecalRechit_T)[seedhitIndex];
+      double eleSeedE =  (*ecalRechit_E)[seedhitIndex];
 
       //apply TOF correction
       double TOFCorrectedSeedHitTime = rawSeedHitTime + (std::sqrt(pow((*ecalRechit_X)[seedhitIndex],2)+pow((*ecalRechit_Y)[seedhitIndex],2)+pow((*ecalRechit_Z)[seedhitIndex],2))-std::sqrt(pow((*ecalRechit_X)[seedhitIndex]-pvX,2)+pow((*ecalRechit_Y)[seedhitIndex]-pvY,2)+pow((*ecalRechit_Z)[seedhitIndex]-pvZ,2)))/SPEED_OF_LIGHT;
@@ -450,6 +470,7 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
 	ele1_time_TOF2 = weightedTime_TOF2;
 	ele1_seedtime = TOFCorrectedSeedHitTime;
 	ele1_seedtimeraw = rawSeedHitTime;
+	ele1SeedE = eleSeedE;
 	ele1IsEB = bool( abs(eleEta_SC[i]) < 1.5 );
 	if (ele1IsEB) {
 	  ele1SeedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
@@ -471,6 +492,7 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
 	ele2_time_TOF2 = weightedTime_TOF2;
 	ele2_seedtime = TOFCorrectedSeedHitTime; 
  	ele2_seedtimeraw = rawSeedHitTime;
+	ele2SeedE = eleSeedE;
  	ele2IsEB = bool( abs(eleEta_SC[i]) < 1.5 );
 	if (ele2IsEB) {
 	  ele2SeedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
@@ -534,14 +556,30 @@ if(!isData)
         std::random_device rd;
         std::mt19937 e2(rd());
         std::normal_distribution<> dist1(t1, TR_SMEAR1);
+        std::normal_distribution<> dist1_seed(t1_seed, TR_SMEAR1);
         std::normal_distribution<> dist2(t2, TR_SMEAR2);
+        std::normal_distribution<> dist2_seed(t2_seed, TR_SMEAR2);
         t1_SmearToData = dist1(e2) + TR_SHIFT1;
+        t1_seed_SmearToData = dist1_seed(e2) + TR_SHIFT1;
+        t1_ShiftToData = t1 + TR_SHIFT1;
+        t1_seed_ShiftToData = t1_seed + TR_SHIFT1;
         t2_SmearToData = dist2(e2) + TR_SHIFT2;
+        t2_seed_SmearToData = dist2_seed(e2) + TR_SHIFT2;
+        t2_ShiftToData = t2 + TR_SHIFT2;
+        t2_seed_ShiftToData = t2_seed + TR_SHIFT2;
 }
 else
 {
         t1_SmearToData = t1;
+        t1_ShiftToData = t1;
         t2_SmearToData = t2;
+        t2_ShiftToData = t2;
+
+  	t1_seed_SmearToData = t1_seed;
+        t1_seed_ShiftToData = t1_seed;
+        t2_seed_SmearToData = t2_seed;
+        t2_seed_ShiftToData = t2_seed;
+
 }
 
 
