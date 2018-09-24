@@ -183,17 +183,25 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   float t1, t2;
   float t1_SmearToData, t2_SmearToData;
   float t1_seed_SmearToData, t2_seed_SmearToData;
+  float t1_subseed_SmearToData, t2_subseed_SmearToData;
   float t1_ShiftToData, t2_ShiftToData;
   float t1_seed_ShiftToData, t2_seed_ShiftToData;
+  float t1_subseed_ShiftToData, t2_subseed_ShiftToData;
   float t1_seed, t2_seed;
+  float t1_subseed, t2_subseed;
   float seed1_pedestal, seed2_pedestal;
+  float subseed1_pedestal, subseed2_pedestal;
   float seed1_transpCorr, seed2_transpCorr;
+  float subseed1_transpCorr, subseed2_transpCorr;
   float t1raw_seed, t2raw_seed;
-  float ele1E, ele1Pt, ele1Eta, ele1Phi, ele1SeedE;
-  float ele2E, ele2Pt, ele2Eta, ele2Phi, ele2SeedE;
-  int  ele1SeedIEta, ele1SeedIPhi, ele1SeedIX, ele1SeedIY;
+  float t1raw_subseed, t2raw_subseed;
+  float ele1E, ele1Pt, ele1Eta, ele1Phi, ele1seedE, ele1subseedE;
+  float ele2E, ele2Pt, ele2Eta, ele2Phi, ele2seedE, ele2subseedE;
+  int  ele1seedIEta, ele1seedIPhi, ele1seedIX, ele1seedIY;
+  int  ele1subseedIEta, ele1subseedIPhi, ele1subseedIX, ele1subseedIY;
   bool ele1IsEB;
-  int  ele2SeedIEta, ele2SeedIPhi, ele2SeedIX, ele2SeedIY; 
+  int  ele2seedIEta, ele2seedIPhi, ele2seedIX, ele2seedIY; 
+  int  ele2subseedIEta, ele2subseedIPhi, ele2subseedIX, ele2subseedIY; 
   bool ele2IsEB;
   int NPU;
   vector<float> *ecalElectronRechit_E;
@@ -230,42 +238,64 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   outputTree->Branch("t2", &t2, "t2/F");
   outputTree->Branch("t1_SmearToData", &t1_SmearToData, "t1_SmearToData/F");
   outputTree->Branch("t1_seed_SmearToData", &t1_seed_SmearToData, "t1_seed_SmearToData/F");
+  outputTree->Branch("t1_subseed_SmearToData", &t1_subseed_SmearToData, "t1_subseed_SmearToData/F");
   outputTree->Branch("t1_ShiftToData", &t1_ShiftToData, "t1_ShiftToData/F");
   outputTree->Branch("t1_seed_ShiftToData", &t1_seed_ShiftToData, "t1_seed_ShiftToData/F");
+  outputTree->Branch("t1_subseed_ShiftToData", &t1_subseed_ShiftToData, "t1_subseed_ShiftToData/F");
   outputTree->Branch("t2_SmearToData", &t2_SmearToData, "t2_SmearToData/F");
   outputTree->Branch("t2_seed_SmearToData", &t2_seed_SmearToData, "t2_seed_SmearToData/F");
+  outputTree->Branch("t2_subseed_SmearToData", &t2_subseed_SmearToData, "t2_subseed_SmearToData/F");
   outputTree->Branch("t2_ShiftToData", &t2_ShiftToData, "t2_ShiftToData/F");
   outputTree->Branch("t2_seed_ShiftToData", &t2_seed_ShiftToData, "t2_seed_ShiftToData/F");
+  outputTree->Branch("t2_subseed_ShiftToData", &t2_subseed_ShiftToData, "t2_subseed_ShiftToData/F");
   outputTree->Branch("t1_TOF2", &t1_TOF2, "t1_TOF2/F");
   outputTree->Branch("t2_TOF2", &t2_TOF2, "t2_TOF2/F");
   outputTree->Branch("t1_seed", &t1_seed, "t1_seed/F");
+  outputTree->Branch("t1_subseed", &t1_subseed, "t1_subseed/F");
   outputTree->Branch("t2_seed", &t2_seed, "t2_seed/F");
+  outputTree->Branch("t2_subseed", &t2_subseed, "t2_subseed/F");
   outputTree->Branch("seed1_pedestal", &seed1_pedestal, "seed1_pedestal/F");
+  outputTree->Branch("subseed1_pedestal", &subseed1_pedestal, "subseed1_pedestal/F");
   outputTree->Branch("seed2_pedestal", &seed2_pedestal, "seed2_pedestal/F");
+  outputTree->Branch("subseed2_pedestal", &subseed2_pedestal, "subseed2_pedestal/F");
   outputTree->Branch("seed1_transpCorr", &seed1_transpCorr, "seed1_transpCorr/F");
+  outputTree->Branch("subseed1_transpCorr", &subseed1_transpCorr, "subseed1_transpCorr/F");
   outputTree->Branch("seed2_transpCorr", &seed2_transpCorr, "seed2_transpCorr/F");
+  outputTree->Branch("subseed2_transpCorr", &subseed2_transpCorr, "subseed2_transpCorr/F");
   outputTree->Branch("t1raw_seed", &t1raw_seed, "t1raw_seed/F");
+  outputTree->Branch("t1raw_subseed", &t1raw_subseed, "t1raw_subseed/F");
   outputTree->Branch("t2raw_seed", &t2raw_seed, "t2raw_seed/F");
+  outputTree->Branch("t2raw_subseed", &t2raw_subseed, "t2raw_subseed/F");
   outputTree->Branch("ele1E", &ele1E, "ele1E/F");
-  outputTree->Branch("ele1SeedE", &ele1SeedE, "ele1SeedE/F");
+  outputTree->Branch("ele1seedE", &ele1seedE, "ele1seedE/F");
+  outputTree->Branch("ele1subseedE", &ele1subseedE, "ele1subseedE/F");
   outputTree->Branch("ele1Pt", &ele1Pt, "ele1Pt/F");
   outputTree->Branch("ele1Eta", &ele1Eta, "ele1Eta/F");
   outputTree->Branch("ele1Phi", &ele1Phi, "ele1Phi/F");
   outputTree->Branch("ele1IsEB", &ele1IsEB, "ele1IsEB/O");
-  outputTree->Branch("ele1SeedIEta", &ele1SeedIEta, "ele1SeedIEta/I");
-  outputTree->Branch("ele1SeedIPhi", &ele1SeedIPhi, "ele1SeedIPhi/I");
-  outputTree->Branch("ele1SeedIX", &ele1SeedIX, "ele1SeedIX/I");
-  outputTree->Branch("ele1SeedIY", &ele1SeedIY, "ele1SeedIY/I");
+  outputTree->Branch("ele1seedIEta", &ele1seedIEta, "ele1seedIEta/I");
+  outputTree->Branch("ele1subseedIEta", &ele1subseedIEta, "ele1subseedIEta/I");
+  outputTree->Branch("ele1seedIPhi", &ele1seedIPhi, "ele1seedIPhi/I");
+  outputTree->Branch("ele1subseedIPhi", &ele1subseedIPhi, "ele1subseedIPhi/I");
+  outputTree->Branch("ele1seedIX", &ele1seedIX, "ele1seedIX/I");
+  outputTree->Branch("ele1subseedIX", &ele1subseedIX, "ele1subseedIX/I");
+  outputTree->Branch("ele1seedIY", &ele1seedIY, "ele1seedIY/I");
+  outputTree->Branch("ele1subseedIY", &ele1subseedIY, "ele1subseedIY/I");
   outputTree->Branch("ele2E", &ele2E, "ele2E/F");
-  outputTree->Branch("ele2SeedE", &ele2SeedE, "ele2SeedE/F");
+  outputTree->Branch("ele2seedE", &ele2seedE, "ele2seedE/F");
+  outputTree->Branch("ele2subseedE", &ele2subseedE, "ele2subseedE/F");
   outputTree->Branch("ele2Pt", &ele2Pt, "ele2Pt/F");
   outputTree->Branch("ele2Eta", &ele2Eta, "ele2Eta/F");
   outputTree->Branch("ele2Phi", &ele2Phi, "ele2Phi/F");
   outputTree->Branch("ele2IsEB", &ele2IsEB, "ele2IsEB/O");
-  outputTree->Branch("ele2SeedIEta", &ele2SeedIEta, "ele2SeedIEta/I");
-  outputTree->Branch("ele2SeedIPhi", &ele2SeedIPhi, "ele2SeedIPhi/I");
-  outputTree->Branch("ele2SeedIX", &ele2SeedIX, "ele2SeedIX/I");
-  outputTree->Branch("ele2SeedIY", &ele2SeedIY, "ele2SeedIY/I");
+  outputTree->Branch("ele2seedIEta", &ele2seedIEta, "ele2seedIEta/I");
+  outputTree->Branch("ele2subseedIEta", &ele2subseedIEta, "ele2subseedIEta/I");
+  outputTree->Branch("ele2seedIPhi", &ele2seedIPhi, "ele2seedIPhi/I");
+  outputTree->Branch("ele2subseedIPhi", &ele2subseedIPhi, "ele2subseedIPhi/I");
+  outputTree->Branch("ele2seedIX", &ele2seedIX, "ele2seedIX/I");
+  outputTree->Branch("ele2subseedIX", &ele2subseedIX, "ele2subseedIX/I");
+  outputTree->Branch("ele2seedIY", &ele2seedIY, "ele2seedIY/I");
+  outputTree->Branch("ele2subseedIY", &ele2subseedIY, "ele2subseedIY/I");
   outputTree->Branch("ecalElectronRechit_E", "std::vector<float>",&ecalElectronRechit_E);
   outputTree->Branch("ecalElectronRechit_rawT", "std::vector<float>",&ecalElectronRechit_rawT);
   outputTree->Branch("ecalElectronRechit_Eta", "std::vector<float>",&ecalElectronRechit_Eta);
@@ -300,41 +330,63 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
     t2 = -999;
     t1_SmearToData = -999;
     t1_seed_SmearToData = -999;
+    t1_subseed_SmearToData = -999;
     t1_ShiftToData = -999;
     t1_seed_ShiftToData = -999;
+    t1_subseed_ShiftToData = -999;
     t2_SmearToData = -999;
     t2_seed_SmearToData = -999;
+    t2_subseed_SmearToData = -999;
     t2_ShiftToData = -999;
     t2_seed_ShiftToData = -999;
+    t2_subseed_ShiftToData = -999;
     t1_TOF2 = -999;
     t2_TOF2 = -999;
     t1_seed = -999;
+    t1_subseed = -999;
     t2_seed = -999;
+    t2_subseed = -999;
     seed1_pedestal = -999;
+    subseed1_pedestal = -999;
     seed2_pedestal = -999;
+    subseed2_pedestal = -999;
     seed1_transpCorr = -999;
+    subseed1_transpCorr = -999;
     seed2_transpCorr = -999;
+    subseed2_transpCorr = -999;
     t1raw_seed = -999;
+    t1raw_subseed = -999;
     t2raw_seed = -999;
+    t2raw_subseed = -999;
     ele1E = -999; 
-    ele1SeedE = -999; 
+    ele1seedE = -999; 
+    ele1subseedE = -999; 
     ele1Pt = -999;
     ele1Eta = -999;
     ele1Phi = -999;
     ele2E = -999;
-    ele2SeedE = -999; 
+    ele2seedE = -999; 
+    ele2subseedE = -999; 
     ele2Pt = -999;
     ele2Eta = -999;
     ele2Phi = -999;
-    ele1SeedIEta = -999;
-    ele1SeedIPhi = -999;
-    ele1SeedIX = -999;
-    ele1SeedIY = -999;
+    ele1seedIEta = -999;
+    ele1subseedIEta = -999;
+    ele1seedIPhi = -999;
+    ele1subseedIPhi = -999;
+    ele1seedIX = -999;
+    ele1subseedIX = -999;
+    ele1seedIY = -999;
+    ele1subseedIY = -999;
     ele1IsEB = 0;
-    ele2SeedIEta = -999;
-    ele2SeedIPhi = -999;
-    ele2SeedIX = -999;
-    ele2SeedIY = -999; 
+    ele2seedIEta = -999;
+    ele2subseedIEta = -999;
+    ele2seedIPhi = -999;
+    ele2subseedIPhi = -999;
+    ele2seedIX = -999;
+    ele2subseedIX = -999;
+    ele2seedIY = -999; 
+    ele2subseedIY = -999; 
     ele2IsEB = 0;
     NPU = 0;   
     ecalElectronRechit_E->clear();
@@ -381,9 +433,13 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
     double ele1_time_TOF2 = 0;
     double ele2_time_TOF2 = 0;
     double ele1_seedtime = 0;
+    double ele1_subseedtime = 0;
     double ele2_seedtime = 0;
+    double ele2_subseedtime = 0;
     double ele1_seedtimeraw = 0;
+    double ele1_subseedtimeraw = 0;
     double ele2_seedtimeraw = 0;
+    double ele2_subseedtimeraw = 0;
 
     for(int i = 0; i < nElectrons; i++){
       //if(elePt[i] < 35) continue;
@@ -398,21 +454,74 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
       //rough definition
       uint seedhitIndex =  (*ele_SeedRechitIndex)[i];
       bool isFromEB = bool( (*ecalRechit_ID)[seedhitIndex] < 840000000 );
-      double rawSeedHitTime =  (*ecalRechit_T)[seedhitIndex];
-      double eleSeedE =  (*ecalRechit_E)[seedhitIndex];
+      double rawseedHitTime =  (*ecalRechit_T)[seedhitIndex];
+      double eleseedE =  (*ecalRechit_E)[seedhitIndex];
+      if(eleseedE < 10.0) continue;
 
+      //find the subseed: the highest energy crystal among the neighboring crystals of the seed 
+      int seed_iEtaiX = 0; 
+      int seed_iPhiiY = 0; 
+      if(isFromEB)
+      {
+		seed_iEtaiX = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
+		seed_iPhiiY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
+      }
+      else
+      {
+		seed_iEtaiX = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+                seed_iPhiiY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+      }
+
+      double elesubseedE = -999.0;
+      uint subseedhitIndex = 0;
+
+      for (uint k=0; k<(*ele_EcalRechitIndex)[i].size(); ++k) {
+        uint rechitIndex = (*ele_EcalRechitIndex)[i][k];
+	if (rechitIndex == seedhitIndex) continue;
+
+	double thisRechitE =(*ecalRechit_E)[rechitIndex];
+	if (thisRechitE < elesubseedE) continue;
+
+	bool isThisfromEB = bool( (*ecalRechit_ID)[rechitIndex] < 840000000 );
+	int this_iEtaiX = 0;
+	int this_iPhiiY = 0;
+        if(isThisfromEB)
+	{
+		this_iEtaiX = iEta_or_iX_from_detID( (*ecalRechit_ID)[rechitIndex] , true);
+                this_iPhiiY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[rechitIndex] , true);
+	}
+	else
+	{
+		this_iEtaiX = iEta_or_iX_from_detID( (*ecalRechit_ID)[rechitIndex] , false);
+                this_iPhiiY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[rechitIndex] , false);	
+	}
+	int distance_from_seed = (this_iEtaiX-seed_iEtaiX)*(this_iEtaiX-seed_iEtaiX) + (this_iPhiiY-seed_iPhiiY)*(this_iPhiiY-seed_iPhiiY);
+	if(distance_from_seed >  1) continue;//only accept neighboring crystals
+	
+	if(thisRechitE > elesubseedE)
+	{
+		elesubseedE = thisRechitE;
+		subseedhitIndex = rechitIndex;
+	}
+
+      }
+	
+      double rawsubseedHitTime =  (*ecalRechit_T)[subseedhitIndex];
+	
       //apply TOF correction
-      double TOFCorrectedSeedHitTime = rawSeedHitTime + (std::sqrt(pow((*ecalRechit_X)[seedhitIndex],2)+pow((*ecalRechit_Y)[seedhitIndex],2)+pow((*ecalRechit_Z)[seedhitIndex],2))-std::sqrt(pow((*ecalRechit_X)[seedhitIndex]-pvX,2)+pow((*ecalRechit_Y)[seedhitIndex]-pvY,2)+pow((*ecalRechit_Z)[seedhitIndex]-pvZ,2)))/SPEED_OF_LIGHT;
+      double TOFCorrectedseedHitTime = rawseedHitTime + (std::sqrt(pow((*ecalRechit_X)[seedhitIndex],2)+pow((*ecalRechit_Y)[seedhitIndex],2)+pow((*ecalRechit_Z)[seedhitIndex],2))-std::sqrt(pow((*ecalRechit_X)[seedhitIndex]-pvX,2)+pow((*ecalRechit_Y)[seedhitIndex]-pvY,2)+pow((*ecalRechit_Z)[seedhitIndex]-pvZ,2)))/SPEED_OF_LIGHT;
+      double TOFCorrectedsubseedHitTime = rawsubseedHitTime + (std::sqrt(pow((*ecalRechit_X)[subseedhitIndex],2)+pow((*ecalRechit_Y)[subseedhitIndex],2)+pow((*ecalRechit_Z)[subseedhitIndex],2))-std::sqrt(pow((*ecalRechit_X)[subseedhitIndex]-pvX,2)+pow((*ecalRechit_Y)[subseedhitIndex]-pvY,2)+pow((*ecalRechit_Z)[subseedhitIndex]-pvZ,2)))/SPEED_OF_LIGHT;
 
 
       // cout << "Ele: " << i << " : " << elePt[i] << " " << eleEta[i] << " : \n" 
       //	<< "  runNum: " << runNum << "  detID: " << (*ecalRechit_ID)[seedhitIndex] << "  IC_time_SeptRereco: " << IC_time_SeptRereco << "  IC_time_LagacyRereco: " << IC_time_LagacyRereco << " \n"
-      //   	<< " " << rawSeedHitTime << " -> " << calibratedSeedHitTime << " -> " << TOFCorrectedSeedHitTime << " "
+      //   	<< " " << rawseedHitTime << " -> " << calibratedseedHitTime << " -> " << TOFCorrectedseedHitTime << " "
       //	<< "\n";
  
 
 
       double seedPedNoise = isData ? getPedestalNoise(tree_pedestal, start_time,end_time, eventTime, (*ecalRechit_ID)[seedhitIndex]) : 1.0;
+      double subseedPedNoise = isData ? getPedestalNoise(tree_pedestal, start_time,end_time, eventTime, (*ecalRechit_ID)[subseedhitIndex]) : 1.0;
    
       double tmpSumWeightedTime = 0;
       double tmpSumWeightedTime_TOF2 = 0;
@@ -436,21 +545,22 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
 
 	bool isEBrechit = bool( abs((*ecalRechit_Eta)[rechitIndex]) < 1.5 );
         if (isEBrechit) {
-          ecalElectronRechit_IEtaIX->push_back(iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true));
-          ecalElectronRechit_IPhiIY->push_back(iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , true));
+          ecalElectronRechit_IEtaIX->push_back(iEta_or_iX_from_detID( (*ecalRechit_ID)[rechitIndex] , true));
+          ecalElectronRechit_IPhiIY->push_back(iPhi_or_iY_from_detID( (*ecalRechit_ID)[rechitIndex] , true));
         } else {
-          ecalElectronRechit_IEtaIX->push_back(iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , false));
-          ecalElectronRechit_IPhiIY->push_back(iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , false));
+          ecalElectronRechit_IEtaIX->push_back(iEta_or_iX_from_detID( (*ecalRechit_ID)[rechitIndex] , false));
+          ecalElectronRechit_IPhiIY->push_back(iPhi_or_iY_from_detID( (*ecalRechit_ID)[rechitIndex] , false));
         }	
 
-	double pedNoise = isData ? getPedestalNoise(tree_pedestal, start_time,end_time, eventTime, (*ecalRechit_ID)[rechitIndex]) : 1.0;
+	double pedNoise = isData ? getPedestalNoise(tree_pedestal, start_time,end_time, eventTime, (*ecalRechit_ID)[rechitIndex]) : 0.042; // 42 MeV for MC
 	//double pedNoise = 1;
 	double ADCToGeV = isData ? getADCToGeV(runNum, isFromEB) : 1.0;
 	double sigmaE = pedNoise * ADCToGeV;
 
-	double sigmaT2 = N_EB*N_EB / ((*ecalRechit_E)[rechitIndex] * (*ecalRechit_E)[rechitIndex] / (sigmaE*sigmaE)) + 2.0 * C_EB * C_EB;
-
- 	if(!isData) sigmaT2 = 1.0 / ((*ecalRechit_E)[rechitIndex] * (*ecalRechit_E)[rechitIndex] / (sigmaE*sigmaE));
+	double sigmaT2 = 0.5*N_EB*N_EB / ((*ecalRechit_E)[rechitIndex] * (*ecalRechit_E)[rechitIndex] / (sigmaE*sigmaE)) + C_EB * C_EB;
+	
+	if(!isData) sigmaT2 = 0.5*N_EB_MC*N_EB_MC / ((*ecalRechit_E)[rechitIndex] * (*ecalRechit_E)[rechitIndex] / (sigmaE*sigmaE)) + C_EB_MC * C_EB_MC;
+ 	//if(!isData) sigmaT2 = 1.0 / ((*ecalRechit_E)[rechitIndex] * (*ecalRechit_E)[rechitIndex] / (sigmaE*sigmaE));
 
 	tmpSumWeightedTime += corrT * ( 1.0 / sigmaT2 );
 	tmpSumWeightedTime_TOF2 += rawT_this * ( 1.0 / sigmaT2 );
@@ -465,45 +575,71 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
       if (thisElectron.Pt() > ele1.Pt()) {
 	ele1 = thisElectron;
 	seed1_pedestal = seedPedNoise; 
+	subseed1_pedestal = subseedPedNoise; 
 	if(isData) seed1_transpCorr = (*ecalRechit_transpCorr)[seedhitIndex]; 
+	if(isData) subseed1_transpCorr = (*ecalRechit_transpCorr)[subseedhitIndex]; 
 	ele1_time = weightedTime;
 	ele1_time_TOF2 = weightedTime_TOF2;
-	ele1_seedtime = TOFCorrectedSeedHitTime;
-	ele1_seedtimeraw = rawSeedHitTime;
-	ele1SeedE = eleSeedE;
+	ele1_seedtime = TOFCorrectedseedHitTime;
+	ele1_subseedtime = TOFCorrectedsubseedHitTime;
+	ele1_seedtimeraw = rawseedHitTime;
+	ele1_subseedtimeraw = rawsubseedHitTime;
+	ele1seedE = eleseedE;
+	ele1subseedE = elesubseedE;
 	ele1IsEB = bool( abs(eleEta_SC[i]) < 1.5 );
 	if (ele1IsEB) {
-	  ele1SeedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
-	  ele1SeedIPhi = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
-	  ele1SeedIX = -999;
-	  ele1SeedIY = -999;
+	  ele1seedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
+	  ele1subseedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[subseedhitIndex] , true);
+	  ele1seedIPhi = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
+	  ele1subseedIPhi = iPhi_or_iY_from_detID( (*ecalRechit_ID)[subseedhitIndex] , true);
+	  ele1seedIX = -999;
+	  ele1subseedIX = -999;
+	  ele1seedIY = -999;
+	  ele1subseedIY = -999;
 	} else {
-	  ele1SeedIEta = -999;
-	  ele1SeedIPhi = -999;
-	  ele1SeedIX = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
-	  ele1SeedIY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+	  ele1seedIEta = -999;
+	  ele1subseedIEta = -999;
+	  ele1seedIPhi = -999;
+	  ele1subseedIPhi = -999;
+	  ele1seedIX = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+	  ele1subseedIX = iEta_or_iX_from_detID( (*ecalRechit_ID)[subseedhitIndex] , false);
+	  ele1seedIY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+	  ele1subseedIY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[subseedhitIndex] , false);
 	}
 
       } else if (thisElectron.Pt() > ele2.Pt()) {
 	ele2 = thisElectron;
 	seed2_pedestal = seedPedNoise; 
+	subseed2_pedestal = subseedPedNoise; 
 	if(isData) seed2_transpCorr = (*ecalRechit_transpCorr)[seedhitIndex]; 
+	if(isData) subseed2_transpCorr = (*ecalRechit_transpCorr)[subseedhitIndex]; 
 	ele2_time = weightedTime;
 	ele2_time_TOF2 = weightedTime_TOF2;
-	ele2_seedtime = TOFCorrectedSeedHitTime; 
- 	ele2_seedtimeraw = rawSeedHitTime;
-	ele2SeedE = eleSeedE;
+	ele2_seedtime = TOFCorrectedseedHitTime; 
+	ele2_subseedtime = TOFCorrectedsubseedHitTime; 
+ 	ele2_seedtimeraw = rawseedHitTime;
+ 	ele2_subseedtimeraw = rawsubseedHitTime;
+	ele2seedE = eleseedE;
+	ele2subseedE = elesubseedE;
  	ele2IsEB = bool( abs(eleEta_SC[i]) < 1.5 );
 	if (ele2IsEB) {
-	  ele2SeedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
-	  ele2SeedIPhi = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
-	  ele2SeedIX = -999;
-	  ele2SeedIY = -999;
+	  ele2seedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
+	  ele2subseedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[subseedhitIndex] , true);
+	  ele2seedIPhi = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
+	  ele2subseedIPhi = iPhi_or_iY_from_detID( (*ecalRechit_ID)[subseedhitIndex] , true);
+	  ele2seedIX = -999;
+	  ele2subseedIX = -999;
+	  ele2seedIY = -999;
+	  ele2subseedIY = -999;
 	} else {
-	  ele2SeedIEta = -999;
-	  ele2SeedIPhi = -999;
-	  ele2SeedIX = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
-	  ele2SeedIY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+	  ele2seedIEta = -999;
+	  ele2subseedIEta = -999;
+	  ele2seedIPhi = -999;
+	  ele2subseedIPhi = -999;
+	  ele2seedIX = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+	  ele2subseedIX = iEta_or_iX_from_detID( (*ecalRechit_ID)[subseedhitIndex] , false);
+	  ele2seedIY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+	  ele2subseedIY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[subseedhitIndex] , false);
 	}
 
       }	
@@ -525,10 +661,15 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
       t2 = ele2_time;
       t2_TOF2 = ele2_time_TOF2;
       t1_seed = ele1_seedtime;
+      t1_subseed = ele1_subseedtime;
       t2_seed = ele2_seedtime;
+      t2_subseed = ele2_subseedtime;
       t1raw_seed = ele1_seedtimeraw;
+      t1raw_subseed = ele1_subseedtimeraw;
       t2raw_seed = ele2_seedtimeraw;
+      t2raw_subseed = ele2_subseedtimeraw;
        //cout << "ele2: " << ele2.Pt() << " " << ele2_seedtime << "\n";
+       //cout << "ele2: " << ele2.Pt() << " " << ele2_subseedtime << "\n";
 
 if(!isData)
 {
@@ -557,16 +698,22 @@ if(!isData)
         std::mt19937 e2(rd());
         std::normal_distribution<> dist1(t1, TR_SMEAR1);
         std::normal_distribution<> dist1_seed(t1_seed, TR_SMEAR1);
+        std::normal_distribution<> dist1_subseed(t1_subseed, TR_SMEAR1);
         std::normal_distribution<> dist2(t2, TR_SMEAR2);
         std::normal_distribution<> dist2_seed(t2_seed, TR_SMEAR2);
+        std::normal_distribution<> dist2_subseed(t2_subseed, TR_SMEAR2);
         t1_SmearToData = dist1(e2) + TR_SHIFT1;
         t1_seed_SmearToData = dist1_seed(e2) + TR_SHIFT1;
+        t1_subseed_SmearToData = dist1_subseed(e2) + TR_SHIFT1;
         t1_ShiftToData = t1 + TR_SHIFT1;
         t1_seed_ShiftToData = t1_seed + TR_SHIFT1;
+        t1_subseed_ShiftToData = t1_subseed + TR_SHIFT1;
         t2_SmearToData = dist2(e2) + TR_SHIFT2;
         t2_seed_SmearToData = dist2_seed(e2) + TR_SHIFT2;
+        t2_subseed_SmearToData = dist2_subseed(e2) + TR_SHIFT2;
         t2_ShiftToData = t2 + TR_SHIFT2;
         t2_seed_ShiftToData = t2_seed + TR_SHIFT2;
+        t2_subseed_ShiftToData = t2_subseed + TR_SHIFT2;
 }
 else
 {
@@ -576,9 +723,13 @@ else
         t2_ShiftToData = t2;
 
   	t1_seed_SmearToData = t1_seed;
+  	t1_subseed_SmearToData = t1_subseed;
         t1_seed_ShiftToData = t1_seed;
+        t1_subseed_ShiftToData = t1_subseed;
         t2_seed_SmearToData = t2_seed;
+        t2_subseed_SmearToData = t2_subseed;
         t2_seed_ShiftToData = t2_seed;
+        t2_subseed_ShiftToData = t2_subseed;
 
 }
 
