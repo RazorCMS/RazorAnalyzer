@@ -94,6 +94,7 @@ struct evt
 
 #define _phodebug 0
 #define _debug    0
+#define _metdebug 0
 #define _info     1
 
 const double EB_R = 129.0;
@@ -406,6 +407,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   float theRsq, theRsq_JESUp, theRsq_JESDown, t1Rsq, t1Rsq_JESUp, t1Rsq_JESDown;
   float genMetRsq;
   float MET, MET_JESUp, MET_JESDown, t1MET, t1MET_JESUp, t1MET_JESDown;
+  float MET_RecV1, MET_RecV2, t1MET_RecV1, t1MET_RecV2;
   float HT;
 
 
@@ -590,6 +592,14 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   razorTree->Branch("t1MET_JESDown", &t1MET_JESDown, "t1MET_JESDown/F");
   razorTree->Branch("HT", &HT, "HT/F");
 
+  //2017F MET RECIPE
+  /*
+  razorTree->Branch("MET_RecV1", &MET_RecV1, "MET_RecV1/F");
+  razorTree->Branch("MET_RecV2", &MET_RecV2, "MET_RecV2/F");
+  razorTree->Branch("t1MET_RecV1", &t1MET_RecV1, "t1MET_RecV1/F");
+  razorTree->Branch("t1MET_RecV2", &t1MET_RecV2, "t1MET_RecV2/F");
+  */
+
   razorTree->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
   razorTree->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
   razorTree->Branch("pTGammaGamma", &pTGammaGamma, "pTGammaGamma/F");
@@ -702,6 +712,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   std::cout << "[INFO]: Total Entries = " << fChain->GetEntries() << "\n";
   for ( Long64_t jentry=0; jentry < nentries; jentry++ )
     {
+      if(_metdebug) std::cout << "[INFO]: Processing entry " << jentry << std::endl;
       //begin event
       if( _info && (jentry % 10000 == 0) ) std::cout << "[INFO]: Processing entry " << jentry << std::endl;
       Long64_t ientry = LoadTree( jentry );
@@ -1869,6 +1880,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
         if( thisJet.Pt() < BJET_CUT ) continue;//According to the April 1st 2015 A
         if( fabs( thisJet.Eta() ) >= 2.4 ) continue;
+        //ECAL Prefiring Recipe
+        //if( thisJet.Pt() > 100. && fabs( thisJet.Eta() ) > 2.25 ) continue;
         if (!isFastsimSMS)
         {
           if ( !jetPassIDLoose[i] ) continue;
@@ -2519,6 +2532,11 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       float MetYCorr_JESUp = 0;
       float MetXCorr_JESDown = 0;
       float MetYCorr_JESDown = 0;
+      //variables for 2017F MET RECIPE
+      float metX_RecV1 =0;
+      float metY_RecV1 =0;
+      float metX_RecV2 =0;
+      float metY_RecV2 =0;
 
       vector<TLorentzVector> GoodJets;
       std::vector< JetCandidate > jetCand;
@@ -2528,6 +2546,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       vector<TLorentzVector> GoodJetsJESUp;
       vector<TLorentzVector> GoodJetsJESDown;
 
+      std::cout << "[INFO]: begin jet loop \n"<< std::endl;
       for(int i = 0; i < nJets; i++)
       {
         //Jet Energy Corrections
@@ -2535,8 +2554,27 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 						                                    fixedGridRhoAll, jetJetArea[i], runNum,
 						                                    JetCorrectorIOV, JetCorrector );
         TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
+        //2017F MET RECIPE
+        TLorentzVector thisJet_Raw = makeTLorentzVector( jetPt[i], jetEta[i], jetPhi[i], jetE[i] );
+        if(thisJet.Pt() < 50. &&  (fabs(thisJet.Eta()) > 2.65 && fabs(thisJet.Eta()) < 3.139) )
+        //if(thisJet.Pt() < 75. &&  (fabs(thisJet.Eta()) > 2.65 && fabs(thisJet.Eta()) < 3.139) )
+        {
+                metX_RecV1 += thisJet.Px() - thisJet_Raw.Px(); //equivalent to metX_RecV1 += (JEC-1)*thisJet_Raw.Px();
+                metY_RecV1 += thisJet.Py() - thisJet_Raw.Py(); //equivalent to metY_RecV1 += (JEC-1)*thisJet_Raw.Py();
+                metX_RecV2 += thisJet.Px();
+                metY_RecV2 += thisJet.Py();
+                if(_metdebug) std::cout << "[satisfy MET_V2]: no. " << i << "\n"<< std::endl;
+                if(_metdebug) std::cout << "[satisfy MET_V2]: jetPt " << jetPt[i] << ", jetPt*JEC " << jetPt[i]*JEC << "\n"<< std::endl;
+                if(_metdebug) std::cout << "[satisfy MET_V2]: jetJECPx " << thisJet.Px() << ", jetJECPy " << thisJet.Py() << "\n"<< std::endl;
+        }
+        //if(_metdebug) std::cout << "[MET_V1]: metX_RecV1 " << metX_RecV1 << "\n"<< std::endl;
+        //if(_metdebug) std::cout << "[MET_V1]: metY_RecV1 " << metY_RecV1 << "\n"<< std::endl;
+        if(_metdebug) std::cout << "[MET_V2]: metX_RecV2 " << metX_RecV2 << "\n"<< std::endl;
+        if(_metdebug) std::cout << "[MET_V2]: metY_RecV2 " << metY_RecV2 << "\n"<< std::endl;
         if( thisJet.Pt() < JET_CUT ) continue;//According to the April 1st 2015 AN
         if( fabs( thisJet.Eta() ) >= 2.4 ) continue;
+        //ECAL Prefiring Recipe
+        //if( thisJet.Pt() > 100. && fabs( thisJet.Eta() ) > 2.25 ) continue;
         if (!isFastsimSMS)
         {
           if ( !jetPassIDLoose[i] ) continue;
@@ -2599,62 +2637,6 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
                           MetXCorr_JESDown += -1 * (thisJetJESDown.Px() - thisJet.Px());
                           MetYCorr_JESDown += -1 * (thisJetJESDown.Py() - thisJet.Py());
           }
-/*
-          //2017 MET RECIPE V1
-          if (jetPtJESUp > 20)
-          { 
-                  if(thisJet.Pt() < 75. &&  (fabs(thisJet.Eta()) > 2.65 || fabs(thisJet.Eta()) < 3.139) )
-                  {
-                          MetXCorr_JESUp += (JEC-1) * (thisJetJESUp.Px() - thisJet.Px());
-                          MetYCorr_JESUp += (JEC-1) * (thisJetJESUp.Py() - thisJet.Py());
-                  }
-                  else
-                  {
-                          MetXCorr_JESUp += -1 * (thisJetJESUp.Px() - thisJet.Px());
-                          MetYCorr_JESUp += -1 * (thisJetJESUp.Py() - thisJet.Py());
-                  }
-          }
-          if (jetPtJESDown > 20)
-          {
-                  if(thisJet.Pt() < 75. &&  (fabs(thisJet.Eta()) > 2.65 || fabs(thisJet.Eta()) < 3.139) )
-                  {
-                          MetXCorr_JESDown += (JEC-1) * (thisJetJESDown.Px() - thisJet.Px());
-                          MetYCorr_JESDown += (JEC-1) * (thisJetJESDown.Py() - thisJet.Py());
-                  }
-                  else
-                  {
-                          MetXCorr_JESDown += -1 * (thisJetJESDown.Px() - thisJet.Px());
-                          MetYCorr_JESDown += -1 * (thisJetJESDown.Py() - thisJet.Py());
-                  }
-          }
-          //2017 MET RECIPE V2
-          if (jetPtJESUp > 20)
-          { 
-                  if(thisJet.Pt() < 75. &&  (fabs(thisJet.Eta()) > 2.65 || fabs(thisJet.Eta()) < 3.139) )
-                  {
-                          MetXCorr_JESUp += JEC * (thisJetJESUp.Px() - thisJet.Px());
-                          MetYCorr_JESUp += JEC * (thisJetJESUp.Py() - thisJet.Py());
-                  }
-                  else
-                  {
-                          MetXCorr_JESUp += -1 * (thisJetJESUp.Px() - thisJet.Px());
-                          MetYCorr_JESUp += -1 * (thisJetJESUp.Py() - thisJet.Py());
-                  }
-          }
-          if (jetPtJESDown > 20)
-          {
-                  if(thisJet.Pt() < 75. &&  (fabs(thisJet.Eta()) > 2.65 || fabs(thisJet.Eta()) < 3.139) )
-                  {
-                          MetXCorr_JESDown += JEC * (thisJetJESDown.Px() - thisJet.Px());
-                          MetYCorr_JESDown += JEC * (thisJetJESDown.Py() - thisJet.Py());
-                  }
-                  else
-                  {
-                          MetXCorr_JESDown += -1 * (thisJetJESDown.Px() - thisJet.Px());
-                          MetYCorr_JESDown += -1 * (thisJetJESDown.Py() - thisJet.Py());
-                  }
-          }
-*/          
           if ( jetPtJESUp > JET_CUT )
           {
             GoodJetsJESUp.push_back(thisJetJESUp);
@@ -2667,6 +2649,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           }
         }
       } //loop over jets
+      std::cout << "[INFO]: end jet loop \n"<< std::endl;
       //--------------------
       //Store jet info
       //---------------------
@@ -2722,6 +2705,47 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 
       MET = metPt;
       t1MET = metType1Pt;
+      if(_metdebug) std::cout << "[t1MET]: metType1Pt " << metType1Pt << "\n"<< std::endl;
+      //if(_metdebug) std::cout << "[t1MET]: t1MET " << t1MET << "\n"<< std::endl;
+      if(_metdebug) std::cout << "[t1MET]: t1PFMET.Px() " << t1PFMET.Px() << "\n"<< std::endl;
+      if(_metdebug) std::cout << "[t1MET]: t1PFMET.Py() " << t1PFMET.Py() << "\n"<< std::endl;
+
+        //2017F MET RECIPE
+        float MetX_RecV1 = PFMET.Px() + metX_RecV1;
+        float MetY_RecV1 = PFMET.Py() + metY_RecV1;
+        float MetX_RecV2 = PFMET.Px() + metX_RecV2;
+        float MetY_RecV2 = PFMET.Py() + metY_RecV2;
+        float t1MetX_RecV1 = t1PFMET.Px() + metX_RecV1;
+        float t1MetY_RecV1 = t1PFMET.Py() + metY_RecV1;
+        float t1MetX_RecV2 = t1PFMET.Px() + metX_RecV2;
+        float t1MetY_RecV2 = t1PFMET.Py() + metY_RecV2;
+        //if(_metdebug) std::cout << "[MET_V1]: MetX_RecV1 " << MetX_RecV1 << "\n"<< std::endl;
+        //if(_metdebug) std::cout << "[MET_V1]: MetY_RecV1 " << MetY_RecV1 << "\n"<< std::endl;
+        //if(_metdebug) std::cout << "[MET_V2]: MetX_RecV2 " << MetX_RecV2 << "\n"<< std::endl;
+        //if(_metdebug) std::cout << "[MET_V2]: MetY_RecV2 " << MetY_RecV2 << "\n"<< std::endl;
+        //if(_metdebug) std::cout << "[t1MET_V1]: t1MetX_RecV1 " << t1MetX_RecV1 << "\n"<< std::endl;
+        //if(_metdebug) std::cout << "[t1MET_V1]: t1MetY_RecV1 " << t1MetY_RecV1 << "\n"<< std::endl;
+        if(_metdebug) std::cout << "[t1MET_V2]: t1MetX_RecV2 " << t1MetX_RecV2 << "\n"<< std::endl;
+        if(_metdebug) std::cout << "[t1MET_V2]: t1MetY_RecV2 " << t1MetY_RecV2 << "\n"<< std::endl;
+
+        TLorentzVector PFMET_RecV1(MetX_RecV1, MetY_RecV1, 0, sqrt(pow(MetX_RecV1,2) + pow(MetY_RecV1,2) ));
+        TLorentzVector PFMET_RecV2(MetX_RecV2, MetY_RecV2, 0, sqrt(pow(MetX_RecV2,2) + pow(MetY_RecV2,2) ));
+        TLorentzVector t1PFMET_RecV1(t1MetX_RecV1, t1MetY_RecV1, 0, sqrt(pow(t1MetX_RecV1,2) + pow(t1MetY_RecV1,2) ));
+        TLorentzVector t1PFMET_RecV2(t1MetX_RecV2, t1MetY_RecV2, 0, sqrt(pow(t1MetX_RecV2,2) + pow(t1MetY_RecV2,2) ));
+
+        MET_RecV1  = PFMET_RecV1.Pt();
+        MET_RecV1  = PFMET_RecV2.Pt();
+        t1MET_RecV1  = t1PFMET_RecV1.Pt();
+        t1MET_RecV2  = t1PFMET_RecV2.Pt();
+        //t1MET = t1MET_RecV1;
+        //t1MET = t1MET_RecV2;
+        if(_metdebug) std::cout << "[t1MET]: t1MET " << t1MET << "\n"<< std::endl;
+        //if(_metdebug) std::cout << "[t1MET_V1]: t1MET_RecV1 " << t1MET_RecV1 << "\n"<< std::endl;
+        //if(_metdebug) std::cout << "[t1MET_V1]: t1PFMET_RecV1.Px() " << t1PFMET_RecV1.Px() << "\n"<< std::endl;
+        //if(_metdebug) std::cout << "[t1MET_V1]: t1PFMET_RecV1.Py() " << t1PFMET_RecV1.Py() << "\n"<< std::endl;
+        if(_metdebug) std::cout << "[t1MET_V2]: t1MET_RecV2 " << t1MET_RecV2 << "\n"<< std::endl;
+        if(_metdebug) std::cout << "[t1MET_V2]: t1PFMET_RecV2.Px() " << t1PFMET_RecV2.Px() << "\n"<< std::endl;
+        if(_metdebug) std::cout << "[t1MET_V2]: t1PFMET_RecV2.Py() " << t1PFMET_RecV2.Py() << "\n"<< std::endl;
 
       //need to implement the custom type1 MET corrections
       //Note: need to compute lep1MT at this point
@@ -2793,6 +2817,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         t1Rsq_JESDown  = computeRsq(hemispheres_JESDown[0], hemispheres_JESDown[1], t1PFMET_JESDown);
         MET_JESDown    = PFMET_JESDown.Pt();
         t1MET_JESDown  = t1PFMET_JESDown.Pt();
+        
       }
 
       if ( theMR < 0.0 )
