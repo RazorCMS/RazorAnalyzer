@@ -407,7 +407,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   float theRsq, theRsq_JESUp, theRsq_JESDown, t1Rsq, t1Rsq_JESUp, t1Rsq_JESDown;
   float genMetRsq;
   float MET, MET_JESUp, MET_JESDown, t1MET, t1MET_JESUp, t1MET_JESDown;
-  float MET_RecV1, MET_RecV2, t1MET_RecV1, t1MET_RecV2;
+  float MET_RecV2, t1MET_RecV2;
+  float Myt1MET;
   float HT;
 
 
@@ -593,12 +594,10 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   razorTree->Branch("HT", &HT, "HT/F");
 
   //2017F MET RECIPE
-  /*
-  razorTree->Branch("MET_RecV1", &MET_RecV1, "MET_RecV1/F");
   razorTree->Branch("MET_RecV2", &MET_RecV2, "MET_RecV2/F");
-  razorTree->Branch("t1MET_RecV1", &t1MET_RecV1, "t1MET_RecV1/F");
   razorTree->Branch("t1MET_RecV2", &t1MET_RecV2, "t1MET_RecV2/F");
-  */
+  razorTree->Branch("Myt1MET", &Myt1MET, "Myt1MET/F");
+  
 
   razorTree->Branch("nSelectedPhotons", &nSelectedPhotons, "nSelectedPhotons/I");
   razorTree->Branch("mGammaGamma", &mGammaGamma, "mGammaGamma/F");
@@ -2533,8 +2532,6 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       float MetXCorr_JESDown = 0;
       float MetYCorr_JESDown = 0;
       //variables for 2017F MET RECIPE
-      float metX_RecV1 =0;
-      float metY_RecV1 =0;
       float metX_RecV2 =0;
       float metY_RecV2 =0;
 
@@ -2556,19 +2553,15 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
         //2017F MET RECIPE
         TLorentzVector thisJet_Raw = makeTLorentzVector( jetPt[i], jetEta[i], jetPhi[i], jetE[i] );
-        if(thisJet.Pt() < 50. &&  (fabs(thisJet.Eta()) > 2.65 && fabs(thisJet.Eta()) < 3.139) )
         //if(thisJet.Pt() < 75. &&  (fabs(thisJet.Eta()) > 2.65 && fabs(thisJet.Eta()) < 3.139) )
+        if(thisJet.Pt() < 50. &&  (fabs(thisJet.Eta()) > 2.65 && fabs(thisJet.Eta()) < 3.139) )
         {
-                metX_RecV1 += thisJet.Px() - thisJet_Raw.Px(); //equivalent to metX_RecV1 += (JEC-1)*thisJet_Raw.Px();
-                metY_RecV1 += thisJet.Py() - thisJet_Raw.Py(); //equivalent to metY_RecV1 += (JEC-1)*thisJet_Raw.Py();
                 metX_RecV2 += thisJet.Px();
                 metY_RecV2 += thisJet.Py();
                 if(_metdebug) std::cout << "[satisfy MET_V2]: no. " << i << "\n"<< std::endl;
                 if(_metdebug) std::cout << "[satisfy MET_V2]: jetPt " << jetPt[i] << ", jetPt*JEC " << jetPt[i]*JEC << "\n"<< std::endl;
                 if(_metdebug) std::cout << "[satisfy MET_V2]: jetJECPx " << thisJet.Px() << ", jetJECPy " << thisJet.Py() << "\n"<< std::endl;
         }
-        //if(_metdebug) std::cout << "[MET_V1]: metX_RecV1 " << metX_RecV1 << "\n"<< std::endl;
-        //if(_metdebug) std::cout << "[MET_V1]: metY_RecV1 " << metY_RecV1 << "\n"<< std::endl;
         if(_metdebug) std::cout << "[MET_V2]: metX_RecV2 " << metX_RecV2 << "\n"<< std::endl;
         if(_metdebug) std::cout << "[MET_V2]: metY_RecV2 " << metY_RecV2 << "\n"<< std::endl;
         if( thisJet.Pt() < JET_CUT ) continue;//According to the April 1st 2015 AN
@@ -2706,43 +2699,27 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       MET = metPt;
       t1MET = metType1Pt;
       if(_metdebug) std::cout << "[t1MET]: metType1Pt " << metType1Pt << "\n"<< std::endl;
-      //if(_metdebug) std::cout << "[t1MET]: t1MET " << t1MET << "\n"<< std::endl;
+      if(_metdebug) std::cout << "[t1MET]: t1MET " << t1MET << "\n"<< std::endl;
       if(_metdebug) std::cout << "[t1MET]: t1PFMET.Px() " << t1PFMET.Px() << "\n"<< std::endl;
       if(_metdebug) std::cout << "[t1MET]: t1PFMET.Py() " << t1PFMET.Py() << "\n"<< std::endl;
 
         //2017F MET RECIPE
-        float MetX_RecV1 = PFMET.Px() + metX_RecV1;
-        float MetY_RecV1 = PFMET.Py() + metY_RecV1;
         float MetX_RecV2 = PFMET.Px() + metX_RecV2;
         float MetY_RecV2 = PFMET.Py() + metY_RecV2;
-        float t1MetX_RecV1 = t1PFMET.Px() + metX_RecV1;
-        float t1MetY_RecV1 = t1PFMET.Py() + metY_RecV1;
         float t1MetX_RecV2 = t1PFMET.Px() + metX_RecV2;
         float t1MetY_RecV2 = t1PFMET.Py() + metY_RecV2;
-        //if(_metdebug) std::cout << "[MET_V1]: MetX_RecV1 " << MetX_RecV1 << "\n"<< std::endl;
-        //if(_metdebug) std::cout << "[MET_V1]: MetY_RecV1 " << MetY_RecV1 << "\n"<< std::endl;
         //if(_metdebug) std::cout << "[MET_V2]: MetX_RecV2 " << MetX_RecV2 << "\n"<< std::endl;
         //if(_metdebug) std::cout << "[MET_V2]: MetY_RecV2 " << MetY_RecV2 << "\n"<< std::endl;
-        //if(_metdebug) std::cout << "[t1MET_V1]: t1MetX_RecV1 " << t1MetX_RecV1 << "\n"<< std::endl;
-        //if(_metdebug) std::cout << "[t1MET_V1]: t1MetY_RecV1 " << t1MetY_RecV1 << "\n"<< std::endl;
         if(_metdebug) std::cout << "[t1MET_V2]: t1MetX_RecV2 " << t1MetX_RecV2 << "\n"<< std::endl;
         if(_metdebug) std::cout << "[t1MET_V2]: t1MetY_RecV2 " << t1MetY_RecV2 << "\n"<< std::endl;
 
-        TLorentzVector PFMET_RecV1(MetX_RecV1, MetY_RecV1, 0, sqrt(pow(MetX_RecV1,2) + pow(MetY_RecV1,2) ));
         TLorentzVector PFMET_RecV2(MetX_RecV2, MetY_RecV2, 0, sqrt(pow(MetX_RecV2,2) + pow(MetY_RecV2,2) ));
-        TLorentzVector t1PFMET_RecV1(t1MetX_RecV1, t1MetY_RecV1, 0, sqrt(pow(t1MetX_RecV1,2) + pow(t1MetY_RecV1,2) ));
         TLorentzVector t1PFMET_RecV2(t1MetX_RecV2, t1MetY_RecV2, 0, sqrt(pow(t1MetX_RecV2,2) + pow(t1MetY_RecV2,2) ));
 
-        MET_RecV1  = PFMET_RecV1.Pt();
-        MET_RecV1  = PFMET_RecV2.Pt();
-        t1MET_RecV1  = t1PFMET_RecV1.Pt();
+        MET_RecV2  = PFMET_RecV2.Pt();
         t1MET_RecV2  = t1PFMET_RecV2.Pt();
-        //t1MET = t1MET_RecV1;
-        //t1MET = t1MET_RecV2;
-        if(_metdebug) std::cout << "[t1MET]: t1MET " << t1MET << "\n"<< std::endl;
-        //if(_metdebug) std::cout << "[t1MET_V1]: t1MET_RecV1 " << t1MET_RecV1 << "\n"<< std::endl;
-        //if(_metdebug) std::cout << "[t1MET_V1]: t1PFMET_RecV1.Px() " << t1PFMET_RecV1.Px() << "\n"<< std::endl;
-        //if(_metdebug) std::cout << "[t1MET_V1]: t1PFMET_RecV1.Py() " << t1PFMET_RecV1.Py() << "\n"<< std::endl;
+        Myt1MET = t1MET_RecV2;
+        if(_metdebug) std::cout << "[Myt1MET]: Myt1MET " << Myt1MET << "\n"<< std::endl;
         if(_metdebug) std::cout << "[t1MET_V2]: t1MET_RecV2 " << t1MET_RecV2 << "\n"<< std::endl;
         if(_metdebug) std::cout << "[t1MET_V2]: t1PFMET_RecV2.Px() " << t1PFMET_RecV2.Px() << "\n"<< std::endl;
         if(_metdebug) std::cout << "[t1MET_V2]: t1PFMET_RecV2.Py() " << t1PFMET_RecV2.Py() << "\n"<< std::endl;
