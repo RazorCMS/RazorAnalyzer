@@ -3114,7 +3114,7 @@ bool RazorAnalyzer::photonPassMediumIso_2017(int i, bool use25nsCuts, bool usePr
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
-      return photonPassesIsolation_2017(i, 1.416, 2.491 + 0.0126*phoPt[i] + 0.000026*phoPt[i]*phoPt[i], 2.952 + 0.0035*phoPt[i], true, usePrivatePF);
+      return photonPassesIsolation_2017(i, 1.416, 2.491 + 0.0126*phoPt[i] + 0.000026*phoPt[i]*phoPt[i], 2.952 + 0.0040*phoPt[i], true, usePrivatePF);
     } else {
       return photonPassesIsolation_2017(i, 1.012, 9.131 + 0.0119*phoPt[i] + 0.000025*phoPt[i]*phoPt[i], 4.095 + 0.0040*phoPt[i], true, usePrivatePF);
     }
@@ -3134,39 +3134,6 @@ bool RazorAnalyzer::photonPassTightIso_2017(int i, bool use25nsCuts, bool usePri
         return photonPassesIsolation_2017(i, 1.158, 1.267 + 0.0126*phoPt[i] + 0.000026*phoPt[i]*phoPt[i], 2.065 + 0.0035*phoPt[i], true, usePrivatePF);
     } else {
       return photonPassesIsolation_2017(i, 0.575, 8.916 + 0.0119*phoPt[i] + 0.000025*phoPt[i]*phoPt[i], 3.272 + 0.0040*phoPt[i], true, usePrivatePF);
-    }
-  }  else {
-    cout << "Warning: you are not using 25nsCuts. return false.\n";
-    return false;
-  }
-
-}
-// 92X values from EGamma twiki
-// https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Working_points_for_92X_and_later
-bool RazorAnalyzer::photonPassMediumIso_2017(int i, bool use25nsCuts, bool usePrivatePF){
-
-  if (use25nsCuts) {
-    if(fabs(pho_superClusterEta[i]) < 1.479){
-      return photonPassesIsolation_2017(i, 1.141, 1.189 + 0.01512*phoPt[i] + 2.259e-05*phoPt[i]*phoPt[i], 2.08 + 0.004017*phoPt[i], true, usePrivatePF);
-    } else {
-      return photonPassesIsolation_2017(i, 1.051, 2.718 + 0.0117*phoPt[i] + 2.3e-05*phoPt[i]*phoPt[i], 3.867 + 0.0037*phoPt[i], true, usePrivatePF);
-    }
-  } else {
-    cout << "Warning: you are not using 25nsCuts. return false.\n";
-    return false;
-  }
-
-}
-
-// 92X values from EGamma twiki
-// https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Working_points_for_92X_and_later
-bool RazorAnalyzer::photonPassTightIso_2017(int i, bool use25nsCuts, bool usePrivatePF){
-
-  if (use25nsCuts) {
-    if(fabs(pho_superClusterEta[i]) < 1.479){
-        return photonPassesIsolation_2017(i, 0.65, 0.317 + 0.01512*phoPt[i] + 2.259e-05*phoPt[i]*phoPt[i], 2.044 + 0.004017*phoPt[i], true, usePrivatePF);
-    } else {
-      return photonPassesIsolation_2017(i, 0.517, 2.716 + 0.0117*phoPt[i] + 2.3e-05*phoPt[i]*phoPt[i], 3.032 + 0.0037*phoPt[i], true, usePrivatePF);
     }
   }  else {
     cout << "Warning: you are not using 25nsCuts. return false.\n";
