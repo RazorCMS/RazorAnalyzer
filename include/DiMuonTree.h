@@ -21,7 +21,7 @@
       };
 
       /// variables
-      //UInt_t                  fi_evt;
+      UInt_t                  f_i_evt;
       Float_t                 f_weight;
       UInt_t                  f_run_number;
       UInt_t                  f_lumi_section_number;
@@ -57,7 +57,7 @@
       /// initialize varibles and fill list of available variables
       void InitVariables()
       {
-        fi_evt = 0;
+        f_i_evt = 0;
         ResetVariables();
       }
       void ResetVariables() {
@@ -96,6 +96,7 @@
         f_ = 0;
 
         //book the branches
+        tree_->Branch("i_evt",&f_i_evt,"i_evt/i");
         tree_->Branch("weight",&f_weight,"weight/F");
         tree_->Branch("run",&f_run_number,"run/i");
         tree_->Branch("lumi",&f_lumi_section_number,"lumi/i");
@@ -122,23 +123,23 @@
         InitVariables();
         //Set branch address
         Int_t currentState = gErrorIgnoreLevel;
-
+        tree_->SetBranchAddress("i_evt",&f_i_evt);
         tree_->SetBranchAddress("weight",&f_weight);
         tree_->SetBranchAddress("run",&f_run_number);
         tree_->SetBranchAddress("lumi",&f_lumi_section_number);
         tree_->SetBranchAddress("event",&f_event_number);
         //
-        tree_->Branch("mumu_mass",&f_mumu_mass);
-        tree_->Branch("mumu_pt",&f_mumu_pt);
-        tree_->Branch("mumu_eta",&f_mumu_eta);
-        tree_->Branch("mumu_phi",&f_mumu_phi);
+        tree_->SetBranchAddress("mumu_mass",&f_mumu_mass);
+        tree_->SetBranchAddress("mumu_pt",&f_mumu_pt);
+        tree_->SetBranchAddress("mumu_eta",&f_mumu_eta);
+        tree_->SetBranchAddress("mumu_phi",&f_mumu_phi);
         //
-        tree_->Branch("mu_pt",&f_mu_pt);
-        tree_->Branch("mu_eta",&f_mu_eta);
-        tree_->Branch("mu_phi",&f_mu_phi);
+        tree_->SetBranchAddress("mu_pt",&f_mu_pt);
+        tree_->SetBranchAddress("mu_eta",&f_mu_eta);
+        tree_->SetBranchAddress("mu_phi",&f_mu_phi);
         //
-        tree_->Branch("met_pt",&f_met_pt);
-        tree_->Branch("met_phi",&f_met_phi);
+        tree_->SetBranchAddress("met_pt",&f_met_pt);
+        tree_->SetBranchAddress("met_phi",&f_met_phi);
 
         gErrorIgnoreLevel = currentState;
       }
