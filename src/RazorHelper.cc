@@ -62,6 +62,11 @@ RazorHelper::RazorHelper(std::string tag_, bool isData_, bool isFastsim_):
         loadTag_Razor2017_17Nov2017Rereco();
     }
 
+    // tag for 2017 31Mar2018 Rereco
+    else if (tag == "Razor2017_31Mar2018Rereco") {
+        loadTag_Razor2017_31Mar2018Rereco();
+    }
+
    // tag not found
     else {
         std::cout << "Error in RazorHelper::RazorHelper : specified tag " << tag << " is not supported!" << std::endl;
@@ -2104,6 +2109,32 @@ void RazorHelper::loadJECs_Razor2017_17Nov2017Rereco() {
       jecUnc.push_back(jecUncMC);
       JetCorrectionsIOV.push_back( std::pair<int,int>( -1, 99999999 ));
     }
+}
+
+
+////////////////////////////////////////////////
+//  2017 31Mar2018 Rereco
+////////////////////////////////////////////////
+void RazorHelper::loadTag_Razor2017_31Mar2018Rereco() {
+  loadPileup_Razor2017_17Nov2017Rereco();
+  loadLepton_Razor2017_17Nov2017Rereco();
+  loadPhoton_Razor2017_31Mar2018Rereco();
+  loadBTag_Razor2017_17Nov2017Rereco();
+  loadTrigger_Razor2017_92X();
+  loadJECs_Razor2017_17Nov2017Rereco();
+}
+
+void RazorHelper::loadPhoton_Razor2017_31Mar2018Rereco(){
+//identical to loadPhoton_Razor2017_92X, would check if there's new version released
+    // photon efficiency scale factors
+    // use avaerage results for run 2017BCDEF for now
+    std::cout << "RazorHelper: loading photon efficiency scale factor histograms" << std::endl;
+    phoEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2017/efficiency_results_PhoLooseEffDenominatorReco_2017BCDEF_94X.root");
+    phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("EGamma_SF2D");
+
+    // results for 2017MC is not available yet, use 2016 version for now
+    phoEffFastsimSFFile = TFile::Open("PhotonEffFastsimToFullsimCorrectionFactors.2016.root");
+    phoLooseEffFastsimSFHist = (TH2D*)phoEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor");
 }
 
 ////////////////////////////////////////////////
