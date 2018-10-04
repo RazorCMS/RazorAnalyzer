@@ -1338,12 +1338,13 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           //TLorentzVector for this muon
           TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]);
 
+	  double dr = 10.0/fmin(fmax(muonPt[i], 50.0),200.0);
 	  //use Loose Muon POG ID and |d0|<0.2 and |dZ|<0.5 && miniiso / pt < 0.2
 	  if(!(
 	       muonIsLoose[i] && fabs(muon_d0[i]) < 0.2 && fabs(muon_dZ[i]) < 0.5
 	       && 
 	       ((muon_chargedMiniIso[i] + fmax(0.0, muon_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetMuonEffectiveAreaMean(i,"neutral")*pow(dr/0.3,2)) )/muonPt[i] < 0.2)
-	       ) continue;
+	       )) continue;
 	     
 	  if(muonPt[i] < 20) continue;
 	  if(abs(muonEta[i]) > 2.4) continue;
