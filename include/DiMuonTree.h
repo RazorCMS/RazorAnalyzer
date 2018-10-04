@@ -21,7 +21,7 @@
       };
 
       /// variables
-      //UInt_t                  fi_evt;
+      UInt_t                  fi_evt;
       Float_t                 f_weight;
       UInt_t                  f_run_number;
       UInt_t                  f_lumi_section_number;
