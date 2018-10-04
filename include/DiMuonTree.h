@@ -35,6 +35,14 @@
       Float_t                 f_mu_pt[2];
       Float_t                 f_mu_eta[2];
       Float_t                 f_mu_phi[2];
+      Int_t                   f_mu_type[2];
+      UInt_t                  f_mu_pass_sel[2];
+      Float_t                 f_mu_chargedMiniIso[2];
+      Float_t                 f_mu_photonAndNeutralHadronMiniIso[2];
+      Float_t                 f_mu_d0[2];
+      Float_t                 f_mu_dZ[2];
+      Float_t                 f_mu_ip3d[2];
+      Float_t                 f_mu_ip3dSignificance[2];
       //
       Float_t                 f_met_pt;
       Float_t                 f_met_phi;
@@ -76,6 +84,14 @@
           f_mu_pt[i]  = 0.0;
           f_mu_eta[i] = 0.0;
           f_mu_phi[i] = 0.0;
+          f_mu_type[i] = 0.0;
+          f_mu_pass_sel[i] = 0.0;
+          f_mu_chargedMiniIso[2] = 0.0;
+         f_mu_photonAndNeutralHadronMiniIso[2] = 0.0;
+         f_mu_d0[2] = 0.0;
+         f_mu_dZ[2] = 0.0;
+         f_mu_ip3d[2] = 0.0;
+         f_mu_ip3dSignificance[2] = 0.0;
         }
         //
         f_met_pt 		                     = 0.0;
@@ -107,9 +123,17 @@
         tree_->Branch("mumu_eta",&f_mumu_eta,"mumu_eta/F");
         tree_->Branch("mumu_phi",&f_mumu_phi,"mumu_phi/F");
         //
-        tree_->Branch("mu_pt",&f_mu_pt,"mu_pt/F");
-        tree_->Branch("mu_eta",&f_mu_eta,"mu_eta/F");
-        tree_->Branch("mu_phi",&f_mu_phi,"mu_phi/F");
+        tree_->Branch("mu_pt",f_mu_pt,"mu_pt[2]/F");
+        tree_->Branch("mu_eta",f_mu_eta,"mu_eta[2]/F");
+        tree_->Branch("mu_phi",f_mu_phi,"mu_phi[2]/F");
+        tree_->Branch("mu_type",f_mu_type,"mu_type[2]/I");
+        tree_->Branch("mu_pass_sel",f_mu_pass_sel,"mu_pass_sel[2]/i");
+        tree_->Branch("mu_chargedMiniIso",f_mu_chargedMiniIso,"mu_chargedMiniIso[2]/F");
+        tree_->Branch("mu_photonAndNeutralHadronMiniIso",f_mu_photonAndNeutralHadronMiniIso,"mu_photonAndNeutralHadronMiniIso[2]/F");
+        tree_->Branch("mu_d0",f_mu_d0,"mu_d0[2]/F");
+        tree_->Branch("mu_dZ",f_mu_dZ,"mu_dZ[2]/F");
+        tree_->Branch("mu_ip3d",f_mu_ip3d,"mu_ip3d[2]/F");
+        tree_->Branch("mu_ip3dSignificance",f_mu_ip3dSignificance,"mu_ip3dSignificance[2]/F");
         //
         tree_->Branch("met_pt",&f_met_pt,"met_pt/F");
         tree_->Branch("met_phi",&f_met_phi,"met_phi/F");
@@ -134,9 +158,17 @@
         tree_->SetBranchAddress("mumu_eta",&f_mumu_eta);
         tree_->SetBranchAddress("mumu_phi",&f_mumu_phi);
         //
-        tree_->SetBranchAddress("mu_pt",&f_mu_pt);
-        tree_->SetBranchAddress("mu_eta",&f_mu_eta);
-        tree_->SetBranchAddress("mu_phi",&f_mu_phi);
+        tree_->SetBranchAddress("mu_pt",f_mu_pt);
+        tree_->SetBranchAddress("mu_eta",f_mu_eta);
+        tree_->SetBranchAddress("mu_phi",f_mu_phi);
+        tree_->SetBranchAddress("mu_type",f_mu_type);
+        tree_->SetBranchAddress("mu_pass_sel",f_mu_pass_sel);
+        tree_->SetBranchAddress("mu_chargedMiniIso",f_mu_chargedMiniIso);
+        tree_->SetBranchAddress("mu_photonAndNeutralHadronMiniIso",f_mu_photonAndNeutralHadronMiniIso);
+        tree_->SetBranchAddress("mu_d0",f_mu_d0);
+        tree_->SetBranchAddress("mu_dZ",f_mu_dZ);
+        tree_->SetBranchAddress("mu_ip3d",f_mu_ip3d);
+        tree_->SetBranchAddress("mu_ip3dSignificance",f_mu_ip3dSignificance);
         //
         tree_->SetBranchAddress("met_pt",&f_met_pt);
         tree_->SetBranchAddress("met_phi",&f_met_phi);
