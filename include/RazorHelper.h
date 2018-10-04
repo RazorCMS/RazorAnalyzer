@@ -208,6 +208,7 @@ class RazorHelper {
         void loadPhoton_Razor2016_MoriondRereco();
         void loadTrigger_Razor2016_MoriondRereco();
         void loadJECs_Razor2016_MoriondRereco();
+        void loadJECV4s_Razor2016_MoriondRereco();
         void loadBTag_Razor2016_MoriondRereco();
         void loadAK8JetTag_Razor2016_MoriondRereco();
 
