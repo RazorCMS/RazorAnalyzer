@@ -242,6 +242,7 @@ class RazorHelper {
 
 	// for Razor2017 31Mar2018 Rereco
         void loadPhoton_Razor2017_31Mar2018Rereco();
+        void loadLepton_Razor2017_31Mar2018Rereco();
 
         // member data
         std::string tag;
