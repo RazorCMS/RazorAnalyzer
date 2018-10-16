@@ -35,6 +35,11 @@ RazorHelper::RazorHelper(std::string tag_, bool isData_, bool isFastsim_):
         loadTag_Razor2016_MoriondRereco();
     }
 
+    // tag for 2016 80X 03Feb2017 Rereco
+    else if (tag == "Razor2016_03Feb2017Rereco") {
+        loadTag_Razor2016_03Feb2017Rereco();
+    }
+
     // tag for 2016G 80X data
     else if (tag == "Razor2016G_80X") {
         loadTag_Razor2016G_80X();
@@ -716,8 +721,7 @@ void RazorHelper::loadTag_Razor2016_MoriondRereco() {
     loadPhoton_Razor2016_MoriondRereco();
     loadBTag_Razor2016_MoriondRereco();
     loadTrigger_Razor2016_MoriondRereco();
-    loadJECV4s_Razor2016_MoriondRereco();
-    //loadJECs_Razor2016_MoriondRereco();
+    loadJECs_Razor2016_MoriondRereco();
     loadAK8JetTag_Razor2016_MoriondRereco();
 }
 
@@ -1033,7 +1037,22 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
 }
 
 
-void RazorHelper::loadJECV4s_Razor2016_MoriondRereco() {
+
+////////////////////////////////////////////////
+//  2016 03Feb2017 Rereco
+////////////////////////////////////////////////
+void RazorHelper::loadTag_Razor2016_03Feb2017Rereco() {
+    loadPileup_Razor2016_MoriondRereco();
+    loadLepton_Razor2016_MoriondRereco();
+    loadPhoton_Razor2016_MoriondRereco();
+    loadBTag_Razor2016_MoriondRereco();
+    loadTrigger_Razor2016_MoriondRereco();
+    loadJECs_Razor2016_03Feb2017Rereco();
+    loadAK8JetTag_Razor2016_MoriondRereco();
+}
+
+
+void RazorHelper::loadJECs_Razor2016_03Feb2017Rereco() {
     std::cout << "RazorHelper: loading jet energy correction constants, using Summer16_23Sep2016_V4." << std::endl;
     // initialize
     std::string jecPathname = "./";
@@ -2148,7 +2167,7 @@ void RazorHelper::loadLepton_Razor2017_31Mar2018Rereco(){
     eleGSFTrackEffFile = TFile::Open("Efficiency_PromptElectron_TTJets_25ns_Reco_Fullsim.root");
     eleEffSFFile = TFile::Open("ElectronScaleFactors_Run2017.root");
     looseEleEffSFFile = TFile::Open("efficiency_results_LooseElectronSelectionEffDenominatorGen_2017_31Mar2018_Golden.root");
-    vetoEleEffSFFile = TFile::Open("efficiency_results_VetoElectronSelectionEffDenominatorGen_2017_31Mar2018_Golden.root");
+    //vetoEleEffSFFile = TFile::Open("efficiency_results_VetoElectronSelectionEffDenominatorGen_2017_31Mar2018_Golden.root");
     eleGSFTrackEffSFFile = TFile::Open("ElectronRecoEffScaleFactors_Run2017.root");
     eleTightEffFastsimSFFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
     eleLooseEffFastsimSFFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
@@ -2161,7 +2180,7 @@ void RazorHelper::loadLepton_Razor2017_31Mar2018Rereco(){
     // We don't have ID scale factors for Fastsim yet.
     eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_TightElectronSelectionEffDenominatorGen");
     eleLooseEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_LooseElectronSelectionEffDenominatorGen");
-    eleVetoEffSFHist = (TH2D*)vetoEleEffSFFile->Get("ScaleFactor_VetoElectronSelectionEffDenominatorGen");
+    //eleVetoEffSFHist = (TH2D*)vetoEleEffSFFile->Get("ScaleFactor_VetoElectronSelectionEffDenominatorGen");
     eleGSFTrackEffSFHist = (TH2D*)eleGSFTrackEffSFFile->Get("h2_scaleFactorsEGamma");
     eleTightEffFastsimSFHist =  (TH2D*)eleTightEffFastsimSFFile->Get("ElectronTight_FastsimScaleFactor");
     eleLooseEffFastsimSFHist =  (TH2D*)eleLooseEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor");
@@ -2172,7 +2191,7 @@ void RazorHelper::loadLepton_Razor2017_31Mar2018Rereco(){
     std::cout << "RazorHelper: loading 2017 muon efficiency histograms" << std::endl;
     muTightEfficiencyFile = TFile::Open("MuonIsoScaleFactor_2017_17Nov2017Rereco.root");
     muVetoEfficiencyFile = TFile::Open("MuonIsoScaleFactor_2017_17Nov2017Rereco.root");
-    muEffSFFile = TFile::Open("efficiency_results_TightMuonSelectionEffDenominatorGen_2017_31Mar2018_Golden.root");
+    //muEffSFFile = TFile::Open("efficiency_results_TightMuonSelectionEffDenominatorGen_2017_31Mar2018_Golden.root");
     vetoMuEffSFFile = TFile::Open("efficiency_results_VetoMuonSelectionEffDenominatorGen_2017_31Mar2018_Golden.root");
     muTrackEffSFFile = TFile::Open("efficiencySF_muEleTracking_2016_average.root");
     muTrackEffFile = TFile::Open("Efficiency_PromptMuon_TTJets_25ns_Reco_Fullsim.root");

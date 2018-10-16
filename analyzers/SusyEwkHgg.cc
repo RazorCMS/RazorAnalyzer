@@ -117,7 +117,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   if ( label != "") analysisTag = label;
 
   string dataset = "80X";
-  if ( analysisTag == "Razor2016_MoriondRereco" ) dataset = "80X";
+  if ( analysisTag == "Razor2016_MoriondRereco" || analysisTag == "Razor2016_03Feb2017Rereco" ) dataset = "80X";
   else if ( analysisTag == "Razor2017_17Nov2017Rereco" || analysisTag == "Razor2017_31Mar2018Rereco" ) dataset = "94X";
 
   //***************************************************
@@ -210,6 +210,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   /* Available tag relevant for this analysis are:
     Razor2015_76X
     Razor2016_MoriondRereco
+    Razor2016_03Feb2017Rereco
     Razor2017_92X
     Razor2017_17Nov2017Rereco
     Razor2017_31Mar2018Rereco
@@ -232,8 +233,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
     photonCorrector = new EnergyScaleCorrection_class(Form("%s/80X_2016", photonCorrectionPath.c_str()));
   } else if (analysisTag == "Razor2016_MoriondRereco") {
     photonCorrector = new EnergyScaleCorrection_class(Form("%s/Winter_2016_reReco_v1_ele", photonCorrectionPath.c_str()));
-    //photonCorrector = new EnergyScaleCorrection_class(Form("%s/Legacy2016_07Aug2017_FineEtaR9_v3_ele_unc", photonCorrectionPath.c_str()));
-    //photonCorrector_2017 = new EnergyScaleCorrection_class_2017(Form("%s/Legacy2016_07Aug2017_FineEtaR9_v3_ele_unc", photonCorrectionPath.c_str()));
+  } else if (analysisTag == "Razor2016_03Feb2017Rereco") {
+    photonCorrector_2017 = new EnergyScaleCorrection_class_2017(Form("%s/Legacy2016_07Aug2017_FineEtaR9_v3_ele_unc", photonCorrectionPath.c_str()));
   } else if (analysisTag == "Razor2017_92X") {
     photonCorrector_2017 = new EnergyScaleCorrection_class_2017(Form("%s/Run2017_17Nov2017_v1_ele_unc", photonCorrectionPath.c_str()));
   } else if (analysisTag == "Razor2017_17Nov2017Rereco") {
@@ -243,8 +244,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   }
 
 
-  if ( analysisTag != "Razor2017_92X" && analysisTag != "Razor2017_17Nov2017Rereco" && analysisTag != "Razor2017_31Mar2018Rereco" ) {
-  //if ( analysisTag != "Razor2017_92X" &&  analysisTag != "Razor2017_17Nov2017Rereco"  &&  analysisTag != "Razor2016_MoriondRereco"  ) {
+  if ( analysisTag != "Razor2017_92X" && analysisTag != "Razor2017_17Nov2017Rereco" && analysisTag != "Razor2017_31Mar2018Rereco" &&  analysisTag != "Razor2016_03Feb2017Rereco"  ) {
     if(!isData) {
       photonCorrector->doScale = false;
       photonCorrector->doSmearings = true;
@@ -318,7 +318,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
     btagcalib = new BTagCalibration("csvv2", Form("%s/CSVv2_76X.csv",bTagPathname.c_str()));
     effMeasType="mujets";
     misMeasType="comb";
-  } else if (analysisTag == "Razor2016_80X" || analysisTag == "Razor2016_MoriondRereco" || analysisTag == "Razor2017_92X" ) {
+  } else if (analysisTag == "Razor2016_80X" || analysisTag == "Razor2016_MoriondRereco" || analysisTag == "Razor2016_03Feb2017Rereco" || analysisTag == "Razor2017_92X" ) {
     if(isFastsimSMS) {
       btagcalib = new BTagCalibration("csvv2", Form("%s/fastsim_csvv2_ttbar_26_1_2017.csv",bTagPathname.c_str()));
       effMeasType="fastsim";
@@ -548,7 +548,9 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   razorTree->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter, "Flag_HBHENoiseFilter/O");
   razorTree->Branch("Flag_HBHEIsoNoiseFilter", &Flag_HBHEIsoNoiseFilter, "Flag_HBHEIsoNoiseFilter/O");
   razorTree->Branch("Flag_badChargedCandidateFilter", &Flag_badChargedCandidateFilter, "Flag_badChargedCandidateFilter/O");
+  razorTree->Branch("Flag_BadChargedCandidateFilter", &Flag_BadChargedCandidateFilter, "Flag_BadChargedCandidateFilter/O");
   razorTree->Branch("Flag_badMuonFilter", &Flag_badMuonFilter, "Flag_badMuonFilter/O");
+  razorTree->Branch("Flag_BadPFMuonFilter", &Flag_BadPFMuonFilter, "Flag_BadPFMuonFilter/O");
   razorTree->Branch("Flag_badGlobalMuonFilter", &Flag_badGlobalMuonFilter, "Flag_badGlobalMuonFilter/O");
   razorTree->Branch("Flag_duplicateMuonFilter", &Flag_duplicateMuonFilter, "Flag_duplicateMuonFilter/O");
   razorTree->Branch("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter, "Flag_CSCTightHaloFilter/O");
@@ -564,6 +566,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   razorTree->Branch("Flag_trkPOG_logErrorTooManyClusters", &Flag_trkPOG_logErrorTooManyClusters, "Flag_trkPOG_logErrorTooManyClusters/O");
   razorTree->Branch("Flag_METFilters", &Flag_METFilters, "Flag_METFilters/O");
   razorTree->Branch("Flag_hasEcalGainSwitch", &Flag_hasEcalGainSwitch, "Flag_hasEcalGainSwitch/O");
+  razorTree->Branch("Flag_ecalBadCalibFilter", &Flag_ecalBadCalibFilter, "Flag_ecalBadCalibFilter/O");
 
   razorTree->Branch("run", &run, "run/i");
   razorTree->Branch("lumi", &lumi, "lumi/i");
@@ -1583,7 +1586,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         double smear = 0;
         if ( doPhotonScaleCorrection )
         {
-          if ( analysisTag != "Razor2017_92X" &&  analysisTag != "Razor2017_17Nov2017Rereco" && analysisTag != "Razor2017_31Mar2018Rereco" )
+          if ( analysisTag != "Razor2016_03Feb2017Rereco" && analysisTag != "Razor2017_92X" &&  analysisTag != "Razor2017_17Nov2017Rereco" && analysisTag != "Razor2017_31Mar2018Rereco" )
           //if ( analysisTag != "Razor2017_92X" &&  analysisTag != "Razor2017_17Nov2017Rereco"  &&  analysisTag != "Razor2016_MoriondRereco"  )
           {
             scale = photonCorrector->ScaleCorrection(run, (fabs(pho_superClusterEta[i]) < 1.5),
