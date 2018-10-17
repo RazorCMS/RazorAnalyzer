@@ -422,16 +422,16 @@ void CombineScaleFactors_2017_HggRazor() {
   TFile *recoSFFile = new TFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2017/ElectronRecoEffScaleFactors_Run2017.root","READ");
   TH2F *histRecoElectronSF = (TH2F*)recoSFFile->Get("EGamma_SF2D");
  
-  TFile *vetoMuonIDSFFile = new TFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2017/MuonIDScaleFactor_2017_17Nov2017Rereco.root","READ");
+  TFile *vetoMuonIDSFFile = new TFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2017/MuonIDScaleFactor_2017_31Mar2018.root","READ");
   TH2F *histVetoMuonIDSF = (TH2F*)vetoMuonIDSFFile->Get("NUM_LooseID_DEN_genTracks_pt_abseta");
 
-  TFile *vetoMuonIsoSFFile = new TFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2017/MuonIsoScaleFactor_2017_17Nov2017Rereco.root","READ");
-  TH2F *histVetoMuonIsoSF = (TH2F*)vetoMuonIsoSFFile->Get("NUM_LooseRelIso_DEN_LooseID_pt_abseta");
+  TFile *vetoMuonIsoSFFile = new TFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2017/MuonIsoScaleFactor_MiniIso0p2_2017_31Mar2018.root","READ");
+  TH2F *histVetoMuonIsoSF = (TH2F*)vetoMuonIsoSFFile->Get("TnP_MC_NUM_MiniIso02Cut_DEN_MediumID_PAR_pt_eta");
 
-  TFile *looseElectronIDSFFile = new TFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2017/ElectronScaleFactors_Run2017.root","READ");
+  TFile *looseElectronIDSFFile = new TFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2017/ElectronScaleFactors_Run2017_31Mar2018.root","READ");
   TH2F *histLooseElectronIDSF = (TH2F*)looseElectronIDSFFile->Get("Run2017_CutBasedLooseNoIso94X");
 
-   TFile *looseElectronIsoSFFile = new TFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2017/ElectronScaleFactors_Run2017.root","READ");
+  TFile *looseElectronIsoSFFile = new TFile("/eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2017/ElectronScaleFactors_Run2017_31Mar2018.root","READ");
   TH2F *histLooseElectronIsoSF = (TH2F*)looseElectronIsoSFFile->Get("Run2017_MVAVLooseTightIP2DMini");
 
   //loose electrons 
@@ -522,13 +522,13 @@ void CombineScaleFactors_2017_HggRazor() {
   //--------------------------------------------------------------------------------------------------------------
   // Output
   //==============================================================================================================
-  TFile *file = TFile::Open("efficiency_results_LooseElectronSelectionEffDenominatorGen_2017_17Nov2017Rereco_Golden.root", "RECREATE");
+  TFile *file = TFile::Open("efficiency_results_LooseElectronSelectionEffDenominatorGen_2017_31Mar2018_Golden.root", "RECREATE");
   file->cd();
   file->WriteTObject(outputLooseElectronSF, "ScaleFactor_LooseElectronSelectionEffDenominatorGen", "WriteDelete");
   file->Close();
   delete file;       
 
-  file = TFile::Open("efficiency_results_VetoMuonSelectionEffDenominatorGen_2017_17Nov2017Rereco_Golden.root", "RECREATE");
+  file = TFile::Open("efficiency_results_VetoMuonSelectionEffDenominatorGen_2017_31Mar2018_Golden.root", "RECREATE");
   file->cd();
   file->WriteTObject(outputVetoMuonSF, "ScaleFactor_VetoMuonSelectionEffDenominatorGen", "WriteDelete");
   file->Close();

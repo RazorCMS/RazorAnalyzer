@@ -35,6 +35,11 @@ RazorHelper::RazorHelper(std::string tag_, bool isData_, bool isFastsim_):
         loadTag_Razor2016_MoriondRereco();
     }
 
+    // tag for 2016 80X 03Feb2017 Rereco
+    else if (tag == "Razor2016_03Feb2017Rereco") {
+        loadTag_Razor2016_03Feb2017Rereco();
+    }
+
     // tag for 2016G 80X data
     else if (tag == "Razor2016G_80X") {
         loadTag_Razor2016G_80X();
@@ -60,6 +65,11 @@ RazorHelper::RazorHelper(std::string tag_, bool isData_, bool isFastsim_):
     // tag for 2017 17Nov2017 Rereco
     else if (tag == "Razor2017_17Nov2017Rereco") {
         loadTag_Razor2017_17Nov2017Rereco();
+    }
+
+    // tag for 2017 31Mar2018 Rereco
+    else if (tag == "Razor2017_31Mar2018Rereco") {
+        loadTag_Razor2017_31Mar2018Rereco();
     }
 
    // tag not found
@@ -1026,6 +1036,174 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
     }
 }
 
+
+
+////////////////////////////////////////////////
+//  2016 03Feb2017 Rereco
+////////////////////////////////////////////////
+void RazorHelper::loadTag_Razor2016_03Feb2017Rereco() {
+    loadPileup_Razor2016_MoriondRereco();
+    loadLepton_Razor2016_MoriondRereco();
+    loadPhoton_Razor2016_MoriondRereco();
+    loadBTag_Razor2016_MoriondRereco();
+    loadTrigger_Razor2016_MoriondRereco();
+    loadJECs_Razor2016_03Feb2017Rereco();
+    loadAK8JetTag_Razor2016_MoriondRereco();
+}
+
+
+void RazorHelper::loadJECs_Razor2016_03Feb2017Rereco() {
+    std::cout << "RazorHelper: loading jet energy correction constants, using Summer16_23Sep2016_V4." << std::endl;
+    // initialize
+    std::string jecPathname = "./";
+    correctionParameters = std::vector<std::vector<JetCorrectorParameters> >();
+    JetResolutionParameters = std::vector<JetCorrectorParameters*>();
+    JetCorrector = std::vector<FactorizedJetCorrector*>();
+    jecUnc = std::vector<JetCorrectionUncertainty*>();
+    JetResolutionCalculator = std::vector<SimpleJetResolution*>();
+    JetCorrectionsIOV = std::vector<std::pair<int,int> >();
+    std::cout << "here1\n";
+    if (isData) {
+      //IOV: 2016BCD
+      std::vector<JetCorrectorParameters> correctionParametersBCD = std::vector<JetCorrectorParameters> ();
+      correctionParametersBCD.push_back(JetCorrectorParameters(
+                  Form("%s/Summer16_23Sep2016V4_DATA/Summer16_23Sep2016BCDV4_DATA_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParametersBCD.push_back(JetCorrectorParameters(
+                  Form("%s/Summer16_23Sep2016V4_DATA/Summer16_23Sep2016BCDV4_DATA_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParametersBCD.push_back(JetCorrectorParameters(
+                  Form("%s/Summer16_23Sep2016V4_DATA/Summer16_23Sep2016BCDV4_DATA_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParametersBCD.push_back(JetCorrectorParameters(
+                  Form("%s/Summer16_23Sep2016V4_DATA/Summer16_23Sep2016BCDV4_DATA_L2L3Residual_AK4PFchs.txt", jecPathname.c_str())));
+      JetCorrectorParameters *JetResolutionParametersBCD = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",jecPathname.c_str()));
+      FactorizedJetCorrector *JetCorrectorBCD = new FactorizedJetCorrector(correctionParametersBCD);
+      std::string jecUncPathBCD = jecPathname+"/Summer16_23Sep2016BCDV4_DATA_Uncertainty_AK4PFchs.txt";
+      JetCorrectionUncertainty *jecUncBCD = new JetCorrectionUncertainty(jecUncPathBCD);
+      SimpleJetResolution* JetResolutionCalculatorBCD = new SimpleJetResolution(*JetResolutionParametersBCD);
+
+      correctionParameters.push_back(correctionParametersBCD);
+      JetResolutionParameters.push_back(JetResolutionParametersBCD);
+      JetCorrector.push_back( JetCorrectorBCD );
+      JetResolutionCalculator.push_back(JetResolutionCalculatorBCD);
+      jecUnc.push_back(jecUncBCD);
+      JetCorrectionsIOV.push_back( std::pair<int,int>( 1, 276811 ));
+
+      //IOV: 2016E
+      std::vector<JetCorrectorParameters> correctionParametersEF = std::vector<JetCorrectorParameters> ();
+      correctionParametersEF.push_back(JetCorrectorParameters(
+                  Form("%s/Summer16_23Sep2016V4_DATA/Summer16_23Sep2016EFV4_DATA_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParametersEF.push_back(JetCorrectorParameters(
+                  Form("%s/Summer16_23Sep2016V4_DATA/Summer16_23Sep2016EFV4_DATA_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParametersEF.push_back(JetCorrectorParameters(
+                  Form("%s/Summer16_23Sep2016V4_DATA/Summer16_23Sep2016EFV4_DATA_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParametersEF.push_back(JetCorrectorParameters(
+                  Form("%s/Summer16_23Sep2016V4_DATA/Summer16_23Sep2016EFV4_DATA_L2L3Residual_AK4PFchs.txt", jecPathname.c_str())));
+      JetCorrectorParameters *JetResolutionParametersEF = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",jecPathname.c_str()));
+      FactorizedJetCorrector *JetCorrectorEF = new FactorizedJetCorrector(correctionParametersEF);
+      std::string jecUncPathEF = jecPathname+"/Summer16_23Sep2016V4_DATA/Summer16_23Sep2016EFV4_DATA_Uncertainty_AK4PFchs.txt";
+      JetCorrectionUncertainty *jecUncEF = new JetCorrectionUncertainty(jecUncPathEF);
+      SimpleJetResolution* JetResolutionCalculatorEF = new SimpleJetResolution(*JetResolutionParametersEF);
+
+      correctionParameters.push_back(correctionParametersEF);
+      JetResolutionParameters.push_back(JetResolutionParametersEF);
+      JetCorrector.push_back( JetCorrectorEF );
+      JetResolutionCalculator.push_back(JetResolutionCalculatorEF);
+      jecUnc.push_back(jecUncEF);
+      JetCorrectionsIOV.push_back( std::pair<int,int>( 276831, 278801 ));
+
+      //IOV: 2016G
+      std::vector<JetCorrectorParameters> correctionParametersG = std::vector<JetCorrectorParameters> ();
+      correctionParametersG.push_back(JetCorrectorParameters(
+                  Form("%s/Summer16_23Sep2016V4_DATA/Summer16_23Sep2016GV4_DATA_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParametersG.push_back(JetCorrectorParameters(
+                  Form("%s/Summer16_23Sep2016V4_DATA/Summer16_23Sep2016GV4_DATA_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParametersG.push_back(JetCorrectorParameters(
+                  Form("%s/Summer16_23Sep2016V4_DATA/Summer16_23Sep2016GV4_DATA_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParametersG.push_back(JetCorrectorParameters(
+                  Form("%s/Summer16_23Sep2016V4_DATA/Summer16_23Sep2016GV4_DATA_L2L3Residual_AK4PFchs.txt", jecPathname.c_str())));
+      JetCorrectorParameters *JetResolutionParametersG = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",jecPathname.c_str()));
+      FactorizedJetCorrector *JetCorrectorG = new FactorizedJetCorrector(correctionParametersG);
+      std::string jecUncPathG = jecPathname+"/Summer16_23Sep2016V4_DATA/Summer16_23Sep2016GV4_DATA_Uncertainty_AK4PFchs.txt";
+      JetCorrectionUncertainty *jecUncG = new JetCorrectionUncertainty(jecUncPathG);
+      SimpleJetResolution* JetResolutionCalculatorG = new SimpleJetResolution(*JetResolutionParametersG);
+
+      correctionParameters.push_back(correctionParametersG);
+      JetResolutionParameters.push_back(JetResolutionParametersG);
+      JetCorrector.push_back( JetCorrectorG );
+      JetResolutionCalculator.push_back(JetResolutionCalculatorG);
+      jecUnc.push_back(jecUncG);
+      JetCorrectionsIOV.push_back( std::pair<int,int>( 278802, 280385 ));
+
+      //IOV: 2016H
+      std::vector<JetCorrectorParameters> correctionParametersH = std::vector<JetCorrectorParameters> ();
+      correctionParametersH.push_back(JetCorrectorParameters(
+                  Form("%s/Summer16_23Sep2016V4_DATA/Summer16_23Sep2016HV4_DATA_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParametersH.push_back(JetCorrectorParameters(
+                  Form("%s/Summer16_23Sep2016V4_DATA/Summer16_23Sep2016HV4_DATA_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParametersH.push_back(JetCorrectorParameters(
+                  Form("%s/Summer16_23Sep2016V4_DATA/Summer16_23Sep2016HV4_DATA_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParametersH.push_back(JetCorrectorParameters(
+                  Form("%s/Summer16_23Sep2016V4_DATA/Summer16_23Sep2016HV4_DATA_L2L3Residual_AK4PFchs.txt", jecPathname.c_str())));
+      JetCorrectorParameters *JetResolutionParametersH = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",jecPathname.c_str()));
+      FactorizedJetCorrector *JetCorrectorH = new FactorizedJetCorrector(correctionParametersH);
+      std::string jecUncPathH = jecPathname+"/Summer16_23Sep2016V4_DATA/Summer16_23Sep2016HV4_DATA_Uncertainty_AK4PFchs.txt";
+      JetCorrectionUncertainty *jecUncH = new JetCorrectionUncertainty(jecUncPathH);
+      SimpleJetResolution* JetResolutionCalculatorH = new SimpleJetResolution(*JetResolutionParametersH);
+
+      correctionParameters.push_back(correctionParametersH);
+      JetResolutionParameters.push_back(JetResolutionParametersH);
+      JetCorrector.push_back( JetCorrectorH );
+      JetResolutionCalculator.push_back(JetResolutionCalculatorH);
+      jecUnc.push_back(jecUncH);
+      JetCorrectionsIOV.push_back( std::pair<int,int>( 280919, 99999999 ));
+
+    }
+    else if (isFastsim) {
+      std::cout << "Fastsim JEC\n";
+
+      std::vector<JetCorrectorParameters> correctionParametersFastsim = std::vector<JetCorrectorParameters> ();
+      correctionParametersFastsim.push_back(JetCorrectorParameters(
+                  Form("%s/Spring16_FastSimV1_MC_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParametersFastsim.push_back(JetCorrectorParameters(
+                  Form("%s/Spring16_FastSimV1_MC_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParametersFastsim.push_back(JetCorrectorParameters(
+                  Form("%s/Spring16_FastSimV1_MC_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
+      JetCorrectorParameters *JetResolutionParametersFastsim = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",jecPathname.c_str()));
+      FactorizedJetCorrector *JetCorrectorFastsim = new FactorizedJetCorrector(correctionParametersFastsim);
+      std::string jecUncPath = jecPathname+"/Spring16_FastSimV1_MC_Uncertainty_AK4PFchs.txt";
+      JetCorrectionUncertainty *jecUncFastsim = new JetCorrectionUncertainty(jecUncPath);
+      SimpleJetResolution* JetResolutionCalculatorFastsim = new SimpleJetResolution(*JetResolutionParametersFastsim);
+
+      correctionParameters.push_back(correctionParametersFastsim);
+      JetResolutionParameters.push_back(JetResolutionParametersFastsim);
+      JetCorrector.push_back( JetCorrectorFastsim );
+      JetResolutionCalculator.push_back(JetResolutionCalculatorFastsim);
+      jecUnc.push_back(jecUncFastsim);
+      JetCorrectionsIOV.push_back( std::pair<int,int>( -1, 99999999 ));
+    }
+    else {
+      std::cout << "Loading Jet Energy Corrections: Summer16_23Sep2016V4_MC \n";
+      std::vector<JetCorrectorParameters> correctionParametersMC = std::vector<JetCorrectorParameters> ();
+      correctionParametersMC.push_back(JetCorrectorParameters(
+                  Form("%s/Summer16_23Sep2016V4_MC/Summer16_23Sep2016V4_MC_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParametersMC.push_back(JetCorrectorParameters(
+                  Form("%s/Summer16_23Sep2016V4_MC/Summer16_23Sep2016V4_MC_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
+      correctionParametersMC.push_back(JetCorrectorParameters(
+                  Form("%s/Summer16_23Sep2016V4_MC/Summer16_23Sep2016V4_MC_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
+
+      JetCorrectorParameters *JetResolutionParametersMC = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",jecPathname.c_str()));
+      FactorizedJetCorrector *JetCorrectorMC = new FactorizedJetCorrector(correctionParametersMC);     
+      std::string jecUncPath = jecPathname+"/Summer16_23Sep2016V4_MC/Summer16_23Sep2016V4_MC_Uncertainty_AK4PFchs.txt";
+      JetCorrectionUncertainty *jecUncMC = new JetCorrectionUncertainty(jecUncPath);
+      SimpleJetResolution* JetResolutionCalculatorMC = new SimpleJetResolution(*JetResolutionParametersMC);
+      
+      correctionParameters.push_back(correctionParametersMC);
+      JetResolutionParameters.push_back(JetResolutionParametersMC);
+      JetCorrector.push_back( JetCorrectorMC );
+      JetResolutionCalculator.push_back(JetResolutionCalculatorMC);
+      jecUnc.push_back(jecUncMC);
+      JetCorrectionsIOV.push_back( std::pair<int,int>( -1, 99999999 ));
+    }
+}
 void RazorHelper::loadAK8JetTag_Razor2016_MoriondRereco() {
     cout << "RazorHelper: loading 2016 top/W-tagging TF1s and histograms" << endl;
     puppiSoftDropCorrFile = TFile::Open("puppiCorr.root");
@@ -1950,6 +2128,94 @@ void RazorHelper::loadJECs_Razor2017_17Nov2017Rereco() {
       jecUnc.push_back(jecUncMC);
       JetCorrectionsIOV.push_back( std::pair<int,int>( -1, 99999999 ));
     }
+}
+
+
+////////////////////////////////////////////////
+//  2017 31Mar2018 Rereco
+////////////////////////////////////////////////
+void RazorHelper::loadTag_Razor2017_31Mar2018Rereco() {
+  loadPileup_Razor2017_17Nov2017Rereco();
+  loadLepton_Razor2017_31Mar2018Rereco();
+  loadPhoton_Razor2017_31Mar2018Rereco();
+  loadBTag_Razor2017_17Nov2017Rereco();
+  loadTrigger_Razor2017_92X();
+  loadJECs_Razor2017_17Nov2017Rereco();
+}
+
+void RazorHelper::loadPhoton_Razor2017_31Mar2018Rereco(){
+//identical to loadPhoton_Razor2017_92X, would check if there's new version released
+    // photon efficiency scale factors
+    // use avaerage results for run 2017BCDEF for now
+    std::cout << "RazorHelper: loading photon efficiency scale factor histograms" << std::endl;
+    phoEffSFFile = TFile::Open("root://eoscms:///eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonEfficiencies/2017/efficiency_results_PhoLooseEffDenominatorReco_2017BCDEF_94X.root");
+    phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("EGamma_SF2D");
+
+    // results for 2017MC is not available yet, use 2016 version for now
+    phoEffFastsimSFFile = TFile::Open("PhotonEffFastsimToFullsimCorrectionFactors.2016.root");
+    phoLooseEffFastsimSFHist = (TH2D*)phoEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor");
+}
+
+void RazorHelper::loadLepton_Razor2017_31Mar2018Rereco(){
+
+    // electron efficiencies and scale factors
+    // LAST UPDATED: 31 August 2018
+    std::cout << "RazorHelper: loading 2017 electron efficiency histograms" << std::endl;
+    //eleTightEfficiencyFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
+    //eleLooseEfficiencyFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
+    //eleVetoEfficiencyFile = TFile::Open("ElectronMVAIDScaleFactor_SUSYVLoose_2017_17Nov2017Rereco.root");
+    eleGSFTrackEffFile = TFile::Open("Efficiency_PromptElectron_TTJets_25ns_Reco_Fullsim.root");
+    eleEffSFFile = TFile::Open("ElectronScaleFactors_Run2017.root");
+    looseEleEffSFFile = TFile::Open("efficiency_results_LooseElectronSelectionEffDenominatorGen_2017_31Mar2018_Golden.root");
+    //vetoEleEffSFFile = TFile::Open("efficiency_results_VetoElectronSelectionEffDenominatorGen_2017_31Mar2018_Golden.root");
+    eleGSFTrackEffSFFile = TFile::Open("ElectronRecoEffScaleFactors_Run2017.root");
+    eleTightEffFastsimSFFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
+    eleLooseEffFastsimSFFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
+    eleVetoEffFastsimSFFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
+
+    // eleTightEfficiencyHist = (TH2D*)eleTightEfficiencyFile->Get("ElectronEff_Tight_Fullsim");
+    // eleLooseEfficiencyHist = (TH2D*)eleTightEfficiencyFile->Get("ElectronEff_Loose_Fullsim");
+    // eleVetoEfficiencyHist = (TH2D*)eleVetoEfficiencyFile->Get("ElectronEff_Veto_Fullsim");
+    // eleGSFTrackEffHist = (TH2D*)eleGSFTrackEffFile->Get("Efficiency_PtEta");
+    // We don't have ID scale factors for Fastsim yet.
+    eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_TightElectronSelectionEffDenominatorGen");
+    eleLooseEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_LooseElectronSelectionEffDenominatorGen");
+    //eleVetoEffSFHist = (TH2D*)vetoEleEffSFFile->Get("ScaleFactor_VetoElectronSelectionEffDenominatorGen");
+    eleGSFTrackEffSFHist = (TH2D*)eleGSFTrackEffSFFile->Get("h2_scaleFactorsEGamma");
+    eleTightEffFastsimSFHist =  (TH2D*)eleTightEffFastsimSFFile->Get("ElectronTight_FastsimScaleFactor");
+    eleLooseEffFastsimSFHist =  (TH2D*)eleLooseEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor");
+    eleVetoEffFastsimSFHist = (TH2D*)eleVetoEffFastsimSFFile->Get("ElectronEff_Veto_Fullsim");
+
+    // muon efficiencies and scale factors
+    // LAST UPDATED: 18 October 2016
+    std::cout << "RazorHelper: loading 2017 muon efficiency histograms" << std::endl;
+    muTightEfficiencyFile = TFile::Open("MuonIsoScaleFactor_2017_17Nov2017Rereco.root");
+    muVetoEfficiencyFile = TFile::Open("MuonIsoScaleFactor_2017_17Nov2017Rereco.root");
+    //muEffSFFile = TFile::Open("efficiency_results_TightMuonSelectionEffDenominatorGen_2017_31Mar2018_Golden.root");
+    vetoMuEffSFFile = TFile::Open("efficiency_results_VetoMuonSelectionEffDenominatorGen_2017_31Mar2018_Golden.root");
+    muTrackEffSFFile = TFile::Open("efficiencySF_muEleTracking_2016_average.root");
+    muTrackEffFile = TFile::Open("Efficiency_PromptMuon_TTJets_25ns_Reco_Fullsim.root");
+    muTightEffFastsimSFFile = TFile::Open("MuonEffFastsimToFullsimCorrectionFactors.2016.root");
+    muVetoEffFastsimSFFile = TFile::Open("MuonEffFastsimToFullsimCorrectionFactors.2016.root");
+
+    muTightEfficiencyHist = (TH2D*)muTightEfficiencyFile->Get("MuonEff_Tight_Fullsim");
+    muVetoEfficiencyHist = (TH2D*)muVetoEfficiencyFile->Get("MuonEff_Veto_Fullsim");
+    // We don't have ID scale factors for Fastsim yet.
+    muTightEffFastsimSFHist = (TH2D*)muTightEffFastsimSFFile->Get("MuonTight_FastsimScaleFactor");
+    muVetoEffFastsimSFHist = (TH2D*)muVetoEffFastsimSFFile->Get("MuonVeto_FastsimScaleFactor");
+    //muTightEffSFHist = (TH2D*)muEffSFFile->Get("ScaleFactor_TightMuonSelectionEffDenominatorGen");
+    muVetoEffSFHist = (TH2D*)vetoMuEffSFFile->Get("ScaleFactor_VetoMuonSelectionEffDenominatorGen");
+    muTrackEffHist = (TH2D*)muTrackEffFile->Get("Efficiency_PtEta");
+    // These scale factors are weighted according to the fraction of the 2016 run affected
+    // by the 'HIP' issue, under the assumption that tracking scale factors are 1 for runs
+    // not affected by the 'HIP'.
+    muTrackEffSFHist = (TH2D*)muTrackEffSFFile->Get("muon");
+
+    // tau efficiencies and scale factors
+    std::cout << "RazorHelper: loading tau efficiency histograms" << std::endl;
+    tauEfficiencyFile = TFile::Open("TauEffFastsimToFullsimCorrectionFactors.2016.root");
+    tauLooseEfficiencyHist = (TH2D*)tauEfficiencyFile->Get("TauEff_Loose_Fullsim");
+
 }
 
 ////////////////////////////////////////////////

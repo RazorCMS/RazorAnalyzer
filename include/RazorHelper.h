@@ -145,11 +145,13 @@ class RazorHelper {
         void loadTag_Razor2015_76X(); // Configuration for 2015 ReReco
         void loadTag_Razor2016_07Aug2017Rereco(); // Configuration for 2016 Rereco
         void loadTag_Razor2016_MoriondRereco(); // Configuration for 2016 Rereco
+        void loadTag_Razor2016_03Feb2017Rereco(); // Configuration for 2016 03Feb2017 Rereco
         void loadTag_Razor2016G_80X(); // Special configuration for Run2016G
         void loadTag_Razor2016G_SUSYUnblind_80X(); // For unblinded 2016 data
         void loadTag_Razor2016_ICHEP_80X();
         void loadTag_Razor2017_92X(); // Configuration for 2017 92X
         void loadTag_Razor2017_17Nov2017Rereco(); // Configuration for 2017 92X
+        void loadTag_Razor2017_31Mar2018Rereco(); // Configuration for 2017 94X
         void loadTag_Null(); // Default when tag is not provided
         void loadCMSSWPath();
         double lookupPtEtaScaleFactor(TH2D *hist, double pt, double eta, double ptmin=10.01, double ptmax=199.9, bool useAbsEta=true);
@@ -211,6 +213,9 @@ class RazorHelper {
         void loadBTag_Razor2016_MoriondRereco();
         void loadAK8JetTag_Razor2016_MoriondRereco();
 
+        // for Razor2016 80X tag 03Feb2017
+        void loadJECs_Razor2016_03Feb2017Rereco();
+
         // for Razor2016G 80X tag
         void loadPileup_Razor2016G();
         void loadLepton_Razor2016G();
@@ -237,6 +242,10 @@ class RazorHelper {
 	void loadBTag_Razor2017_17Nov2017Rereco();
         void loadLepton_Razor2017_17Nov2017Rereco();
         void loadJECs_Razor2017_17Nov2017Rereco();
+
+	// for Razor2017 31Mar2018 Rereco
+        void loadPhoton_Razor2017_31Mar2018Rereco();
+        void loadLepton_Razor2017_31Mar2018Rereco();
 
         // member data
         std::string tag;

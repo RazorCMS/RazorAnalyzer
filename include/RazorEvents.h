@@ -310,7 +310,9 @@ public :
    Bool_t          Flag_HBHETightNoiseFilter;
    Bool_t          Flag_HBHEIsoNoiseFilter;
    Bool_t          Flag_badChargedCandidateFilter;
+   Bool_t          Flag_BadChargedCandidateFilter;
    Bool_t          Flag_badMuonFilter;
+   Bool_t          Flag_BadPFMuonFilter;
    Bool_t          Flag_badGlobalMuonFilter;
    Bool_t          Flag_duplicateMuonFilter;
    Bool_t          Flag_CSCTightHaloFilter;
@@ -326,6 +328,7 @@ public :
    Bool_t          Flag_trkPOG_toomanystripclus53X;
    Bool_t          Flag_trkPOG_logErrorTooManyClusters;
    Bool_t          Flag_METFilters;
+   Bool_t          Flag_ecalBadCalibFilter;
    Bool_t          HLTDecision[300];
    Int_t           HLTPrescale[300];
    Float_t         HLTMR;
@@ -663,7 +666,9 @@ public :
    TBranch        *b_Flag_HBHETightNoiseFilter;   //!
    TBranch        *b_Flag_HBHEIsoNoiseFilter;   //!
    TBranch        *b_Flag_badChargedCandidateFilter;   //!
+   TBranch        *b_Flag_BadChargedCandidateFilter;   //!
    TBranch        *b_Flag_badMuonFilter;   //!
+   TBranch        *b_Flag_BadPFMuonFilter;   //!
    TBranch        *b_Flag_badGlobalMuonFilter;   //!
    TBranch        *b_Flag_duplicateMuonFilter;   //!
    TBranch        *b_Flag_CSCTightHaloFilter;   //!
@@ -679,6 +684,7 @@ public :
    TBranch        *b_Flag_trkPOG_toomanystripclus53X;   //!
    TBranch        *b_Flag_trkPOG_logErrorTooManyClusters;   //!
    TBranch        *b_Flag_METFilters;   //!
+   TBranch        *b_Flag_ecalBadCalibFilter;   //!
    TBranch        *b_HLTDecision;   //!
    TBranch        *b_HLTPrescale;   //!
    TBranch        *b_HLTMR;   //!
@@ -1107,7 +1113,9 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("Flag_HBHETightNoiseFilter", &Flag_HBHETightNoiseFilter, &b_Flag_HBHETightNoiseFilter);
    fChain->SetBranchAddress("Flag_HBHEIsoNoiseFilter", &Flag_HBHEIsoNoiseFilter, &b_Flag_HBHEIsoNoiseFilter);
    fChain->SetBranchAddress("Flag_badChargedCandidateFilter", &Flag_badChargedCandidateFilter, &b_Flag_badChargedCandidateFilter);
+   fChain->SetBranchAddress("Flag_BadChargedCandidateFilter", &Flag_BadChargedCandidateFilter, &b_Flag_BadChargedCandidateFilter);
    fChain->SetBranchAddress("Flag_badMuonFilter", &Flag_badMuonFilter, &b_Flag_badMuonFilter);
+   fChain->SetBranchAddress("Flag_BadPFMuonFilter", &Flag_BadPFMuonFilter, &b_Flag_BadPFMuonFilter);
    fChain->SetBranchAddress("Flag_badGlobalMuonFilter", &Flag_badGlobalMuonFilter, &b_Flag_badGlobalMuonFilter);
    fChain->SetBranchAddress("Flag_duplicateMuonFilter", &Flag_duplicateMuonFilter, &b_Flag_duplicateMuonFilter);
    fChain->SetBranchAddress("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter, &b_Flag_CSCTightHaloFilter);
@@ -1123,6 +1131,7 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("Flag_trkPOG_toomanystripclus53X", &Flag_trkPOG_toomanystripclus53X, &b_Flag_trkPOG_toomanystripclus53X);
    fChain->SetBranchAddress("Flag_trkPOG_logErrorTooManyClusters", &Flag_trkPOG_logErrorTooManyClusters, &b_Flag_trkPOG_logErrorTooManyClusters);
    fChain->SetBranchAddress("Flag_METFilters", &Flag_METFilters, &b_Flag_METFilters);
+   fChain->SetBranchAddress("Flag_ecalBadCalibFilter", &Flag_ecalBadCalibFilter, &b_Flag_ecalBadCalibFilter);
    fChain->SetBranchAddress("HLTDecision", HLTDecision, &b_HLTDecision);
    fChain->SetBranchAddress("HLTPrescale", HLTPrescale, &b_HLTPrescale);
    fChain->SetBranchAddress("HLTMR", &HLTMR, &b_HLTMR);
