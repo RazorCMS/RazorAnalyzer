@@ -351,7 +351,9 @@ void RazorAnalyzer::EnableMet(){
     fChain->SetBranchStatus("Flag_HBHETightNoiseFilter", 1);
     fChain->SetBranchStatus("Flag_HBHEIsoNoiseFilter", 1);
     fChain->SetBranchStatus("Flag_badChargedCandidateFilter", 1);
+    fChain->SetBranchStatus("Flag_BadChargedCandidateFilter", 1);
     fChain->SetBranchStatus("Flag_badMuonFilter", 1);
+    fChain->SetBranchStatus("Flag_BadPFMuonFilter", 1);
     fChain->SetBranchStatus("Flag_badGlobalMuonFilter", 1);
     fChain->SetBranchStatus("Flag_duplicateMuonFilter", 1);
     fChain->SetBranchStatus("Flag_CSCTightHaloFilter", 1);
@@ -367,6 +369,7 @@ void RazorAnalyzer::EnableMet(){
     fChain->SetBranchStatus("Flag_trkPOG_toomanystripclus53X", 1);
     fChain->SetBranchStatus("Flag_trkPOG_logErrorTooManyClusters", 1);
     fChain->SetBranchStatus("Flag_METFilters", 1);    
+    fChain->SetBranchStatus("Flag_ecalBadCalibFilter", 1);
 
     // fChain->SetBranchStatus("metType1PtJetResUp", 1);
     // fChain->SetBranchStatus("metType1PtJetResDown", 1);

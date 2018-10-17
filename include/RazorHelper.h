@@ -145,6 +145,7 @@ class RazorHelper {
         void loadTag_Razor2015_76X(); // Configuration for 2015 ReReco
         void loadTag_Razor2016_07Aug2017Rereco(); // Configuration for 2016 Rereco
         void loadTag_Razor2016_MoriondRereco(); // Configuration for 2016 Rereco
+        void loadTag_Razor2016_03Feb2017Rereco(); // Configuration for 2016 03Feb2017 Rereco
         void loadTag_Razor2016G_80X(); // Special configuration for Run2016G
         void loadTag_Razor2016G_SUSYUnblind_80X(); // For unblinded 2016 data
         void loadTag_Razor2016_ICHEP_80X();
@@ -209,9 +210,11 @@ class RazorHelper {
         void loadPhoton_Razor2016_MoriondRereco();
         void loadTrigger_Razor2016_MoriondRereco();
         void loadJECs_Razor2016_MoriondRereco();
-        void loadJECV4s_Razor2016_MoriondRereco();
         void loadBTag_Razor2016_MoriondRereco();
         void loadAK8JetTag_Razor2016_MoriondRereco();
+
+        // for Razor2016 80X tag 03Feb2017
+        void loadJECs_Razor2016_03Feb2017Rereco();
 
         // for Razor2016G 80X tag
         void loadPileup_Razor2016G();
