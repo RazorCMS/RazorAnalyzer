@@ -49,8 +49,9 @@ do
 		#	echo "job ${sample}_Job${jobnumber}_Of_${maxjob} being processed now, be patient"
 		else
 			echo "job ${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob} failed, now being resubmitted"
-			rm log/${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob}*
-			condor_submit submit/${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob}.jdl
+			rm ${outRoot}
+			#rm log/${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob}*
+			#condor_submit submit/${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob}.jdl
 		fi
 	done
 done

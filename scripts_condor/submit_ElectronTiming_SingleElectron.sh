@@ -11,21 +11,21 @@ job_script=${RazorAnalyzerDir}/scripts_condor/runRazorJob_CaltechT2.sh
 filesPerJob=15
 
 for sample in \
-DoubleEG_2016B_ver1_06Aug2018 \
-DoubleEG_2016B_ver2_06Aug2018 \
-DoubleEG_2016C_06Aug2018 \
-DoubleEG_2016D_06Aug2018 \
-DoubleEG_2016E_06Aug2018 \
-DoubleEG_2016F_06Aug2018 \
-DoubleEG_2016G_06Aug2018 \
-DoubleEG_2016H_06Aug2018
+SingleElectron_2016B_ver1_06Aug2018 \
+SingleElectron_2016B_ver2_06Aug2018 \
+SingleElectron_2016C_06Aug2018 \
+SingleElectron_2016D_06Aug2018 \
+SingleElectron_2016E_06Aug2018 \
+SingleElectron_2016F_06Aug2018 \
+SingleElectron_2016G_06Aug2018 \
+SingleElectron_2016H_06Aug2018
 
 do
 	echo "Sample " ${sample}
 	inputfilelist=/src/RazorAnalyzer/lists/Run2/razorNtuplerV4p1/Data_2016_reMINIAOD/${sample}.cern.txt
 	nfiles=`cat ${CMSSW_BASE}$inputfilelist | wc | awk '{print $1}' `
 	maxjob=`python -c "print int($nfiles.0/$filesPerJob)-1"`
-	analyzer=DelayedPhotonAnalyzer
+	analyzer=ElectronTiming
 
 	rm submit/${analyzer}_${sample}_Job*.jdl
 	rm log/${analyzer}_${sample}_Job*
@@ -36,7 +36,7 @@ do
 		jdl_file=submit/${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob}.jdl
 		echo "Universe = vanilla" > ${jdl_file}
 		echo "Executable = ${job_script}" >> ${jdl_file}
-		echo "Arguments = ${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob} /store/group/phys_susy/razor/Run2Analysis/DelayedPhotonAnalysis/2016/orderByPt/jobs/ ${analyzer} ${inputfilelist} yes 10 ${filesPerJob} ${jobnumber} ${sample}_Job${jobnumber}_Of_${maxjob}.root" >> ${jdl_file}
+		echo "Arguments = ${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob} /store/group/phys_susy/razor/Run2Analysis/EcalTiming/ntuples_V4p1_31Aug2018/jobs_ElectronTiming ${analyzer} ${inputfilelist} yes 10 ${filesPerJob} ${jobnumber} ${sample}_Job${jobnumber}_Of_${maxjob}.root" >> ${jdl_file}
 		echo "Log = log/${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob}_PC.log" >> ${jdl_file}
 		echo "Output = log/${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob}_\$(Cluster).\$(Process).out" >> ${jdl_file}
 		echo "Error = log/${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob}_\$(Cluster).\$(Process).err" >> ${jdl_file}

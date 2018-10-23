@@ -45,6 +45,23 @@ then
 		#get grid proxy
 		export X509_USER_PROXY=${homeDir}x509_proxy
 		
+		#copy pedestal file
+		if [ ${isData} == "yes" ]
+                then
+                        date
+                        echo "copying pedestal file to local directory ========="
+                        #hadoop fs -get /store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root ./
+                        cp /mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root ./
+                fi
+
+		if [ -f "tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root" ]
+		then
+                        echo "done with copying pedestal file to local directory ========="
+                        date
+		else
+			echo "failed with copying pedestal file to local directory ========= bad node, sleep forever... job abandoned..."
+			sleep 600000
+		fi
 		#run the job
 		cat ${CMSSW_BASE}${inputfilelist} | awk "NR > (${jobnumber}*${filePerJob}) && NR <= ((${jobnumber}+1)*${filePerJob})" > inputfilelistForThisJob_${jobnumber}.txt
 		echo ""
@@ -53,7 +70,6 @@ then
 		cat inputfilelistForThisJob_${jobnumber}.txt
 		echo "************************************"
 		echo ""
-
 		#remove empty input files
 		for ifile in `cat inputfilelistForThisJob_${jobnumber}.txt`
 		do

@@ -572,9 +572,9 @@ void RazorHelper::loadJECs_Razor2015_76X() {
 void RazorHelper::loadTag_Razor2016_07Aug2017Rereco() {
     loadPileup_Razor2016_MoriondRereco();
     loadLepton_Razor2016_MoriondRereco();
-    loadPhoton_Razor2016_MoriondRereco();
+    loadPhoton_Razor2016_07Aug2017Rereco_DelayedPhoton();
     loadBTag_Razor2016_MoriondRereco();
-    loadTrigger_Razor2016_MoriondRereco();
+    loadTrigger_Razor2016_07Aug2017Rereco_DelayedPhoton();
     loadJECs_Razor2016_07Aug2017Rereco();
     loadAK8JetTag_Razor2016_MoriondRereco();
 }
@@ -819,6 +819,18 @@ void RazorHelper::loadPhoton_Razor2016_MoriondRereco(){
     phoLooseEffFastsimSFHist = (TH2D*)phoEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor");
 }
 
+void RazorHelper::loadPhoton_Razor2016_07Aug2017Rereco_DelayedPhoton(){
+    // photon efficiency scale factors
+    std::cout << "RazorHelper: loading photon efficiency scale factor histograms" << std::endl;
+    phoEffSFFile = TFile::Open("efficiency_results_PhoLooseEffDenominatorReco_2016_Rereco_DelayedPhoton.root");
+    phoLooseEffSFHist = (TH2D*)phoEffSFFile->Get("ScaleFactor_PhoLooseEffDenominatorReco");
+    phoTightEffSFFile = TFile::Open("efficiency_results_PhoTightEffDenominatorReco_2016_Rereco_DelayedPhoton.root");
+    phoTightEffSFHist = (TH2D*)phoTightEffSFFile->Get("ScaleFactor_PhoTightEffDenominatorReco");
+
+    phoEffFastsimSFFile = TFile::Open("PhotonEffFastsimToFullsimCorrectionFactors.2016.root");
+    phoLooseEffFastsimSFHist = (TH2D*)phoEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor");
+}
+
 
 void RazorHelper::loadBTag_Razor2016_MoriondRereco() {
     // b-tag efficiencies and scale factors
@@ -882,6 +894,43 @@ void RazorHelper::loadTrigger_Razor2016_MoriondRereco() {
     singleLeptonTriggerNums = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43 };
     hadronicTriggerNums = { 163,164,165,166,167,168,169,170,171,172,173,174,175,176 };
 }
+
+
+void RazorHelper::loadTrigger_Razor2016_07Aug2017Rereco_DelayedPhoton(){
+    // single lepton trigger scale factors
+    // LAST UPDATED: 18 October 2016
+    std::cout << "RazorHelper: loading 2016 trigger efficiency histograms" << std::endl;
+    eleTrigSFFile = TFile::Open("efficiency_results_EleTriggerEleCombinedEffDenominatorTight_2016_Rereco_Golden.root");
+    eleTrigSFHist = (TH2D*)eleTrigSFFile->Get("ScaleFactor_EleTriggerEleCombinedEffDenominatorTight");
+
+    muTrigSFFile = TFile::Open("efficiency_results_MuTriggerIsoMu27ORMu50EffDenominatorTight_2016_Rereco_Golden.root");
+    muTrigSFHist = (TH2D*)muTrigSFFile->Get("ScaleFactor_MuTriggerIsoMu27ORMu50EffDenominatorTight");
+
+    eleTrigEffFile = TFile::Open("SingleElectronTriggerEfficiency_2016_Rereco_Golden.root");
+    eleTrigEffHist = (TH2D*)eleTrigEffFile->Get("hEffEtaPt");
+
+    muTrigEffFile = TFile::Open("SingleMuonTriggerEfficiency_2016_Rereco_Golden.root");
+    muTrigEffHist = (TH2D*)muTrigEffFile->Get("hEffEtaPt");
+
+    //diphoton trigger scale factors, delayd photon trigger
+    diphotonTrigLeadingLegEffFile = TFile::Open("PhoHLTLeadingLegEffDenominatorLoose_2016_Rereco_DelayedPhoton.root");
+    diphotonTrigLeadingLegEffHist = (TH2D*)diphotonTrigLeadingLegEffFile->Get("hEffEtaPt");
+    diphotonTrigTrailingLegEffFile = TFile::Open("PhoHLTTrailingLegEffDenominatorLoose_2016_Rereco_DelayedPhoton.root");
+    diphotonTrigTrailingLegEffHist = (TH2D*)diphotonTrigTrailingLegEffFile->Get("hEffEtaPt");
+
+    diphotonTrigLeadingLegEffSFFile = TFile::Open("efficiency_results_PhoHLTLeadingLegEffDenominatorLoose_2016_Rereco_DelayedPhoton.root");
+    diphotonTrigLeadingLegEffSFHist = (TH2D*)diphotonTrigLeadingLegEffSFFile->Get("ScaleFactor_PhoHLTLeadingLegEffDenominatorLoose");
+    diphotonTrigTrailingLegEffSFFile = TFile::Open("efficiency_results_PhoHLTTrailingLegEffDenominatorLoose_2016_Rereco_DelayedPhoton.root");
+    diphotonTrigTrailingLegEffSFHist = (TH2D*)diphotonTrigTrailingLegEffSFFile->Get("ScaleFactor_PhoHLTTrailingLegEffDenominatorLoose");
+
+    //get trigger numbers
+    // (we are using the same list of trigger numbers for data and MC for 2016)
+    dileptonTriggerNums = { 44,45,57,59,64,65,66,67,68 };
+    singleLeptonTriggerNums = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43 };
+    hadronicTriggerNums = { 163,164,165,166,167,168,169,170,171,172,173,174,175,176 };
+}
+
+
 
 void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
     std::cout << "RazorHelper: loading jet energy correction constants, using Summer16_23Sep2016_V3." << std::endl;
@@ -2491,6 +2540,23 @@ double RazorHelper::getPhotonScaleFactor(float pt, float eta, bool invert) {
 	}
     }
   else { std::cout << "[WARNING] Could not load phoLooseEffSFHist.\n"; }
+  return sf;
+}
+
+double RazorHelper::getPhotonScaleFactor_Tight(float pt, float eta, bool invert) {
+  double sf = 1.0;
+  if (phoTightEffSFHist)
+    {
+      if( invert )
+	{
+	  sf = lookupEtaPtScaleFactor( phoTightEffSFHist, pt, eta, 20.01, 99.9, false );
+	}
+      else
+	{
+	  sf = lookupPtEtaScaleFactor( phoTightEffSFHist, pt, eta, 20.01, 99.9 );
+	}
+    }
+  else { std::cout << "[WARNING] Could not load phoTightEffSFHist.\n"; }
   return sf;
 }
 

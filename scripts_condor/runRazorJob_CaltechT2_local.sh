@@ -20,8 +20,6 @@ runDir=${currentDir}/zhicaiz_${code_dir_suffix}/
 rm -rf ${runDir}
 mkdir -p ${runDir}
 
-rm -rf /tmp/zhicaiz*
-
 if [ -f /cvmfs/cms.cern.ch/cmsset_default.sh ]
 then
 
@@ -44,7 +42,18 @@ then
 
 		#get grid proxy
 		export X509_USER_PROXY=${homeDir}x509_proxy
-		
+			
+		#copy pedestal file
+                if [ ${isData} == "yes" ]
+                then
+			date
+			echo "copying pedestal file to local directory ========="
+                        #hadoop fs -get /store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root ./
+                        cp /mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root ./
+			echo "done with copying pedestal file to local directory ========="
+			date
+                fi
+
 		#run the job
 		cat ${CMSSW_BASE}${inputfilelist} | awk "NR > (${jobnumber}*${filePerJob}) && NR <= ((${jobnumber}+1)*${filePerJob})" > inputfilelistForThisJob_${jobnumber}.txt
 		echo ""
@@ -54,30 +63,10 @@ then
 		echo "************************************"
 		echo ""
 
-		#remove empty input files
-		for ifile in `cat inputfilelistForThisJob_${jobnumber}.txt`
-		do
-			minimumsize=60000
-                	actualsize=0
-                	if [ -f ${ifile} ]
-                	then
-                        	actualsize=$(wc -c <"${ifile}")
-                	fi
-			if [ $actualsize -ge ${minimumsize} ]
-                	then
-				echo ${ifile} >> inputfilelistForThisJob_${jobnumber}_filter.txt
-			fi
-
-		done
-		echo "************************************"
-		echo "Running on these input files after removing bad files"
-		cat inputfilelistForThisJob_${jobnumber}_filter.txt
-		echo "************************************"
-		
 		echo " "; echo "Starting razor run job now"; echo " ";
-		echo ./RazorRun_T2 inputfilelistForThisJob_${jobnumber}_filter.txt ${analysisType} -d=${isData} -n=${option} -f=${outputfile}
+		echo ./RazorRun_T2 inputfilelistForThisJob_${jobnumber}.txt ${analysisType} -d=${isData} -n=${option} -f=${outputfile}
 
-		./RazorRun_T2 inputfilelistForThisJob_${jobnumber}_filter.txt ${analysisType} -d=${isData} -n=${option} -f=${outputfile}
+		./RazorRun_T2 inputfilelistForThisJob_${jobnumber}.txt ${analysisType} -d=${isData} -n=${option} -f=${outputfile}
 
 		echo ${outputfile}
 		echo ${outputDirectory}
@@ -101,7 +90,6 @@ then
 		fi
 	else
 		echo echo "WWWWYYYY ============= failed to access file RazorRun_T2, job anandoned"
-		sleep 600000
 	fi
 
 else
@@ -109,6 +97,6 @@ else
 fi
 
 cd ${currentDir}
-rm -rf ${runDir}
+#rm -rf ${runDir}
 echo "Job finished"
 date
