@@ -15,9 +15,9 @@ class ZeeTiming: public RazorAnalyzer {
         vector <float> *rms_G6_all;
         vector <int> *detID_all;
 
-	const double N_EB = 35.8;   //ns
+	const double N_EB = 35.9;   //ns
 	const double C_EB = 0.080; //ns
-	const double N_EB_MC = 50.4; //ns
+	const double N_EB_MC = 50.3; //ns
 	const double C_EB_MC = 0.087; //ns
 
         ZeeTiming(TTree *tree=0): RazorAnalyzer(tree) { }
