@@ -92,8 +92,8 @@ struct evt
   std::string event;
 };
 
-#define _phodebug 0
-#define _debug    0
+#define _phodebug 1
+#define _debug    1
 #define _metdebug 0
 #define _info     1
 
@@ -1691,7 +1691,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         tmp_phoCand.scale = scale;
 	if (analysisTag == "Razor2017_31Mar2018Rereco" )
 	{
-		tmp_phoCand._passIso = photonPassLooseIso_2017(i);
+		tmp_phoCand._passIso = photonPassLooseIso_94X(i);
 	}
 	else if (analysisTag == "Razor2017_92X" || analysisTag == "Razor2017_17Nov2017Rereco" )
 	{
