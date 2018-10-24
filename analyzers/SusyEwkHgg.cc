@@ -1447,6 +1447,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 
         //ID cuts -- apply isolation after candidate pair selection
         if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] << std::endl;
+        if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_sc_eta: " << pho_superClusterEta[i] << std::endl;
         //--loose ID (default)--
         if (doRequireID)
         {
@@ -1474,6 +1475,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
               continue;
             }
           }
+        if ( _phodebug ) std::cout << "pho# " << i << " passes default loose ID" << std::endl;
         }
 
         //---------------
@@ -1505,6 +1507,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
               continue;
             }
           }
+        if ( _phodebug ) std::cout << "pho# " << i << " passes requied tight ID" << std::endl;
         }
 
         //**********************************************************
@@ -1516,10 +1519,13 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         //ONLY EB photons
         //---------------
         if (!(fabs(pho_superClusterEta[i]) < 1.4442 )) continue;
+        if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_sc_eta: " << pho_superClusterEta[i] << std::endl;
+        if ( _phodebug ) std::cout << "pho# " << i << " passes EB Eta" << std::endl;
         //-------------
         // --ele Veto--
         //-------------
 	      if (doEleVeto) if (!(pho_passEleVeto[i])) continue;
+        if ( _phodebug ) std::cout << "pho# " << i << " passes Ele Veto" << std::endl;
         //-------------------
         //--loose isolation--
         //-------------------
@@ -1537,6 +1543,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           {
             if (!(photonPassLooseIso(i))) continue;
           }
+        if ( _phodebug ) std::cout << "pho# " << i << " passes Iso" << std::endl;
         }
         //--------------------
         //--tight isolation---
@@ -1555,6 +1562,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           {
             if (!(photonPassTightIso(i))) continue;
           }
+        if ( _phodebug ) std::cout << "pho# " << i << " passes tight Iso" << std::endl;
         }
 
         //*****************************************************************************
@@ -1568,6 +1576,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           if (RazorAnalyzer::deltaR(phoEta[i],phoPhi[i],mu.Eta(),mu.Phi()) < 0.5)  overlapm = true;
         }
         if (overlapm) continue;//removing muon overlaps
+        if ( _phodebug ) std::cout << "pho# " << i << " passes muon overlap" << std::endl;
         //remove electron overlaps
         bool overlape = false;
         for(int k = 0; k < int(GoodElectrons.size()); k++)
@@ -1576,6 +1585,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           if (RazorAnalyzer::deltaR(phoEta[i],phoPhi[i],ele.Eta(),ele.Phi()) < 1.0) overlape = true;
         }
         if( doEleVeto && overlape ) continue;//removing electron overlaps only when we don't want Zee candidates
+        if ( _phodebug ) std::cout << "pho# " << i << " passes electron overlap" << std::endl;
 
 
         //----------------------------------------------
@@ -1623,6 +1633,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           {
             pho_pt_corr = phoPt[i]*(1+smear*random.Gaus());
           }
+        if ( _phodebug ) std::cout << "pho# " << i << " finishes photon energy corr" << std::endl;
+        if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_sc_eta: " << pho_superClusterEta[i] << std::endl;
         }
 
         //---------------------------------------------------------
@@ -1679,6 +1691,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         tmp_phoCand.photon = thisPhoton;
         tmp_phoCand.photonSC = phoSC;
         tmp_phoCand.scEta = pho_superClusterEta[i];
+        if ( _phodebug ) std::cout << "[INFO] : pho# " << i << " pho_sc_eta: " << pho_superClusterEta[i] << ", tmp_phoCand.scEta = " << tmp_phoCand.scEta << std::endl;
         tmp_phoCand.scPhi = pho_superClusterPhi[i];
         tmp_phoCand.SigmaIetaIeta = phoFull5x5SigmaIetaIeta[i];
         tmp_phoCand.R9 = phoR9[i];
@@ -1785,6 +1798,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 
       phoSelectedCand.push_back(bestCand[0]);
       phoSelectedCand.push_back(bestCand[1]);
+      if ( _phodebug ) std::cout << " " << std::endl;
       //-----------------------------------
       //Filling Selected Photon Information
       //-----------------------------------
@@ -1801,8 +1815,12 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         Pho_Phi[_pho_index]                = tmpPho.photon.Phi();
         PhoSC_E[_pho_index]                = tmpPho.photonSC.E();
         PhoSC_Pt[_pho_index]               = tmpPho.photonSC.Pt();
-        PhoSC_Eta[_pho_index]              = tmpPho.photonSC.Eta();
-        PhoSC_Phi[_pho_index]              = tmpPho.photonSC.Phi();
+        //PhoSC_Eta[_pho_index]              = tmpPho.photonSC.Eta();
+        //if ( _phodebug ) std::cout << " tmpPho.photonSC.Eta(): " << tmpPho.photonSC.Eta() << ", PhoSC_Eta[_pho_index] : " << PhoSC_Eta[_pho_index] << std::endl;
+        PhoSC_Eta[_pho_index]              = tmpPho.scEta;
+        if ( _phodebug ) std::cout << " tmpPho.scEta: " << tmpPho.scEta << ", PhoSC_Eta[_pho_index] : " << PhoSC_Eta[_pho_index] << std::endl;
+        //PhoSC_Phi[_pho_index]              = tmpPho.photonSC.Phi();
+        PhoSC_Phi[_pho_index]              = tmpPho.scPhi;
         Pho_SigmaIetaIeta[_pho_index]      = tmpPho.SigmaIetaIeta;
         Pho_R9[_pho_index]                 = tmpPho.R9;
         Pho_HoverE[_pho_index]             = tmpPho.HoverE;
