@@ -19,7 +19,7 @@ else
     cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonCorrections/Winter_2016_reReco_v1_ele_smearings.dat ./
     cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonCorrections/Winter_2016_reReco_v1_ele_scales.dat ./
     cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2017/efficiency_results_LooseElectronSelectionEffDenominatorGen_2017_17Nov2017Rereco_Golden.root ./
-    cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2017/efficiency_results_VetoMuonSelectionEffDenominatorGen_2017_17Nov2017Rereco_Golden.root ./
+    #cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2017/efficiency_results_VetoMuonSelectionEffDenominatorGen_2017_17Nov2017Rereco_Golden.root ./
     cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2017/efficiency_results_LooseElectronSelectionEffDenominatorGen_2017_31Mar2018_Golden.root ./
     cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2017/efficiency_results_VetoMuonSelectionEffDenominatorGen_2017_31Mar2018_Golden.root ./
     cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/LeptonEfficiencies/2017/*.root ./

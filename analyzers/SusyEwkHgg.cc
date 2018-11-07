@@ -1333,7 +1333,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //Start Object Selection
       //*************************************************************************
       razorbox = None;
-
+/*
       //--------------
       //good muon selection
       //--------------
@@ -1409,7 +1409,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 					 ((ele_chargedMiniIso[i] +  fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveArea90(i,electronEraName)*pow(dr/0.3,2)))/elePt[i] < 0.1));
           eleCand.push_back( tmp_eleCand );
 	}
-
+*/
 
       //-------------
       //tau selection
@@ -1564,7 +1564,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           }
         if ( _phodebug ) std::cout << "pho# " << i << " passes tight Iso" << std::endl;
         }
-
+/*
         //*****************************************************************************
         //Photons must be separated from any selected leptons (muons and electrons)
         //*****************************************************************************
@@ -1586,7 +1586,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         }
         if( doEleVeto && overlape ) continue;//removing electron overlaps only when we don't want Zee candidates
         if ( _phodebug ) std::cout << "pho# " << i << " passes electron overlap" << std::endl;
-
+*/
 
         //----------------------------------------------
         //Get Scale and Define Corrected Photon momentum
@@ -1926,6 +1926,106 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         if(!( (gParticleStatus[g] == 1 && gParticleMotherId[g] != 22) || gParticleStatus[g] == 22 || gParticleStatus[g] == 23)) continue;
         Pho_motherID[1] = gParticleMotherId[g];
       }
+
+      //--------------
+      //good muon selection
+      //--------------
+      vector<TLorentzVector> GoodMuons;
+      std::vector< MuonCandidate > muCand;
+      for( int i = 0; i < nMuons; i++ )
+	{
+          //TLorentzVector for this muon
+          TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]);
+
+	  double dr = 10.0/fmin(fmax(muonPt[i], 50.0),200.0);
+	  //use Loose Muon POG ID and |d0|<0.2 and |dZ|<0.5 && miniiso / pt < 0.2
+	  if(!(
+	       muonIsLoose[i] && fabs(muon_d0[i]) < 0.2 && fabs(muon_dZ[i]) < 0.5
+	       && 
+	       ((muon_chargedMiniIso[i] + fmax(0.0, muon_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetMuonEffectiveAreaMean(i,"neutral")*pow(dr/0.3,2)) )/muonPt[i] < 0.2)
+	       )) continue;
+	     
+	  if(muonPt[i] < 20) continue;
+	  if(abs(muonEta[i]) > 2.4) continue;
+        //*****************************************************************************
+        //Photons must be separated from any selected leptons (muons and electrons)
+        //*****************************************************************************
+        //Remove muon overlaps
+        bool overlapm = false;
+        for(int j = 0; j < 2; j++)
+        {
+          TLorentzVector pho = pho_cand_vec[j];
+          if (RazorAnalyzer::deltaR(pho.Eta(),pho.Phi(),thisMuon.Eta(),thisMuon.Phi()) <= 0.5)  overlapm = true;
+        }
+        if (overlapm) continue;//removing muon overlaps
+        if ( _phodebug ) std::cout << "mu# " << i << " passes photon overlap" << std::endl;
+	  nLooseMuons++;
+          GoodMuons.push_back(thisMuon);
+	  if( isTightMuon(i) ) nTightMuons++;
+	  //Filling Muon Candidate
+	  MuonCandidate tmp_muCand;
+	  tmp_muCand.Index = i;
+	  tmp_muCand.muon = thisMuon;
+	  tmp_muCand.muonCharge = muonCharge[i];
+	  tmp_muCand.isTightMuon = isTightMuon(i);
+          muCand.push_back( tmp_muCand );
+	}
+
+      //------------------
+      //good electron selection
+      //------------------
+      string electronEraName = "";
+      if (dataset == "94X") electronEraName = "2017_94X";
+      else if (dataset == "80X") electronEraName = "Summer16";
+      vector<TLorentzVector> GoodElectrons;
+      std::vector< ElectronCandidate > eleCand;
+      for( int i = 0; i < nElectrons; i++ )
+	{
+        //*****************************************************************************
+        //Photons must be separated from any selected leptons (muons and electrons)
+        //*****************************************************************************
+        //remove electron overlaps
+        bool overlape = false;
+        for(int k = 0; k < 2; k++)
+        {
+          TLorentzVector pho = pho_cand_vec[k];
+          if (RazorAnalyzer::deltaR(pho.Eta(),pho.Phi(),eleEta[i],elePhi[i]) <= 1.0)  overlape = true;
+        }
+        if( doEleVeto && overlape ) continue;//removing electron overlaps only when we don't want Zee candidates
+        if ( _phodebug ) std::cout << "ele# " << i << " passes photon overlap" << std::endl;
+          //Remove overlaps
+          bool overlap = false;
+          for(int j = 0; j < int(GoodMuons.size()); j++){
+                  TLorentzVector mu = GoodMuons.at(j);
+                  if (RazorAnalyzer::deltaR(eleEta[i],elePhi[i],mu.Eta(),mu.Phi()) <= 0.4)  overlap = true;
+          }
+          if (overlap) continue;
+          //TLorentzVector for this electron
+          TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
+
+	  //DR definition for mini-isolation
+	  double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
+
+	  if(!(passEGammaPOGLooseElectronID(i,true,electronEraName) && 
+	       ((ele_chargedMiniIso[i] +  fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveArea90(i,electronEraName)*pow(dr/0.3,2)))/elePt[i] < 0.1) 
+		)) continue;
+	  //if ( !( passMVALooseElectronID(i,dataset) && passMVANonTrigVetoElectronIso(i) && fabs(ele_ip3dSignificance[i]) < 4. ) ) continue;//Only for electron WP test
+	  if( elePt[i] < 20 ) continue;
+	  if( abs(eleEta[i]) > 2.4 ) continue;
+	  nLooseElectrons++;
+          GoodElectrons.push_back(thisElectron);      	  
+	  if(passEGammaPOGTightElectronID(i,true,electronEraName) && 
+	     ((ele_chargedMiniIso[i] +  fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveArea90(i,electronEraName)*pow(dr/0.3,2)))/elePt[i] < 0.1) 
+	     ) nTightElectrons++;
+	  //Filling Electron Candidate
+	  ElectronCandidate tmp_eleCand;
+	  tmp_eleCand.Index = i;
+	  tmp_eleCand.electron = thisElectron;
+	  tmp_eleCand.eleCharge = eleCharge[i];
+	  tmp_eleCand.isTightElectron = (passEGammaPOGTightElectronID(i,true,electronEraName) && 
+					 ((ele_chargedMiniIso[i] +  fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveArea90(i,electronEraName)*pow(dr/0.3,2)))/elePt[i] < 0.1));
+          eleCand.push_back( tmp_eleCand );
+	}
 
       //------------
       //BTagged Jets
