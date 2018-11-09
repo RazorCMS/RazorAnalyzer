@@ -113,10 +113,18 @@ int main( int argc, char** argv )
   //********************************************************
   TFile* fout = new TFile( outputFile.c_str(), "RECREATE");
   TTree* razortree;
-  //2016
+  //2016 data
   //razortree = (TTree*)tree->CopyTree("HLTDecision[82]");
-  //2017
-  razortree = (TTree*)tree->CopyTree("HLTDecision[54]");
+  //razortree = (TTree*)tree->CopyTree("HLTDecision[82] && Flag_goodVertices==1 && Flag_CSCTightHaloFilter==1 && Flag_HBHENoiseFilter==1 && Flag_HBHEIsoNoiseFilter==1 && Flag_EcalDeadCellTriggerPrimitiveFilter==1 && Flag_badMuonFilter==1  && Flag_badChargedCandidateFilter==1 && Flag_eeBadScFilter==1 ");
+  //2016 Mc
+  //razortree = (TTree*)tree->CopyTree("HLTDecision[82] && Flag_goodVertices==1 && Flag_CSCTightHaloFilter==1 && Flag_HBHENoiseFilter==1 && Flag_HBHEIsoNoiseFilter==1 && Flag_EcalDeadCellTriggerPrimitiveFilter==1 && Flag_badMuonFilter==1  && Flag_badChargedCandidateFilter==1 ");
+  //2017 data
+  //razortree = (TTree*)tree->CopyTree("HLTDecision[54]");
+  //razortree = (TTree*)tree->CopyTree("HLTDecision[54] && Flag_goodVertices==1 && Flag_CSCTightHaloFilter==1 && Flag_HBHENoiseFilter==1 && Flag_HBHEIsoNoiseFilter==1 && Flag_EcalDeadCellTriggerPrimitiveFilter==1 && Flag_BadPFMuonFilter==1  && Flag_BadChargedCandidateFilter==1 && Flag_eeBadScFilter==1 && Flag_ecalBadCalibFilter==1");
+  //2017 Mc
+  //razortree = (TTree*)tree->CopyTree("HLTDecision[54] && Flag_goodVertices==1 && Flag_CSCTightHaloFilter==1 && Flag_HBHENoiseFilter==1 && Flag_HBHEIsoNoiseFilter==1 && Flag_EcalDeadCellTriggerPrimitiveFilter==1 && Flag_badMuonFilter==1  && Flag_badChargedCandidateFilter==1 ");
+  //V4p4
+  razortree = (TTree*)tree->CopyTree("HLTDecision[54] && Flag_HBHENoiseFilter == 1 && Flag_CSCTightHaloFilter == 1 && Flag_goodVertices == 1 && Flag_HBHEIsoNoiseFilter == 1 && Flag_EcalDeadCellTriggerPrimitiveFilter==1 && Flag_BadPFMuonFilter==1  && Flag_BadChargedCandidateFilter==1 && Flag_ecalBadCalibFilter==1 ");
   razortree->Write();
 
   fout->Close();
