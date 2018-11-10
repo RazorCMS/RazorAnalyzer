@@ -1724,6 +1724,42 @@ float RazorAnalyzer::GetMuonEffectiveAreaMean(int i, string type ){
 }
 
 
+float RazorAnalyzer::GetMuonEffectiveArea90(int i, string EraName ){ 
+
+  double effArea = 0.0;
+  //Effective areas below are for the sum of Neutral Hadrons + Photons
+  if (EraName == "Spring15" || EraName == "Spring16" || EraName == "Summer16") {
+  //values from https://github.com/cms-data/PhysicsTools-NanoAOD/blob/10e7935ba38c2172ebb75979dcc1d8174b0566cd/effAreaMuons_cone03_pfNeuHadronsAndPhotons_80X.txt
+    if (fabs(muonEta[i]) < 0.8) {
+      effArea = 0.0735;
+    } else if (fabs(muonEta[i]) < 1.3) {
+      effArea = 0.0619;	
+    } else if (fabs(muonEta[i]) < 2.0) {
+      effArea = 0.0465;	
+    } else if (fabs(muonEta[i]) < 2.2) {
+      effArea = 0.0433;	
+    } else {
+      effArea = 0.0577;	
+    } 
+  } 
+  else if ( EraName == "2017_94X") {
+  //values from https://github.com/cms-data/PhysicsTools-NanoAOD/blob/10e7935ba38c2172ebb75979dcc1d8174b0566cd/effAreaMuons_cone03_pfNeuHadronsAndPhotons_94X.txt
+    if (fabs(muonEta[i]) < 0.8) {
+      effArea = 0.0566;
+    } else if (fabs(muonEta[i]) < 1.3) {
+      effArea = 0.0562;	
+    } else if (fabs(muonEta[i]) < 2.0) {
+      effArea = 0.0363;	
+    } else if (fabs(muonEta[i]) < 2.2) {
+      effArea = 0.019;	
+    } else {
+      effArea = 0.0064;	
+    } 
+  } 
+  return effArea;
+}
+
+
 
 bool RazorAnalyzer::isMuonPOGLooseMuon(int i, bool applyID, bool applyIso){
   bool pass = true;
