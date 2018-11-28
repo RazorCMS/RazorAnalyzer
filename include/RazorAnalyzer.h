@@ -53,6 +53,7 @@ class RazorAnalyzer: public RazorEvents {
 
         //functions in RazorAuxMuon.cc
 	float GetMuonEffectiveAreaMean(int i, string type );
+	float GetMuonEffectiveArea90(int i, string EraName );
 	bool isMuonPOGLooseMuon(int i, bool applyID = true, bool applyIso = true);
 	bool isMuonPOGMediumMuon(int i, bool applyID = true, bool applyIso = true);
         bool isMuonPOGTightMuon(int i, bool applyID = true, bool applyIso = true);

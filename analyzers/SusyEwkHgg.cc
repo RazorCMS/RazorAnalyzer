@@ -92,8 +92,8 @@ struct evt
   std::string event;
 };
 
-#define _phodebug 0
-#define _debug    0
+#define _phodebug 1
+#define _debug    1
 #define _metdebug 0
 #define _info     1
 
@@ -1334,83 +1334,6 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //*************************************************************************
       razorbox = None;
 
-      //--------------
-      //good muon selection
-      //--------------
-      vector<TLorentzVector> GoodMuons;
-      std::vector< MuonCandidate > muCand;
-      for( int i = 0; i < nMuons; i++ )
-	{
-          //TLorentzVector for this muon
-          TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]);
-
-	  double dr = 10.0/fmin(fmax(muonPt[i], 50.0),200.0);
-	  //use Loose Muon POG ID and |d0|<0.2 and |dZ|<0.5 && miniiso / pt < 0.2
-	  if(!(
-	       muonIsLoose[i] && fabs(muon_d0[i]) < 0.2 && fabs(muon_dZ[i]) < 0.5
-	       && 
-	       ((muon_chargedMiniIso[i] + fmax(0.0, muon_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetMuonEffectiveAreaMean(i,"neutral")*pow(dr/0.3,2)) )/muonPt[i] < 0.2)
-	       )) continue;
-	     
-	  if(muonPt[i] < 20) continue;
-	  if(abs(muonEta[i]) > 2.4) continue;
-	  nLooseMuons++;
-          GoodMuons.push_back(thisMuon);
-	  if( isTightMuon(i) ) nTightMuons++;
-	  //Filling Muon Candidate
-	  MuonCandidate tmp_muCand;
-	  tmp_muCand.Index = i;
-	  tmp_muCand.muon = thisMuon;
-	  tmp_muCand.muonCharge = muonCharge[i];
-	  tmp_muCand.isTightMuon = isTightMuon(i);
-          muCand.push_back( tmp_muCand );
-	}
-
-      //------------------
-      //good electron selection
-      //------------------
-      string electronEraName = "";
-      if (dataset == "94X") electronEraName = "2017_94X";
-      else if (dataset == "80X") electronEraName = "Summer16";
-      vector<TLorentzVector> GoodElectrons;
-      std::vector< ElectronCandidate > eleCand;
-      for( int i = 0; i < nElectrons; i++ )
-	{
-          //Remove overlaps
-          bool overlap = false;
-          for(int j = 0; j < int(GoodMuons.size()); j++){
-                  TLorentzVector mu = GoodMuons.at(j);
-                  if (RazorAnalyzer::deltaR(eleEta[i],elePhi[i],mu.Eta(),mu.Phi()) < 0.4)  overlap = true;
-          }
-          if (overlap) continue;
-          //TLorentzVector for this electron
-          TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
-
-	  //DR definition for mini-isolation
-	  double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
-
-	  if(!(passEGammaPOGLooseElectronID(i,true,electronEraName) && 
-	       ((ele_chargedMiniIso[i] +  fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveArea90(i,electronEraName)*pow(dr/0.3,2)))/elePt[i] < 0.1) 
-		)) continue;
-	  //if ( !( passMVALooseElectronID(i,dataset) && passMVANonTrigVetoElectronIso(i) && fabs(ele_ip3dSignificance[i]) < 4. ) ) continue;//Only for electron WP test
-	  if( elePt[i] < 20 ) continue;
-	  if( abs(eleEta[i]) > 2.4 ) continue;
-	  nLooseElectrons++;
-          GoodElectrons.push_back(thisElectron);      	  
-	  if(passEGammaPOGTightElectronID(i,true,electronEraName) && 
-	     ((ele_chargedMiniIso[i] +  fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveArea90(i,electronEraName)*pow(dr/0.3,2)))/elePt[i] < 0.1) 
-	     ) nTightElectrons++;
-	  //Filling Electron Candidate
-	  ElectronCandidate tmp_eleCand;
-	  tmp_eleCand.Index = i;
-	  tmp_eleCand.electron = thisElectron;
-	  tmp_eleCand.eleCharge = eleCharge[i];
-	  tmp_eleCand.isTightElectron = (passEGammaPOGTightElectronID(i,true,electronEraName) && 
-					 ((ele_chargedMiniIso[i] +  fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveArea90(i,electronEraName)*pow(dr/0.3,2)))/elePt[i] < 0.1));
-          eleCand.push_back( tmp_eleCand );
-	}
-
-
       //-------------
       //tau selection
       //-------------
@@ -1447,6 +1370,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 
         //ID cuts -- apply isolation after candidate pair selection
         if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_eta: " << phoEta[i] << std::endl;
+        if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_sc_eta: " << pho_superClusterEta[i] << std::endl;
         //--loose ID (default)--
         if (doRequireID)
         {
@@ -1474,6 +1398,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
               continue;
             }
           }
+        if ( _phodebug ) std::cout << "pho# " << i << " passes default loose ID" << std::endl;
         }
 
         //---------------
@@ -1505,6 +1430,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
               continue;
             }
           }
+        if ( _phodebug ) std::cout << "pho# " << i << " passes requied tight ID" << std::endl;
         }
 
         //**********************************************************
@@ -1516,10 +1442,13 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         //ONLY EB photons
         //---------------
         if (!(fabs(pho_superClusterEta[i]) < 1.4442 )) continue;
+        if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_sc_eta: " << pho_superClusterEta[i] << std::endl;
+        if ( _phodebug ) std::cout << "pho# " << i << " passes EB Eta" << std::endl;
         //-------------
         // --ele Veto--
         //-------------
 	      if (doEleVeto) if (!(pho_passEleVeto[i])) continue;
+        if ( _phodebug ) std::cout << "pho# " << i << " passes Ele Veto" << std::endl;
         //-------------------
         //--loose isolation--
         //-------------------
@@ -1537,6 +1466,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           {
             if (!(photonPassLooseIso(i))) continue;
           }
+        if ( _phodebug ) std::cout << "pho# " << i << " passes Iso" << std::endl;
         }
         //--------------------
         //--tight isolation---
@@ -1555,8 +1485,9 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           {
             if (!(photonPassTightIso(i))) continue;
           }
+        if ( _phodebug ) std::cout << "pho# " << i << " passes tight Iso" << std::endl;
         }
-
+/*
         //*****************************************************************************
         //Photons must be separated from any selected leptons (muons and electrons)
         //*****************************************************************************
@@ -1568,6 +1499,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           if (RazorAnalyzer::deltaR(phoEta[i],phoPhi[i],mu.Eta(),mu.Phi()) < 0.5)  overlapm = true;
         }
         if (overlapm) continue;//removing muon overlaps
+        if ( _phodebug ) std::cout << "pho# " << i << " passes muon overlap" << std::endl;
         //remove electron overlaps
         bool overlape = false;
         for(int k = 0; k < int(GoodElectrons.size()); k++)
@@ -1576,7 +1508,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           if (RazorAnalyzer::deltaR(phoEta[i],phoPhi[i],ele.Eta(),ele.Phi()) < 1.0) overlape = true;
         }
         if( doEleVeto && overlape ) continue;//removing electron overlaps only when we don't want Zee candidates
-
+        if ( _phodebug ) std::cout << "pho# " << i << " passes electron overlap" << std::endl;
+*/
 
         //----------------------------------------------
         //Get Scale and Define Corrected Photon momentum
@@ -1623,6 +1556,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           {
             pho_pt_corr = phoPt[i]*(1+smear*random.Gaus());
           }
+        if ( _phodebug ) std::cout << "pho# " << i << " finishes photon energy corr" << std::endl;
+        if ( _phodebug ) std::cout << "pho# " << i << " phopt1: " << phoPt[i] << " pho_sc_eta: " << pho_superClusterEta[i] << std::endl;
         }
 
         //---------------------------------------------------------
@@ -1679,6 +1614,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         tmp_phoCand.photon = thisPhoton;
         tmp_phoCand.photonSC = phoSC;
         tmp_phoCand.scEta = pho_superClusterEta[i];
+        if ( _phodebug ) std::cout << "[INFO] : pho# " << i << " pho_sc_eta: " << pho_superClusterEta[i] << ", tmp_phoCand.scEta = " << tmp_phoCand.scEta << std::endl;
         tmp_phoCand.scPhi = pho_superClusterPhi[i];
         tmp_phoCand.SigmaIetaIeta = phoFull5x5SigmaIetaIeta[i];
         tmp_phoCand.R9 = phoR9[i];
@@ -1691,7 +1627,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         tmp_phoCand.scale = scale;
 	if (analysisTag == "Razor2017_31Mar2018Rereco" )
 	{
-		tmp_phoCand._passIso = photonPassLooseIso_2017(i);
+		tmp_phoCand._passIso = photonPassLooseIso_94X(i);
 	}
 	else if (analysisTag == "Razor2017_92X" || analysisTag == "Razor2017_17Nov2017Rereco" )
 	{
@@ -1785,6 +1721,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 
       phoSelectedCand.push_back(bestCand[0]);
       phoSelectedCand.push_back(bestCand[1]);
+      if ( _phodebug ) std::cout << " " << std::endl;
       //-----------------------------------
       //Filling Selected Photon Information
       //-----------------------------------
@@ -1801,8 +1738,12 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         Pho_Phi[_pho_index]                = tmpPho.photon.Phi();
         PhoSC_E[_pho_index]                = tmpPho.photonSC.E();
         PhoSC_Pt[_pho_index]               = tmpPho.photonSC.Pt();
-        PhoSC_Eta[_pho_index]              = tmpPho.photonSC.Eta();
-        PhoSC_Phi[_pho_index]              = tmpPho.photonSC.Phi();
+        //PhoSC_Eta[_pho_index]              = tmpPho.photonSC.Eta();
+        //if ( _phodebug ) std::cout << " tmpPho.photonSC.Eta(): " << tmpPho.photonSC.Eta() << ", PhoSC_Eta[_pho_index] : " << PhoSC_Eta[_pho_index] << std::endl;
+        PhoSC_Eta[_pho_index]              = tmpPho.scEta;
+        if ( _phodebug ) std::cout << " tmpPho.scEta: " << tmpPho.scEta << ", PhoSC_Eta[_pho_index] : " << PhoSC_Eta[_pho_index] << std::endl;
+        //PhoSC_Phi[_pho_index]              = tmpPho.photonSC.Phi();
+        PhoSC_Phi[_pho_index]              = tmpPho.scPhi;
         Pho_SigmaIetaIeta[_pho_index]      = tmpPho.SigmaIetaIeta;
         Pho_R9[_pho_index]                 = tmpPho.R9;
         Pho_HoverE[_pho_index]             = tmpPho.HoverE;
@@ -1908,6 +1849,116 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         if(!( (gParticleStatus[g] == 1 && gParticleMotherId[g] != 22) || gParticleStatus[g] == 22 || gParticleStatus[g] == 23)) continue;
         Pho_motherID[1] = gParticleMotherId[g];
       }
+
+      //--------------
+      //good muon selection
+      //--------------
+      string muonEraName = "";
+      if (dataset == "94X") muonEraName = "2017_94X";
+      else if (dataset == "80X") muonEraName = "Spring15";
+      vector<TLorentzVector> GoodMuons;
+      std::vector< MuonCandidate > muCand;
+      for( int i = 0; i < nMuons; i++ )
+	{
+          //TLorentzVector for this muon
+          TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]);
+
+	  double dr = 10.0/fmin(fmax(muonPt[i], 50.0),200.0);
+	  //use Loose Muon POG ID and |d0|<0.2 and |dZ|<0.5 && miniiso / pt < 0.2
+	  if(!(
+	       muonIsLoose[i] && fabs(muon_d0[i]) < 0.2 && fabs(muon_dZ[i]) < 0.5
+	       && 
+	       ((muon_chargedMiniIso[i] + fmax(0.0, muon_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetMuonEffectiveArea90(i,muonEraName)*pow(dr/0.3,2)) )/muonPt[i] < 0.2)
+	       )) continue;
+	     
+	  if(muonPt[i] < 20) continue;
+	  if(abs(muonEta[i]) > 2.4) continue;
+        //*****************************************************************************
+        //Photons must be separated from any selected leptons (muons and electrons)
+        //*****************************************************************************
+        //Remove muon overlaps
+        bool overlapm = false;
+        for(int j = 0; j < 2; j++)
+        {
+          TLorentzVector pho = pho_cand_vec[j];
+          if (RazorAnalyzer::deltaR(pho.Eta(),pho.Phi(),thisMuon.Eta(),thisMuon.Phi()) <= 0.5)  overlapm = true;
+        }
+        if (overlapm) continue;//removing muon overlaps
+        if ( _phodebug ) std::cout << "mu# " << i << " passes photon overlap" << std::endl;
+	  nLooseMuons++;
+          GoodMuons.push_back(thisMuon);
+	  if( isTightMuon(i) ) nTightMuons++;
+	  //Filling Muon Candidate
+	  MuonCandidate tmp_muCand;
+	  tmp_muCand.Index = i;
+	  tmp_muCand.muon = thisMuon;
+	  tmp_muCand.muonCharge = muonCharge[i];
+	  tmp_muCand.isTightMuon = isTightMuon(i);
+          muCand.push_back( tmp_muCand );
+	}
+
+      //------------------
+      //good electron selection
+      //------------------
+      string electronEraName = "";
+      if (dataset == "94X") electronEraName = "2017_94X";
+      else if (dataset == "80X") electronEraName = "Spring15";
+      vector<TLorentzVector> GoodElectrons;
+      std::vector< ElectronCandidate > eleCand;
+      for( int i = 0; i < nElectrons; i++ )
+	{
+        //*****************************************************************************
+        //Photons must be separated from any selected leptons (muons and electrons)
+        //*****************************************************************************
+        //remove electron overlaps
+        bool overlape = false;
+        for(int k = 0; k < 2; k++)
+        {
+          TLorentzVector pho = pho_cand_vec[k];
+          if (RazorAnalyzer::deltaR(pho.Eta(),pho.Phi(),eleEta[i],elePhi[i]) <= 1.0)  overlape = true;
+        }
+        if( doEleVeto && overlape ) continue;//removing electron overlaps only when we don't want Zee candidates
+        if ( _phodebug ) std::cout << "ele# " << i << " passes photon overlap" << std::endl;
+          //Remove overlaps
+          bool overlap = false;
+          for(int j = 0; j < int(GoodMuons.size()); j++){
+                  TLorentzVector mu = GoodMuons.at(j);
+                  if (RazorAnalyzer::deltaR(eleEta[i],elePhi[i],mu.Eta(),mu.Phi()) <= 0.4)  overlap = true;
+          }
+          if (overlap) continue;
+        if ( _phodebug ) std::cout << "ele# " << i << " passes muon overlap" << std::endl;
+          //TLorentzVector for this electron
+          TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
+
+	  //DR definition for mini-isolation
+	  double dr = fmax(0.05,fmin(0.2, 10/elePt[i]));
+        if ( _phodebug ) std::cout << "ele# " << i << " dr = " << dr << std::endl;
+
+        if ( _phodebug ) std::cout << "ele# " << i << " id = " << passEGammaPOGLooseElectronID(i,true,electronEraName) << std::endl;
+        if ( _phodebug ) std::cout << "ele# " << i << " iso = " << (ele_chargedMiniIso[i] +  fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveArea90(i,electronEraName)*pow(dr/0.3,2)))/elePt[i]  << std::endl;
+	  if(!(passEGammaPOGLooseElectronID(i,true,electronEraName) && 
+	       ((ele_chargedMiniIso[i] +  fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveArea90(i,electronEraName)*pow(dr/0.3,2)))/elePt[i] < 0.1) 
+		)) continue;
+        if ( _phodebug ) std::cout << "ele# " << i << " passes id " << std::endl;
+	  //if ( !( passMVALooseElectronID(i,dataset) && passMVANonTrigVetoElectronIso(i) && fabs(ele_ip3dSignificance[i]) < 4. ) ) continue;//Only for electron WP test
+	  if( elePt[i] < 20 ) continue;
+	  if( abs(eleEta[i]) > 2.4 ) continue;
+        if ( _phodebug ) std::cout << "ele# " << i << " passes pt and eta " << std::endl;
+	  nLooseElectrons++;
+        if ( _phodebug ) std::cout << "ele# " << i << " added to nLooseEle " << std::endl;
+          GoodElectrons.push_back(thisElectron);      	  
+	  if(passEGammaPOGTightElectronID(i,true,electronEraName) && 
+	     ((ele_chargedMiniIso[i] +  fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveArea90(i,electronEraName)*pow(dr/0.3,2)))/elePt[i] < 0.1) 
+	     ) nTightElectrons++;
+	  //Filling Electron Candidate
+	  ElectronCandidate tmp_eleCand;
+	  tmp_eleCand.Index = i;
+	  tmp_eleCand.electron = thisElectron;
+	  tmp_eleCand.eleCharge = eleCharge[i];
+	  tmp_eleCand.isTightElectron = (passEGammaPOGTightElectronID(i,true,electronEraName) && 
+					 ((ele_chargedMiniIso[i] +  fmax(0.0, ele_photonAndNeutralHadronMiniIso[i] - fixedGridRhoFastjetAll*GetElectronEffectiveArea90(i,electronEraName)*pow(dr/0.3,2)))/elePt[i] < 0.1));
+          eleCand.push_back( tmp_eleCand );
+	}
 
       //------------
       //BTagged Jets
