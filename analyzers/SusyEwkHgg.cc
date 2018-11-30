@@ -2524,7 +2524,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       if( razorbox == None )
       {
         //if there are two or more loose b-tags and one medium b-tag, look for b-bbar resonances
-        if( nLooseBTaggedJets > 1 && nMediumBTaggedJets > 0 )
+        //if( nLooseBTaggedJets > 1 && nMediumBTaggedJets > 0 )
+        if( nLooseBTaggedJets > 1 )
         {
           for(int i = 0; i < int(bjetCand.size()); i++)
           {
@@ -2532,8 +2533,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
             {
               BjetCandidate bjet1 = bjetCand[i];
               BjetCandidate bjet2 = bjetCand[j];
-              //if neither of the b-jets passes CSVM, continue
-              if( !bjet1.isCSVM && !bjet2.isCSVM ) continue;
+              //if neither of the b-jets passes CSVL, continue
+              //if( !bjet1.isCSVL && !bjet2.isCSVL ) continue;
               double mbb = (bjet1.bjet + bjet2.bjet).M();
               double pTbb = (bjet1.bjet + bjet2.bjet).Pt();
               //if mbb is closer to the higgs mass than mbbH, make mbbH = mbb
@@ -2569,7 +2570,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         //make sure container is empty before start.
         bjetSelectedCand.clear();
         //if there are two or more loose b-tags and one medium b-tag, look for b-bbar resonances
-        if( nLooseBTaggedJets > 1 && nMediumBTaggedJets > 0 )
+        //if( nLooseBTaggedJets > 1 && nMediumBTaggedJets > 0 )
+        if( nLooseBTaggedJets > 1 )
         {
           for(int i = 0; i < int(bjetCand.size()); i++)
           {
@@ -2577,8 +2579,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
             {
               BjetCandidate bjet1 = bjetCand[i];
               BjetCandidate bjet2 = bjetCand[j];
-              //if neither of the b-jets passes CSVM, continue
-              if( !bjet1.isCSVM && !bjet2.isCSVM ) continue;
+              //if neither of the b-jets passes CSVL, continue
+              if( !bjet1.isCSVL && !bjet2.isCSVL ) continue;
               double mbb = (bjet1.bjet + bjet2.bjet).M();
               double pTbb = (bjet1.bjet + bjet2.bjet).Pt();
               //if mbb is closer to the higgs mass than mbbH, make mbbH = mbb
