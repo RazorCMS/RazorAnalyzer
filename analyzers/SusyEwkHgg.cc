@@ -2580,7 +2580,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
               BjetCandidate bjet1 = bjetCand[i];
               BjetCandidate bjet2 = bjetCand[j];
               //if neither of the b-jets passes CSVL, continue
-              if( !bjet1.isCSVL && !bjet2.isCSVL ) continue;
+              //if( !bjet1.isCSVL && !bjet2.isCSVL ) continue;
               double mbb = (bjet1.bjet + bjet2.bjet).M();
               double pTbb = (bjet1.bjet + bjet2.bjet).Pt();
               //if mbb is closer to the higgs mass than mbbH, make mbbH = mbb
