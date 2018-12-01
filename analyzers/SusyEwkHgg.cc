@@ -1537,8 +1537,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
             
              const EnergyScaleCorrection_class_2017::ScaleCorrection_class_2017* scaleCorr = photonCorrector_2017->EnergyScaleCorrection_class_2017::getScaleCorr(run, phoE[i]/cosh(pho_superClusterEta[i]), pho_superClusterEta[i], phoR9[i], 12);
             const EnergyScaleCorrection_class_2017::SmearCorrection_class_2017* smearCorr = photonCorrector_2017->EnergyScaleCorrection_class_2017::getSmearCorr(run, phoE[i]/cosh(pho_superClusterEta[i]), pho_superClusterEta[i], phoR9[i], 12);
-            scale  = scaleCorr->scale();
-            smear  = smearCorr->sigma(phoE[i]/cosh(pho_superClusterEta[i]));
+            if(scaleCorr!=NULL) scale  = scaleCorr->scale();
+            if(smearCorr!=NULL) smear  = smearCorr->sigma(phoE[i]/cosh(pho_superClusterEta[i]));
            
           }
           //apply scale to data and smearing to MC
