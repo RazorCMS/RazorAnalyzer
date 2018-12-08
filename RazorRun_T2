@@ -6,7 +6,9 @@ else
     cp ${CMSSW_BASE}/src/RazorAnalyzer/bin/Run$2 .
 
     cp /mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/ScaleFactors_07Aug2017Rereco_2016data.tgz ./
-   
+    cp /mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalTimeCalibConstants_IC_2016/IC_average_timing_2016.root ./
+    cp /mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalTimeCalibConstants_IC_2016/IC_map_SingleElectron_2016_test_iter19.root ./
+ 
     tar vxzf ScaleFactors_07Aug2017Rereco_2016data.tgz
     tar vxzf JEC_Summer16_23Sep2016V3.tgz
     tar vxzf Spring16_FastSimV1.tgz

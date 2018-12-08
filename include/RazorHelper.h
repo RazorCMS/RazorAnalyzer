@@ -42,6 +42,7 @@ class RazorHelper {
 
 	//get photon eff scale factor
         double getPhotonScaleFactor(float pt, float eta, bool invert = false);
+        double getPhotonScaleFactor_Tight(float pt, float eta, bool invert = false);
 	double getPhotonFastsimToFullsimScaleFactor(float pt, float eta);
 
         // multiply the variables sf,sfUp,...sfFastsimDown by the appropriate lepton efficiency scale factors
@@ -198,8 +199,8 @@ class RazorHelper {
         // for Razor2016 80X tag
         void loadPileup_Razor2016_07Aug2017Rereco();
         void loadLepton_Razor2016_07Aug2017Rereco();
-        void loadPhoton_Razor2016_07Aug2017Rereco();
-        void loadTrigger_Razor2016_07Aug2017Rereco();
+        void loadPhoton_Razor2016_07Aug2017Rereco_DelayedPhoton();
+        void loadTrigger_Razor2016_07Aug2017Rereco_DelayedPhoton();
         void loadJECs_Razor2016_07Aug2017Rereco();
         void loadBTag_Razor2016_07Aug2017Rereco();
         void loadAK8JetTag_Razor2016_07Aug2017Rereco();
@@ -309,8 +310,10 @@ class RazorHelper {
 
 	// for photons
         TFile *phoEffSFFile;
+        TFile *phoTightEffSFFile;
         TFile *phoEffFastsimSFFile;
         TH2D *phoLooseEffSFHist;
+        TH2D *phoTightEffSFHist;
         TH2D *phoLooseEffFastsimSFHist;
 
         // for single lepton triggers

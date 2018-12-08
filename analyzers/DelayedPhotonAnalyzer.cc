@@ -23,11 +23,12 @@ const int NUM_PDF_WEIGHTS = 60;
 
 const bool photonOrderByTime = false;
 //const double TR_SMEAR = 0.2210;
-const int N_pt_divide = 19;
-double pt_divide[N_pt_divide] = {43.0, 46.0, 49.0, 52.0, 55.0, 58.0, 61.0, 64.0, 67.0, 70.0, 73.0, 78.0, 84.0, 91.0, 100.0, 115.0, 140.0, 190.0, 1000.0};
-double timecorr_shift[N_pt_divide] = {288.28550207, 289.6675194, 284.2890644, 283.03874656, 284.79336503, 282.01494549, 286.37322984, 281.46956883, 291.66911725, 286.68414145, 286.66262505, 302.88663135, 271.95653102, 275.64683038, 277.47298218, 269.60340772, 275.25417754, 279.40268076, 232.3565695};
-double timecorr_smear_aa = 9444.9*9444.9 - 4754.3*4754.3;
-double timecorr_smear_bb = 2.0*220.0*220.0 - 2.0*100.3*100.3;
+const int N_E_divide = 19;
+double E_divide[N_E_divide] = {43.0, 46.0, 49.0, 52.0, 55.0, 58.0, 61.0, 64.0, 67.0, 70.0, 73.0, 78.0, 84.0, 91.0, 100.0, 115.0, 140.0, 190.0, 1000.0};
+double timecorr_shift[N_E_divide] = {277.32228254, 275.67500044, 272.10244004, 287.15428262, 294.29875716, 287.44070277, 282.95400642, 279.80934988, 282.70083441, 277.48972614, 275.41563559, 274.64132692, 268.13864834, 266.62392304, 270.24297452, 260.13781686, 263.16768474, 242.21320465, 181.26510246};
+
+double timecorr_smear_aa = 6591.9*6591.9 - 6536.8*6536.8;
+double timecorr_smear_bb = 2.0*211.1*211.1 - 2.0*96.2*96.2;
 
 #define _phodebug 0
 
@@ -209,8 +210,8 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 
   if(isData)
   { 
-	  //f_pedestal = TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ"); // use this if you run on Caltech T2
-	  f_pedestal = new TFile("tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ"); // use this if you run on Caltech T2
+	  f_pedestal = TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ"); // use this if you run on Caltech T2
+	  //f_pedestal = new TFile("tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ"); // use this if you run on Caltech T2
 	  tree_pedestal = (TTree*)f_pedestal->Get("pedestal");
 	  tree_pedestal->SetBranchAddress("start_time_second", &start_time_tmp);
 	  tree_pedestal->SetBranchAddress("end_time_second", &end_time_tmp);
@@ -821,8 +822,8 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
         	double sigmaE = pedNoise * ADCToGeV;
  
 		double sigmaT2 = N_EB*N_EB / ((*ecalRechit_E)[rechitIndex] * (*ecalRechit_E)[rechitIndex] / (sigmaE*sigmaE)) + 2.0 * C_EB * C_EB;
-
-        	if(!isData) sigmaT2 = 1.0 / ((*ecalRechit_E)[rechitIndex] * (*ecalRechit_E)[rechitIndex] / (sigmaE*sigmaE));
+		
+		if(!isData) sigmaT2 = 0.5*N_EB_MC*N_EB_MC / ((*ecalRechit_E)[rechitIndex] * (*ecalRechit_E)[rechitIndex] / (sigmaE*sigmaE)) + C_EB_MC * C_EB_MC;
 
 		tmpSumWeightedTime += corrT * ( 1.0 / sigmaT2 );
 		tmpSumWeight += ( 1.0 / sigmaT2 );
@@ -1102,19 +1103,19 @@ if(!isData)
 	double TR_SMEAR2 = 0.0;
 	double TR_SHIFT1 = 0.0;
 	double TR_SHIFT2 = 0.0;
-	int pt_bin1 = 0;
-	int pt_bin2 = 0;
-	for(int ipt = 0; ipt <N_pt_divide; ipt++)
+	int E_bin1 = 0;
+	int E_bin2 = 0;
+	for(int ipt = 0; ipt <N_E_divide; ipt++)
 	{
-		if(pho1Pt>pt_divide[ipt]) pt_bin1 ++;
-		if(pho2Pt>pt_divide[ipt]) pt_bin2 ++;
+		if(pho1Pt>E_divide[ipt]) E_bin1 ++;
+		if(pho2Pt>E_divide[ipt]) E_bin2 ++;
 	}
 	
-	if(pt_bin1 >= N_pt_divide) pt_bin1 = N_pt_divide-1;
-	if(pt_bin2 >= N_pt_divide) pt_bin2 = N_pt_divide-1;
+	if(E_bin1 >= N_E_divide) E_bin1 = N_E_divide-1;
+	if(E_bin2 >= N_E_divide) E_bin2 = N_E_divide-1;
 	
-	TR_SHIFT1 = 0.001*timecorr_shift[pt_bin1]; 
-	TR_SHIFT2 = 0.001*timecorr_shift[pt_bin2]; 
+	TR_SHIFT1 = 0.001*timecorr_shift[E_bin1]; 
+	TR_SHIFT2 = 0.001*timecorr_shift[E_bin2]; 
 	
 	if(pho1Pt>0.0) TR_SMEAR1 = 0.001*sqrt((timecorr_smear_aa/(pho1Pt*pho1Pt) + timecorr_smear_bb)/2.0);
 	if(pho2Pt>0.0) TR_SMEAR2 = 0.001*sqrt((timecorr_smear_aa/(pho2Pt*pho2Pt) + timecorr_smear_bb)/2.0);
@@ -1142,10 +1143,10 @@ if(nPho>=2) HT += pho2Pt;
 //******************************************************
 //compute photon efficiency scale factor
 //******************************************************
-if(nPho == 1) photonEffSF = helper->getPhotonScaleFactor(pho1Pt, pho1Eta);
+if(nPho == 1) photonEffSF = helper->getPhotonScaleFactor_Tight(pho1Pt, pho1Eta);
 else
 {
-	photonEffSF = helper->getPhotonScaleFactor(pho1Pt, pho1Eta) * helper->getPhotonScaleFactor(pho2Pt, pho2Eta);	
+	photonEffSF = helper->getPhotonScaleFactor_Tight(pho1Pt, pho1Eta) * helper->getPhotonScaleFactor(pho2Pt, pho2Eta);	
 }
 //******************************************************
 //compute trigger efficiency weights for MC

@@ -18,11 +18,12 @@ using namespace std;
 const double SPEED_OF_LIGHT = 29.9792458; // speed of light in cm / ns
 
 
-const int N_pt_divide = 19;
-double pt_divide[N_pt_divide] = {43.0, 46.0, 49.0, 52.0, 55.0, 58.0, 61.0, 64.0, 67.0, 70.0, 73.0, 78.0, 84.0, 91.0, 100.0, 115.0, 140.0, 190.0, 1000.0};
-double timecorr_shift[N_pt_divide] = {288.28550207, 289.6675194, 284.2890644, 283.03874656, 284.79336503, 282.01494549, 286.37322984, 281.46956883, 291.66911725, 286.68414145, 286.66262505, 302.88663135, 271.95653102, 275.64683038, 277.47298218, 269.60340772, 275.25417754, 279.40268076, 232.3565695};
-double timecorr_smear_aa = 9444.9*9444.9 - 4754.3*4754.3;
-double timecorr_smear_bb = 2.0*220.0*220.0 - 2.0*100.3*100.3;
+const int N_E_divide = 19;
+double E_divide[N_E_divide] = {43.0, 46.0, 49.0, 52.0, 55.0, 58.0, 61.0, 64.0, 67.0, 70.0, 73.0, 78.0, 84.0, 91.0, 100.0, 115.0, 140.0, 190.0, 1000.0};
+double timecorr_shift[N_E_divide] = {277.32228254, 275.67500044, 272.10244004, 287.15428262, 294.29875716, 287.44070277, 282.95400642, 279.80934988, 282.70083441, 277.48972614, 275.41563559, 274.64132692, 268.13864834, 266.62392304, 270.24297452, 260.13781686, 263.16768474, 242.21320465, 181.26510246};
+
+double timecorr_smear_aa = 6591.9*6591.9 - 6536.8*6536.8;
+double timecorr_smear_bb = 2.0*211.1*211.1 - 2.0*96.2*96.2;
 
 float ZeeTiming::getTimeCalibConstant(TTree *tree, vector <uint> & start_run, vector <uint> & end_run, uint run, uint detID) {
   float timeCalib = 0.0;
@@ -128,8 +129,8 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
 
   if(isData)
   { 
-	//f_pedestal = TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ");
-	f_pedestal = TFile::Open("tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ");
+	f_pedestal = TFile::Open("/mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ");
+	//f_pedestal = TFile::Open("tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root","READ");
 	tree_pedestal = (TTree*)f_pedestal->Get("pedestal");
 	tree_pedestal->SetBranchAddress("start_time_second", &start_time_tmp);
 	tree_pedestal->SetBranchAddress("end_time_second", &end_time_tmp);
@@ -145,6 +146,13 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
 		end_time.push_back(end_time_tmp);
 	}
   }
+	
+  //load timing intercalibration
+  //TFile * file_IC_timing_map = new TFile("IC_map_SingleElectron_2016.root","READ");
+  ////TFile * file_IC_timing_map = new TFile("IC_average_timing_2016.root","READ");
+ // TFile * file_IC_timing_map = new TFile("IC_map_SingleElectron_2016_test_iter19.root","READ");
+  //TH2F * h2_IC_timing_map = (TH2F*)file_IC_timing_map->Get("h2_IC_map_iter19");
+  ////TH2F * h2_IC_timing_map = (TH2F*)file_IC_timing_map->Get("h2_timeAll_iEta_vs_iPhi_data");
 
   // //test 
   // uint test_time = 1464000000;
@@ -183,34 +191,74 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   float t1, t2;
   float t1_SmearToData, t2_SmearToData;
   float t1_seed_SmearToData, t2_seed_SmearToData;
+  float t1_subseed_SmearToData, t2_subseed_SmearToData;
   float t1_ShiftToData, t2_ShiftToData;
   float t1_seed_ShiftToData, t2_seed_ShiftToData;
+  float t1_subseed_ShiftToData, t2_subseed_ShiftToData;
   float t1_seed, t2_seed;
+  float t1_subseed, t2_subseed;
   float seed1_pedestal, seed2_pedestal;
+  float subseed1_pedestal, subseed2_pedestal;
   float seed1_transpCorr, seed2_transpCorr;
+  float subseed1_transpCorr, subseed2_transpCorr;
   float t1raw_seed, t2raw_seed;
-  float ele1E, ele1Pt, ele1Eta, ele1Phi, ele1SeedE;
-  float ele2E, ele2Pt, ele2Eta, ele2Phi, ele2SeedE;
-  int  ele1SeedIEta, ele1SeedIPhi, ele1SeedIX, ele1SeedIY;
+  float t1calib_seed, t2calib_seed;
+  float t1raw_subseed, t2raw_subseed;
+  float t1calib_subseed, t2calib_subseed;
+  float ele1E, ele1Pt, ele1Eta, ele1Phi, ele1seedE, ele1subseedE;
+  float ele2E, ele2Pt, ele2Eta, ele2Phi, ele2seedE, ele2subseedE;
+  int  ele1seedIEta, ele1seedIPhi, ele1seedIX, ele1seedIY;
+  int  ele1subseedIEta, ele1subseedIPhi, ele1subseedIX, ele1subseedIY;
   bool ele1IsEB;
-  int  ele2SeedIEta, ele2SeedIPhi, ele2SeedIX, ele2SeedIY; 
+  int  ele2seedIEta, ele2seedIPhi, ele2seedIX, ele2seedIY; 
+  int  ele2subseedIEta, ele2subseedIPhi, ele2subseedIX, ele2subseedIY; 
   bool ele2IsEB;
   int NPU;
-  vector<float> *ecalElectronRechit_E;
-  vector<float> *ecalElectronRechit_rawT;
-  vector<float> *ecalElectronRechit_Eta;
-  vector<float> *ecalElectronRechit_IEtaIX;
-  vector<float> *ecalElectronRechit_Phi;
-  vector<float> *ecalElectronRechit_IPhiIY;
-  vector<float> *ecalElectronRechit_transpCorr;
+  vector<float> *ele1Rechit_E;
+  vector<float> *ele1Rechit_rawT;
+  vector<float> *ele1Rechit_calibT;
+  vector<float> *ele1Rechit_t;
+  vector<float> *ele1Rechit_pedestal;
+  vector<float> *ele1Rechit_Eta;
+  vector<float> *ele1Rechit_IEtaIX;
+  vector<float> *ele1Rechit_Phi;
+  vector<float> *ele1Rechit_IPhiIY;
+  vector<float> *ele1Rechit_transpCorr;
+
+  vector<float> *ele2Rechit_E;
+  vector<float> *ele2Rechit_rawT;
+  vector<float> *ele2Rechit_calibT;
+  vector<float> *ele2Rechit_t;
+  vector<float> *ele2Rechit_pedestal;
+  vector<float> *ele2Rechit_Eta;
+  vector<float> *ele2Rechit_IEtaIX;
+  vector<float> *ele2Rechit_Phi;
+  vector<float> *ele2Rechit_IPhiIY;
+  vector<float> *ele2Rechit_transpCorr;
 	
-  ecalElectronRechit_E = new std::vector<float>; ecalElectronRechit_E->clear();
-  ecalElectronRechit_rawT = new std::vector<float>; ecalElectronRechit_rawT->clear();
-  ecalElectronRechit_Eta = new std::vector<float>; ecalElectronRechit_Eta->clear();
-  ecalElectronRechit_IEtaIX = new std::vector<float>; ecalElectronRechit_IEtaIX->clear();
-  ecalElectronRechit_Phi = new std::vector<float>; ecalElectronRechit_Phi->clear();
-  ecalElectronRechit_IPhiIY = new std::vector<float>; ecalElectronRechit_IPhiIY->clear();
-  ecalElectronRechit_transpCorr = new std::vector<float>; ecalElectronRechit_transpCorr->clear();
+	
+  ele1Rechit_E = new std::vector<float>; ele1Rechit_E->clear();
+  ele1Rechit_rawT = new std::vector<float>; ele1Rechit_rawT->clear();
+  ele1Rechit_calibT = new std::vector<float>; ele1Rechit_calibT->clear();
+  ele1Rechit_t = new std::vector<float>; ele1Rechit_t->clear();
+  ele1Rechit_pedestal = new std::vector<float>; ele1Rechit_pedestal->clear();
+  ele1Rechit_Eta = new std::vector<float>; ele1Rechit_Eta->clear();
+  ele1Rechit_IEtaIX = new std::vector<float>; ele1Rechit_IEtaIX->clear();
+  ele1Rechit_Phi = new std::vector<float>; ele1Rechit_Phi->clear();
+  ele1Rechit_IPhiIY = new std::vector<float>; ele1Rechit_IPhiIY->clear();
+  ele1Rechit_transpCorr = new std::vector<float>; ele1Rechit_transpCorr->clear();
+
+  ele2Rechit_E = new std::vector<float>; ele2Rechit_E->clear();
+  ele2Rechit_rawT = new std::vector<float>; ele2Rechit_rawT->clear();
+  ele2Rechit_calibT = new std::vector<float>; ele2Rechit_calibT->clear();
+  ele2Rechit_t = new std::vector<float>; ele2Rechit_t->clear();
+  ele2Rechit_pedestal = new std::vector<float>; ele2Rechit_pedestal->clear();
+  ele2Rechit_Eta = new std::vector<float>; ele2Rechit_Eta->clear();
+  ele2Rechit_IEtaIX = new std::vector<float>; ele2Rechit_IEtaIX->clear();
+  ele2Rechit_Phi = new std::vector<float>; ele2Rechit_Phi->clear();
+  ele2Rechit_IPhiIY = new std::vector<float>; ele2Rechit_IPhiIY->clear();
+  ele2Rechit_transpCorr = new std::vector<float>; ele2Rechit_transpCorr->clear();
+
   //int nPV;
   unsigned int run, lumi, event;
 
@@ -230,49 +278,90 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
   outputTree->Branch("t2", &t2, "t2/F");
   outputTree->Branch("t1_SmearToData", &t1_SmearToData, "t1_SmearToData/F");
   outputTree->Branch("t1_seed_SmearToData", &t1_seed_SmearToData, "t1_seed_SmearToData/F");
+  outputTree->Branch("t1_subseed_SmearToData", &t1_subseed_SmearToData, "t1_subseed_SmearToData/F");
   outputTree->Branch("t1_ShiftToData", &t1_ShiftToData, "t1_ShiftToData/F");
   outputTree->Branch("t1_seed_ShiftToData", &t1_seed_ShiftToData, "t1_seed_ShiftToData/F");
+  outputTree->Branch("t1_subseed_ShiftToData", &t1_subseed_ShiftToData, "t1_subseed_ShiftToData/F");
   outputTree->Branch("t2_SmearToData", &t2_SmearToData, "t2_SmearToData/F");
   outputTree->Branch("t2_seed_SmearToData", &t2_seed_SmearToData, "t2_seed_SmearToData/F");
+  outputTree->Branch("t2_subseed_SmearToData", &t2_subseed_SmearToData, "t2_subseed_SmearToData/F");
   outputTree->Branch("t2_ShiftToData", &t2_ShiftToData, "t2_ShiftToData/F");
   outputTree->Branch("t2_seed_ShiftToData", &t2_seed_ShiftToData, "t2_seed_ShiftToData/F");
+  outputTree->Branch("t2_subseed_ShiftToData", &t2_subseed_ShiftToData, "t2_subseed_ShiftToData/F");
   outputTree->Branch("t1_TOF2", &t1_TOF2, "t1_TOF2/F");
   outputTree->Branch("t2_TOF2", &t2_TOF2, "t2_TOF2/F");
   outputTree->Branch("t1_seed", &t1_seed, "t1_seed/F");
+  outputTree->Branch("t1_subseed", &t1_subseed, "t1_subseed/F");
   outputTree->Branch("t2_seed", &t2_seed, "t2_seed/F");
+  outputTree->Branch("t2_subseed", &t2_subseed, "t2_subseed/F");
   outputTree->Branch("seed1_pedestal", &seed1_pedestal, "seed1_pedestal/F");
+  outputTree->Branch("subseed1_pedestal", &subseed1_pedestal, "subseed1_pedestal/F");
   outputTree->Branch("seed2_pedestal", &seed2_pedestal, "seed2_pedestal/F");
+  outputTree->Branch("subseed2_pedestal", &subseed2_pedestal, "subseed2_pedestal/F");
   outputTree->Branch("seed1_transpCorr", &seed1_transpCorr, "seed1_transpCorr/F");
+  outputTree->Branch("subseed1_transpCorr", &subseed1_transpCorr, "subseed1_transpCorr/F");
   outputTree->Branch("seed2_transpCorr", &seed2_transpCorr, "seed2_transpCorr/F");
+  outputTree->Branch("subseed2_transpCorr", &subseed2_transpCorr, "subseed2_transpCorr/F");
   outputTree->Branch("t1raw_seed", &t1raw_seed, "t1raw_seed/F");
+  outputTree->Branch("t1calib_seed", &t1calib_seed, "t1calib_seed/F");
+  outputTree->Branch("t1raw_subseed", &t1raw_subseed, "t1raw_subseed/F");
+  outputTree->Branch("t1calib_subseed", &t1calib_subseed, "t1calib_subseed/F");
   outputTree->Branch("t2raw_seed", &t2raw_seed, "t2raw_seed/F");
+  outputTree->Branch("t2calib_seed", &t2calib_seed, "t2calib_seed/F");
+  outputTree->Branch("t2raw_subseed", &t2raw_subseed, "t2raw_subseed/F");
+  outputTree->Branch("t2calib_subseed", &t2calib_subseed, "t2calib_subseed/F");
   outputTree->Branch("ele1E", &ele1E, "ele1E/F");
-  outputTree->Branch("ele1SeedE", &ele1SeedE, "ele1SeedE/F");
+  outputTree->Branch("ele1seedE", &ele1seedE, "ele1seedE/F");
+  outputTree->Branch("ele1subseedE", &ele1subseedE, "ele1subseedE/F");
   outputTree->Branch("ele1Pt", &ele1Pt, "ele1Pt/F");
   outputTree->Branch("ele1Eta", &ele1Eta, "ele1Eta/F");
   outputTree->Branch("ele1Phi", &ele1Phi, "ele1Phi/F");
   outputTree->Branch("ele1IsEB", &ele1IsEB, "ele1IsEB/O");
-  outputTree->Branch("ele1SeedIEta", &ele1SeedIEta, "ele1SeedIEta/I");
-  outputTree->Branch("ele1SeedIPhi", &ele1SeedIPhi, "ele1SeedIPhi/I");
-  outputTree->Branch("ele1SeedIX", &ele1SeedIX, "ele1SeedIX/I");
-  outputTree->Branch("ele1SeedIY", &ele1SeedIY, "ele1SeedIY/I");
+  outputTree->Branch("ele1seedIEta", &ele1seedIEta, "ele1seedIEta/I");
+  outputTree->Branch("ele1subseedIEta", &ele1subseedIEta, "ele1subseedIEta/I");
+  outputTree->Branch("ele1seedIPhi", &ele1seedIPhi, "ele1seedIPhi/I");
+  outputTree->Branch("ele1subseedIPhi", &ele1subseedIPhi, "ele1subseedIPhi/I");
+  outputTree->Branch("ele1seedIX", &ele1seedIX, "ele1seedIX/I");
+  outputTree->Branch("ele1subseedIX", &ele1subseedIX, "ele1subseedIX/I");
+  outputTree->Branch("ele1seedIY", &ele1seedIY, "ele1seedIY/I");
+  outputTree->Branch("ele1subseedIY", &ele1subseedIY, "ele1subseedIY/I");
   outputTree->Branch("ele2E", &ele2E, "ele2E/F");
-  outputTree->Branch("ele2SeedE", &ele2SeedE, "ele2SeedE/F");
+  outputTree->Branch("ele2seedE", &ele2seedE, "ele2seedE/F");
+  outputTree->Branch("ele2subseedE", &ele2subseedE, "ele2subseedE/F");
   outputTree->Branch("ele2Pt", &ele2Pt, "ele2Pt/F");
   outputTree->Branch("ele2Eta", &ele2Eta, "ele2Eta/F");
   outputTree->Branch("ele2Phi", &ele2Phi, "ele2Phi/F");
   outputTree->Branch("ele2IsEB", &ele2IsEB, "ele2IsEB/O");
-  outputTree->Branch("ele2SeedIEta", &ele2SeedIEta, "ele2SeedIEta/I");
-  outputTree->Branch("ele2SeedIPhi", &ele2SeedIPhi, "ele2SeedIPhi/I");
-  outputTree->Branch("ele2SeedIX", &ele2SeedIX, "ele2SeedIX/I");
-  outputTree->Branch("ele2SeedIY", &ele2SeedIY, "ele2SeedIY/I");
-  outputTree->Branch("ecalElectronRechit_E", "std::vector<float>",&ecalElectronRechit_E);
-  outputTree->Branch("ecalElectronRechit_rawT", "std::vector<float>",&ecalElectronRechit_rawT);
-  outputTree->Branch("ecalElectronRechit_Eta", "std::vector<float>",&ecalElectronRechit_Eta);
-  outputTree->Branch("ecalElectronRechit_IEtaIX", "std::vector<float>",&ecalElectronRechit_IEtaIX);
-  outputTree->Branch("ecalElectronRechit_Phi", "std::vector<float>",&ecalElectronRechit_Phi);
-  outputTree->Branch("ecalElectronRechit_IPhiIY", "std::vector<float>",&ecalElectronRechit_IPhiIY);
-  outputTree->Branch("ecalElectronRechit_transpCorr", "std::vector<float>",&ecalElectronRechit_transpCorr);
+  outputTree->Branch("ele2seedIEta", &ele2seedIEta, "ele2seedIEta/I");
+  outputTree->Branch("ele2subseedIEta", &ele2subseedIEta, "ele2subseedIEta/I");
+  outputTree->Branch("ele2seedIPhi", &ele2seedIPhi, "ele2seedIPhi/I");
+  outputTree->Branch("ele2subseedIPhi", &ele2subseedIPhi, "ele2subseedIPhi/I");
+  outputTree->Branch("ele2seedIX", &ele2seedIX, "ele2seedIX/I");
+  outputTree->Branch("ele2subseedIX", &ele2subseedIX, "ele2subseedIX/I");
+  outputTree->Branch("ele2seedIY", &ele2seedIY, "ele2seedIY/I");
+  outputTree->Branch("ele2subseedIY", &ele2subseedIY, "ele2subseedIY/I");
+  outputTree->Branch("ele1Rechit_E", "std::vector<float>",&ele1Rechit_E);
+  outputTree->Branch("ele1Rechit_rawT", "std::vector<float>",&ele1Rechit_rawT);
+  outputTree->Branch("ele1Rechit_calibT", "std::vector<float>",&ele1Rechit_calibT);
+  outputTree->Branch("ele1Rechit_t", "std::vector<float>",&ele1Rechit_t);
+  outputTree->Branch("ele1Rechit_pedestal", "std::vector<float>",&ele1Rechit_pedestal);
+  outputTree->Branch("ele1Rechit_Eta", "std::vector<float>",&ele1Rechit_Eta);
+  outputTree->Branch("ele1Rechit_IEtaIX", "std::vector<float>",&ele1Rechit_IEtaIX);
+  outputTree->Branch("ele1Rechit_Phi", "std::vector<float>",&ele1Rechit_Phi);
+  outputTree->Branch("ele1Rechit_IPhiIY", "std::vector<float>",&ele1Rechit_IPhiIY);
+  outputTree->Branch("ele1Rechit_transpCorr", "std::vector<float>",&ele1Rechit_transpCorr);
+
+  outputTree->Branch("ele2Rechit_E", "std::vector<float>",&ele2Rechit_E);
+  outputTree->Branch("ele2Rechit_rawT", "std::vector<float>",&ele2Rechit_rawT);
+  outputTree->Branch("ele2Rechit_calibT", "std::vector<float>",&ele2Rechit_calibT);
+  outputTree->Branch("ele2Rechit_t", "std::vector<float>",&ele2Rechit_t);
+  outputTree->Branch("ele2Rechit_pedestal", "std::vector<float>",&ele2Rechit_pedestal);
+  outputTree->Branch("ele2Rechit_Eta", "std::vector<float>",&ele2Rechit_Eta);
+  outputTree->Branch("ele2Rechit_IEtaIX", "std::vector<float>",&ele2Rechit_IEtaIX);
+  outputTree->Branch("ele2Rechit_Phi", "std::vector<float>",&ele2Rechit_Phi);
+  outputTree->Branch("ele2Rechit_IPhiIY", "std::vector<float>",&ele2Rechit_IPhiIY);
+  outputTree->Branch("ele2Rechit_transpCorr", "std::vector<float>",&ele2Rechit_transpCorr);
+
 
   TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
 
@@ -300,50 +389,90 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
     t2 = -999;
     t1_SmearToData = -999;
     t1_seed_SmearToData = -999;
+    t1_subseed_SmearToData = -999;
     t1_ShiftToData = -999;
     t1_seed_ShiftToData = -999;
+    t1_subseed_ShiftToData = -999;
     t2_SmearToData = -999;
     t2_seed_SmearToData = -999;
+    t2_subseed_SmearToData = -999;
     t2_ShiftToData = -999;
     t2_seed_ShiftToData = -999;
+    t2_subseed_ShiftToData = -999;
     t1_TOF2 = -999;
     t2_TOF2 = -999;
     t1_seed = -999;
+    t1_subseed = -999;
     t2_seed = -999;
+    t2_subseed = -999;
     seed1_pedestal = -999;
+    subseed1_pedestal = -999;
     seed2_pedestal = -999;
+    subseed2_pedestal = -999;
     seed1_transpCorr = -999;
+    subseed1_transpCorr = -999;
     seed2_transpCorr = -999;
+    subseed2_transpCorr = -999;
     t1raw_seed = -999;
+    t1calib_seed = -999;
+    t1raw_subseed = -999;
+    t1calib_subseed = -999;
     t2raw_seed = -999;
+    t2calib_seed = -999;
+    t2raw_subseed = -999;
+    t2calib_subseed = -999;
     ele1E = -999; 
-    ele1SeedE = -999; 
+    ele1seedE = -999; 
+    ele1subseedE = -999; 
     ele1Pt = -999;
     ele1Eta = -999;
     ele1Phi = -999;
     ele2E = -999;
-    ele2SeedE = -999; 
+    ele2seedE = -999; 
+    ele2subseedE = -999; 
     ele2Pt = -999;
     ele2Eta = -999;
     ele2Phi = -999;
-    ele1SeedIEta = -999;
-    ele1SeedIPhi = -999;
-    ele1SeedIX = -999;
-    ele1SeedIY = -999;
+    ele1seedIEta = -999;
+    ele1subseedIEta = -999;
+    ele1seedIPhi = -999;
+    ele1subseedIPhi = -999;
+    ele1seedIX = -999;
+    ele1subseedIX = -999;
+    ele1seedIY = -999;
+    ele1subseedIY = -999;
     ele1IsEB = 0;
-    ele2SeedIEta = -999;
-    ele2SeedIPhi = -999;
-    ele2SeedIX = -999;
-    ele2SeedIY = -999; 
+    ele2seedIEta = -999;
+    ele2subseedIEta = -999;
+    ele2seedIPhi = -999;
+    ele2subseedIPhi = -999;
+    ele2seedIX = -999;
+    ele2subseedIX = -999;
+    ele2seedIY = -999; 
+    ele2subseedIY = -999; 
     ele2IsEB = 0;
     NPU = 0;   
-    ecalElectronRechit_E->clear();
-    ecalElectronRechit_rawT->clear();
-    ecalElectronRechit_Eta->clear();
-    ecalElectronRechit_IEtaIX->clear();
-    ecalElectronRechit_Phi->clear();
-    ecalElectronRechit_IPhiIY->clear();
-    ecalElectronRechit_transpCorr->clear();
+    ele1Rechit_E->clear();
+    ele1Rechit_rawT->clear();
+    ele1Rechit_calibT->clear();
+    ele1Rechit_t->clear();
+    ele1Rechit_pedestal->clear();
+    ele1Rechit_Eta->clear();
+    ele1Rechit_IEtaIX->clear();
+    ele1Rechit_Phi->clear();
+    ele1Rechit_IPhiIY->clear();
+    ele1Rechit_transpCorr->clear();
+
+    ele2Rechit_E->clear();
+    ele2Rechit_rawT->clear();
+    ele2Rechit_calibT->clear();
+    ele2Rechit_t->clear();
+    ele2Rechit_pedestal->clear();
+    ele2Rechit_Eta->clear();
+    ele2Rechit_IEtaIX->clear();
+    ele2Rechit_Phi->clear();
+    ele2Rechit_IPhiIY->clear();
+    ele2Rechit_transpCorr->clear();
 
 
     //fill normalization histogram
@@ -381,9 +510,17 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
     double ele1_time_TOF2 = 0;
     double ele2_time_TOF2 = 0;
     double ele1_seedtime = 0;
+    double ele1_subseedtime = 0;
     double ele2_seedtime = 0;
+    double ele2_subseedtime = 0;
     double ele1_seedtimeraw = 0;
+    double ele1_seedtimecalib = 0;
+    double ele1_subseedtimeraw = 0;
+    double ele1_subseedtimecalib = 0;
     double ele2_seedtimeraw = 0;
+    double ele2_seedtimecalib = 0;
+    double ele2_subseedtimeraw = 0;
+    double ele2_subseedtimecalib = 0;
 
     for(int i = 0; i < nElectrons; i++){
       //if(elePt[i] < 35) continue;
@@ -392,65 +529,169 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
       if(!(isEGammaPOGTightElectron(i))) continue;
       if(ecalRechit_ID->empty() ) continue;
       
-      nEle++;
       TLorentzVector thisElectron = makeTLorentzVector(elePt[i], eleEta[i], elePhi[i], eleE[i]);
           
       //rough definition
       uint seedhitIndex =  (*ele_SeedRechitIndex)[i];
       bool isFromEB = bool( (*ecalRechit_ID)[seedhitIndex] < 840000000 );
-      double rawSeedHitTime =  (*ecalRechit_T)[seedhitIndex];
-      double eleSeedE =  (*ecalRechit_E)[seedhitIndex];
+      double rawseedHitTime =  (*ecalRechit_T)[seedhitIndex];
+      double eleseedE =  (*ecalRechit_E)[seedhitIndex];
+      if(eleseedE < 10.0) continue;
 
+      //find the subseed: the highest energy crystal among the neighboring crystals of the seed 
+      double IC_timing_seed_zhicai = 0.0;
+
+      int seed_iEtaiX = 0; 
+      int seed_iPhiiY = 0; 
+      if(isFromEB)
+      {
+		seed_iEtaiX = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
+		seed_iPhiiY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
+		//if(isData) IC_timing_seed_zhicai = -1.0* h2_IC_timing_map->GetBinContent(seed_iEtaiX+85+1,seed_iPhiiY);
+      }
+      else
+      {
+		seed_iEtaiX = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+                seed_iPhiiY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+      }
+
+      double elesubseedE = -999.0;
+      uint subseedhitIndex = 0;
+      double IC_timing_subseed_zhicai = 0.0;
+
+      for (uint k=0; k<(*ele_EcalRechitIndex)[i].size(); ++k) {
+        uint rechitIndex = (*ele_EcalRechitIndex)[i][k];
+	if (rechitIndex == seedhitIndex) continue;
+
+	double thisRechitE =(*ecalRechit_E)[rechitIndex];
+	if (thisRechitE < elesubseedE) continue;
+
+	bool isThisfromEB = bool( (*ecalRechit_ID)[rechitIndex] < 840000000 );
+	int this_iEtaiX = 0;
+	int this_iPhiiY = 0;
+        if(isThisfromEB)
+	{
+		this_iEtaiX = iEta_or_iX_from_detID( (*ecalRechit_ID)[rechitIndex] , true);
+                this_iPhiiY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[rechitIndex] , true);
+	}
+	else
+	{
+		this_iEtaiX = iEta_or_iX_from_detID( (*ecalRechit_ID)[rechitIndex] , false);
+                this_iPhiiY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[rechitIndex] , false);	
+	}
+	int distance_from_seed = (this_iEtaiX-seed_iEtaiX)*(this_iEtaiX-seed_iEtaiX) + (this_iPhiiY-seed_iPhiiY)*(this_iPhiiY-seed_iPhiiY);
+	if(distance_from_seed >  1) continue;//only accept neighboring crystals
+	
+	if(thisRechitE > elesubseedE)
+	{
+		elesubseedE = thisRechitE;
+		subseedhitIndex = rechitIndex;
+	}
+
+      }
+
+
+      if(isFromEB && isData)
+      {
+		int subseed_iEtaiX = iEta_or_iX_from_detID( (*ecalRechit_ID)[subseedhitIndex] , true);
+		int subseed_iPhiiY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[subseedhitIndex] , true);
+		//IC_timing_subseed_zhicai = -1.0* h2_IC_timing_map->GetBinContent(subseed_iEtaiX+85+1,subseed_iPhiiY);
+      }
+	
+      double rawsubseedHitTime =  (*ecalRechit_T)[subseedhitIndex];
+	
+      double calibseedHitTime =  rawseedHitTime + IC_timing_seed_zhicai;
+      double calibsubseedHitTime =  rawsubseedHitTime + IC_timing_subseed_zhicai;
       //apply TOF correction
-      double TOFCorrectedSeedHitTime = rawSeedHitTime + (std::sqrt(pow((*ecalRechit_X)[seedhitIndex],2)+pow((*ecalRechit_Y)[seedhitIndex],2)+pow((*ecalRechit_Z)[seedhitIndex],2))-std::sqrt(pow((*ecalRechit_X)[seedhitIndex]-pvX,2)+pow((*ecalRechit_Y)[seedhitIndex]-pvY,2)+pow((*ecalRechit_Z)[seedhitIndex]-pvZ,2)))/SPEED_OF_LIGHT;
+      double TOFCorrectedseedHitTime = rawseedHitTime + IC_timing_seed_zhicai + (std::sqrt(pow((*ecalRechit_X)[seedhitIndex],2)+pow((*ecalRechit_Y)[seedhitIndex],2)+pow((*ecalRechit_Z)[seedhitIndex],2))-std::sqrt(pow((*ecalRechit_X)[seedhitIndex]-pvX,2)+pow((*ecalRechit_Y)[seedhitIndex]-pvY,2)+pow((*ecalRechit_Z)[seedhitIndex]-pvZ,2)))/SPEED_OF_LIGHT;
+      double TOFCorrectedsubseedHitTime = rawsubseedHitTime + IC_timing_subseed_zhicai + (std::sqrt(pow((*ecalRechit_X)[subseedhitIndex],2)+pow((*ecalRechit_Y)[subseedhitIndex],2)+pow((*ecalRechit_Z)[subseedhitIndex],2))-std::sqrt(pow((*ecalRechit_X)[subseedhitIndex]-pvX,2)+pow((*ecalRechit_Y)[subseedhitIndex]-pvY,2)+pow((*ecalRechit_Z)[subseedhitIndex]-pvZ,2)))/SPEED_OF_LIGHT;
 
 
       // cout << "Ele: " << i << " : " << elePt[i] << " " << eleEta[i] << " : \n" 
       //	<< "  runNum: " << runNum << "  detID: " << (*ecalRechit_ID)[seedhitIndex] << "  IC_time_SeptRereco: " << IC_time_SeptRereco << "  IC_time_LagacyRereco: " << IC_time_LagacyRereco << " \n"
-      //   	<< " " << rawSeedHitTime << " -> " << calibratedSeedHitTime << " -> " << TOFCorrectedSeedHitTime << " "
+      //   	<< " " << rawseedHitTime << " -> " << calibratedseedHitTime << " -> " << TOFCorrectedseedHitTime << " "
       //	<< "\n";
  
 
 
       double seedPedNoise = isData ? getPedestalNoise(tree_pedestal, start_time,end_time, eventTime, (*ecalRechit_ID)[seedhitIndex]) : 1.0;
+      double subseedPedNoise = isData ? getPedestalNoise(tree_pedestal, start_time,end_time, eventTime, (*ecalRechit_ID)[subseedhitIndex]) : 1.0;
    
       double tmpSumWeightedTime = 0;
       double tmpSumWeightedTime_TOF2 = 0;
       double tmpSumWeight = 0;
       double tmpSumWeight_TOF2 = 0;
 
+      vector<float> *eleRechit_E;
+      vector<float> *eleRechit_rawT;
+      vector<float> *eleRechit_calibT;
+      vector<float> *eleRechit_t;
+      vector<float> *eleRechit_pedestal;
+      vector<float> *eleRechit_Eta;
+      vector<float> *eleRechit_IEtaIX;
+      vector<float> *eleRechit_Phi;
+      vector<float> *eleRechit_IPhiIY;
+      vector<float> *eleRechit_transpCorr;
+
+      eleRechit_E = new std::vector<float>;     eleRechit_E->clear();
+      eleRechit_rawT = new std::vector<float>;     eleRechit_rawT->clear();
+      eleRechit_calibT = new std::vector<float>;     eleRechit_calibT->clear();
+      eleRechit_t = new std::vector<float>;     eleRechit_t->clear();
+      eleRechit_pedestal = new std::vector<float>;     eleRechit_pedestal->clear();
+      eleRechit_Eta = new std::vector<float>;     eleRechit_Eta->clear();
+      eleRechit_IEtaIX = new std::vector<float>;     eleRechit_IEtaIX->clear();
+      eleRechit_Phi = new std::vector<float>;     eleRechit_Phi->clear();
+      eleRechit_IPhiIY = new std::vector<float>;     eleRechit_IPhiIY->clear();
+      eleRechit_transpCorr = new std::vector<float>;     eleRechit_transpCorr->clear();
+
       for (uint k=0; k<(*ele_EcalRechitIndex)[i].size(); ++k) {	
 	uint rechitIndex = (*ele_EcalRechitIndex)[i][k];
-    
-      	  
-	double rawT_this = (*ecalRechit_T)[rechitIndex];
 
-	//apply TOF correction
-	double corrT = rawT_this + (std::sqrt(pow((*ecalRechit_X)[rechitIndex],2)+pow((*ecalRechit_Y)[rechitIndex],2)+pow((*ecalRechit_Z)[rechitIndex],2))-std::sqrt(pow((*ecalRechit_X)[rechitIndex]-pvX,2)+pow((*ecalRechit_Y)[rechitIndex]-pvY,2)+pow((*ecalRechit_Z)[rechitIndex]-pvZ,2)))/SPEED_OF_LIGHT;
-
-  	ecalElectronRechit_E->push_back((*ecalRechit_E)[rechitIndex]); 
-        ecalElectronRechit_Eta->push_back((*ecalRechit_Eta)[rechitIndex]); 
-        ecalElectronRechit_Phi->push_back((*ecalRechit_Phi)[rechitIndex]); 
-        if(isData) ecalElectronRechit_transpCorr->push_back((*ecalRechit_transpCorr)[rechitIndex]); 
-        ecalElectronRechit_rawT->push_back(rawT_this); 
-
+   	if((*ecalRechit_E)[rechitIndex] < 1.0) continue;
+ 
 	bool isEBrechit = bool( abs((*ecalRechit_Eta)[rechitIndex]) < 1.5 );
+
+	double rawT_this = (*ecalRechit_T)[rechitIndex];
+	double IC_timing_this_zhicai = 0.0;	
+
+	if(isEBrechit && isData){
+		int rec_iEtaiX = iEta_or_iX_from_detID( (*ecalRechit_ID)[rechitIndex] , true);
+		int rec_iPhiiY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[rechitIndex] , true);
+		//IC_timing_this_zhicai = -1.0* h2_IC_timing_map->GetBinContent(rec_iEtaiX+85+1,rec_iPhiiY);
+	}
+
+	double calibT_this = rawT_this + IC_timing_seed_zhicai;	
+	//apply TOF correction
+	double corrT = rawT_this + IC_timing_seed_zhicai + (std::sqrt(pow((*ecalRechit_X)[rechitIndex],2)+pow((*ecalRechit_Y)[rechitIndex],2)+pow((*ecalRechit_Z)[rechitIndex],2))-std::sqrt(pow((*ecalRechit_X)[rechitIndex]-pvX,2)+pow((*ecalRechit_Y)[rechitIndex]-pvY,2)+pow((*ecalRechit_Z)[rechitIndex]-pvZ,2)))/SPEED_OF_LIGHT;
+
+  	eleRechit_E->push_back((*ecalRechit_E)[rechitIndex]); 
+        eleRechit_Eta->push_back((*ecalRechit_Eta)[rechitIndex]); 
+        eleRechit_Phi->push_back((*ecalRechit_Phi)[rechitIndex]); 
+        if(isData) eleRechit_transpCorr->push_back((*ecalRechit_transpCorr)[rechitIndex]); 
+        else eleRechit_transpCorr->push_back(1.0); 
+
+        eleRechit_rawT->push_back(rawT_this); 
+        eleRechit_calibT->push_back(calibT_this); 
+        eleRechit_t->push_back(corrT); 
+
         if (isEBrechit) {
-          ecalElectronRechit_IEtaIX->push_back(iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true));
-          ecalElectronRechit_IPhiIY->push_back(iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , true));
+          eleRechit_IEtaIX->push_back(iEta_or_iX_from_detID( (*ecalRechit_ID)[rechitIndex] , true));
+          eleRechit_IPhiIY->push_back(iPhi_or_iY_from_detID( (*ecalRechit_ID)[rechitIndex] , true));
         } else {
-          ecalElectronRechit_IEtaIX->push_back(iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , false));
-          ecalElectronRechit_IPhiIY->push_back(iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , false));
+          eleRechit_IEtaIX->push_back(iEta_or_iX_from_detID( (*ecalRechit_ID)[rechitIndex] , false));
+          eleRechit_IPhiIY->push_back(iPhi_or_iY_from_detID( (*ecalRechit_ID)[rechitIndex] , false));
         }	
 
-	double pedNoise = isData ? getPedestalNoise(tree_pedestal, start_time,end_time, eventTime, (*ecalRechit_ID)[rechitIndex]) : 1.0;
+	double pedNoise = isData ? getPedestalNoise(tree_pedestal, start_time,end_time, eventTime, (*ecalRechit_ID)[rechitIndex]) : 0.042; // 42 MeV for MC
 	//double pedNoise = 1;
 	double ADCToGeV = isData ? getADCToGeV(runNum, isFromEB) : 1.0;
 	double sigmaE = pedNoise * ADCToGeV;
+        eleRechit_pedestal->push_back(sigmaE); 
 
-	double sigmaT2 = N_EB*N_EB / ((*ecalRechit_E)[rechitIndex] * (*ecalRechit_E)[rechitIndex] / (sigmaE*sigmaE)) + 2.0 * C_EB * C_EB;
-
- 	if(!isData) sigmaT2 = 1.0 / ((*ecalRechit_E)[rechitIndex] * (*ecalRechit_E)[rechitIndex] / (sigmaE*sigmaE));
+	double sigmaT2 = 0.5*N_EB*N_EB / ((*ecalRechit_E)[rechitIndex] * (*ecalRechit_E)[rechitIndex] / (sigmaE*sigmaE)) + C_EB * C_EB;
+	
+	if(!isData) sigmaT2 = 0.5*N_EB_MC*N_EB_MC / ((*ecalRechit_E)[rechitIndex] * (*ecalRechit_E)[rechitIndex] / (sigmaE*sigmaE)) + C_EB_MC * C_EB_MC;
+ 	//if(!isData) sigmaT2 = 1.0 / ((*ecalRechit_E)[rechitIndex] * (*ecalRechit_E)[rechitIndex] / (sigmaE*sigmaE));
 
 	tmpSumWeightedTime += corrT * ( 1.0 / sigmaT2 );
 	tmpSumWeightedTime_TOF2 += rawT_this * ( 1.0 / sigmaT2 );
@@ -463,52 +704,194 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
 
             
       if (thisElectron.Pt() > ele1.Pt()) {
-	ele1 = thisElectron;
-	seed1_pedestal = seedPedNoise; 
-	if(isData) seed1_transpCorr = (*ecalRechit_transpCorr)[seedhitIndex]; 
-	ele1_time = weightedTime;
-	ele1_time_TOF2 = weightedTime_TOF2;
-	ele1_seedtime = TOFCorrectedSeedHitTime;
-	ele1_seedtimeraw = rawSeedHitTime;
-	ele1SeedE = eleSeedE;
-	ele1IsEB = bool( abs(eleEta_SC[i]) < 1.5 );
-	if (ele1IsEB) {
-	  ele1SeedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
-	  ele1SeedIPhi = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
-	  ele1SeedIX = -999;
-	  ele1SeedIY = -999;
-	} else {
-	  ele1SeedIEta = -999;
-	  ele1SeedIPhi = -999;
-	  ele1SeedIX = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
-	  ele1SeedIY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+	///give ele1 to ele2
+	ele2Rechit_E->clear();
+        ele2Rechit_rawT->clear();
+        ele2Rechit_calibT->clear();
+        ele2Rechit_t->clear();
+        ele2Rechit_pedestal->clear();
+        ele2Rechit_Eta->clear();
+        ele2Rechit_IEtaIX->clear();
+        ele2Rechit_Phi->clear();
+        ele2Rechit_IPhiIY->clear();
+        ele2Rechit_transpCorr->clear();
+
+	for(int i=0;i<ele1Rechit_E->size();i++)
+	{
+		ele2Rechit_E->push_back(ele1Rechit_E->at(i));
+		ele2Rechit_rawT->push_back(ele1Rechit_rawT->at(i));
+		ele2Rechit_calibT->push_back(ele1Rechit_calibT->at(i));
+		ele2Rechit_t->push_back(ele1Rechit_t->at(i));
+		ele2Rechit_pedestal->push_back(ele1Rechit_pedestal->at(i));
+		ele2Rechit_Eta->push_back(ele1Rechit_Eta->at(i));
+		ele2Rechit_IEtaIX->push_back(ele1Rechit_IEtaIX->at(i));
+		ele2Rechit_Phi->push_back(ele1Rechit_Phi->at(i));
+		ele2Rechit_IPhiIY->push_back(ele1Rechit_IPhiIY->at(i));
+		ele2Rechit_transpCorr->push_back(ele1Rechit_transpCorr->at(i));
 	}
 
+	ele2=ele1;
+        ele2E=ele1E, ele2Pt=ele1Pt, ele2Eta=ele1Eta, ele2Phi=ele1Phi, ele2seedE=ele1seedE, ele2subseedE=ele1subseedE;
+        ele2seedIEta=ele1seedIEta, ele2seedIPhi=ele1seedIPhi, ele2seedIX=ele1seedIX, ele2seedIY=ele1seedIY;
+        ele2subseedIEta=ele1subseedIEta, ele2subseedIPhi=ele1subseedIPhi, ele2subseedIX=ele1subseedIX, ele2subseedIY=ele1subseedIY;
+        ele2IsEB=ele1IsEB;
+	seed2_pedestal=seed1_pedestal;
+	subseed2_pedestal=subseed1_pedestal;
+	ele2_time = ele1_time;
+	ele2_time_TOF2 = ele1_time_TOF2;
+	ele2_seedtime = ele1_seedtime;
+	ele2_subseedtime = ele1_subseedtime;
+	ele2_seedtimeraw = ele1_seedtimeraw;
+	ele2_seedtimecalib = ele1_seedtimecalib;
+	ele2_subseedtimeraw = ele1_subseedtimeraw;
+	ele2_subseedtimecalib = ele1_subseedtimecalib;
+
+	///give ele to ele1
+	//rechits..
+        ele1Rechit_E->clear();
+        ele1Rechit_rawT->clear();
+        ele1Rechit_calibT->clear();
+        ele1Rechit_t->clear();
+        ele1Rechit_pedestal->clear();
+        ele1Rechit_Eta->clear();
+        ele1Rechit_IEtaIX->clear();
+        ele1Rechit_Phi->clear();
+        ele1Rechit_IPhiIY->clear();
+        ele1Rechit_transpCorr->clear();
+
+	for(int i=0;i<eleRechit_E->size();i++)
+	{
+		ele1Rechit_E->push_back(eleRechit_E->at(i));
+		ele1Rechit_rawT->push_back(eleRechit_rawT->at(i));
+		ele1Rechit_calibT->push_back(eleRechit_calibT->at(i));
+		ele1Rechit_t->push_back(eleRechit_t->at(i));
+		ele1Rechit_pedestal->push_back(eleRechit_pedestal->at(i));
+		ele1Rechit_Eta->push_back(eleRechit_Eta->at(i));
+		ele1Rechit_IEtaIX->push_back(eleRechit_IEtaIX->at(i));
+		ele1Rechit_Phi->push_back(eleRechit_Phi->at(i));
+		ele1Rechit_IPhiIY->push_back(eleRechit_IPhiIY->at(i));
+		ele1Rechit_transpCorr->push_back(eleRechit_transpCorr->at(i));
+	}
+	
+	/////
+	ele1 = thisElectron;
+	seed1_pedestal = seedPedNoise; 
+	subseed1_pedestal = subseedPedNoise; 
+	if(isData) seed1_transpCorr = (*ecalRechit_transpCorr)[seedhitIndex]; 
+	if(isData) subseed1_transpCorr = (*ecalRechit_transpCorr)[subseedhitIndex]; 
+	ele1_time = weightedTime;
+	ele1_time_TOF2 = weightedTime_TOF2;
+	ele1_seedtime = TOFCorrectedseedHitTime;
+	ele1_subseedtime = TOFCorrectedsubseedHitTime;
+	ele1_seedtimeraw = rawseedHitTime;
+	ele1_seedtimecalib = calibseedHitTime;
+	ele1_subseedtimeraw = rawsubseedHitTime;
+	ele1_subseedtimecalib = calibsubseedHitTime;
+	ele1seedE = eleseedE;
+	ele1subseedE = elesubseedE;
+	ele1IsEB = bool( abs(eleEta_SC[i]) < 1.5 );
+	if (ele1IsEB) {
+	  ele1seedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
+	  ele1subseedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[subseedhitIndex] , true);
+	  ele1seedIPhi = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
+	  ele1subseedIPhi = iPhi_or_iY_from_detID( (*ecalRechit_ID)[subseedhitIndex] , true);
+	  ele1seedIX = -999;
+	  ele1subseedIX = -999;
+	  ele1seedIY = -999;
+	  ele1subseedIY = -999;
+	} else {
+	  ele1seedIEta = -999;
+	  ele1subseedIEta = -999;
+	  ele1seedIPhi = -999;
+	  ele1subseedIPhi = -999;
+	  ele1seedIX = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+	  ele1subseedIX = iEta_or_iX_from_detID( (*ecalRechit_ID)[subseedhitIndex] , false);
+	  ele1seedIY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+	  ele1subseedIY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[subseedhitIndex] , false);
+	}
+	
       } else if (thisElectron.Pt() > ele2.Pt()) {
+	///give ele to ele2
+	//rechits..
+        ele2Rechit_E->clear();
+        ele2Rechit_rawT->clear();
+        ele2Rechit_calibT->clear();
+        ele2Rechit_t->clear();
+        ele2Rechit_pedestal->clear();
+        ele2Rechit_Eta->clear();
+        ele2Rechit_IEtaIX->clear();
+        ele2Rechit_Phi->clear();
+        ele2Rechit_IPhiIY->clear();
+        ele2Rechit_transpCorr->clear();
+
+	for(int i=0;i<eleRechit_E->size();i++)
+	{
+		ele2Rechit_E->push_back(eleRechit_E->at(i));
+		ele2Rechit_rawT->push_back(eleRechit_rawT->at(i));
+		ele2Rechit_calibT->push_back(eleRechit_calibT->at(i));
+		ele2Rechit_t->push_back(eleRechit_t->at(i));
+		ele2Rechit_pedestal->push_back(eleRechit_pedestal->at(i));
+		ele2Rechit_Eta->push_back(eleRechit_Eta->at(i));
+		ele2Rechit_IEtaIX->push_back(eleRechit_IEtaIX->at(i));
+		ele2Rechit_Phi->push_back(eleRechit_Phi->at(i));
+		ele2Rechit_IPhiIY->push_back(eleRechit_IPhiIY->at(i));
+		ele2Rechit_transpCorr->push_back(eleRechit_transpCorr->at(i));
+	}
+	
 	ele2 = thisElectron;
 	seed2_pedestal = seedPedNoise; 
+	subseed2_pedestal = subseedPedNoise; 
 	if(isData) seed2_transpCorr = (*ecalRechit_transpCorr)[seedhitIndex]; 
+	if(isData) subseed2_transpCorr = (*ecalRechit_transpCorr)[subseedhitIndex]; 
 	ele2_time = weightedTime;
 	ele2_time_TOF2 = weightedTime_TOF2;
-	ele2_seedtime = TOFCorrectedSeedHitTime; 
- 	ele2_seedtimeraw = rawSeedHitTime;
-	ele2SeedE = eleSeedE;
+	ele2_seedtime = TOFCorrectedseedHitTime; 
+	ele2_subseedtime = TOFCorrectedsubseedHitTime; 
+ 	ele2_seedtimeraw = rawseedHitTime;
+ 	ele2_seedtimecalib = calibseedHitTime;
+ 	ele2_subseedtimeraw = rawsubseedHitTime;
+ 	ele2_subseedtimecalib = calibsubseedHitTime;
+	ele2seedE = eleseedE;
+	ele2subseedE = elesubseedE;
  	ele2IsEB = bool( abs(eleEta_SC[i]) < 1.5 );
 	if (ele2IsEB) {
-	  ele2SeedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
-	  ele2SeedIPhi = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
-	  ele2SeedIX = -999;
-	  ele2SeedIY = -999;
+	  ele2seedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
+	  ele2subseedIEta = iEta_or_iX_from_detID( (*ecalRechit_ID)[subseedhitIndex] , true);
+	  ele2seedIPhi = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , true);
+	  ele2subseedIPhi = iPhi_or_iY_from_detID( (*ecalRechit_ID)[subseedhitIndex] , true);
+	  ele2seedIX = -999;
+	  ele2subseedIX = -999;
+	  ele2seedIY = -999;
+	  ele2subseedIY = -999;
 	} else {
-	  ele2SeedIEta = -999;
-	  ele2SeedIPhi = -999;
-	  ele2SeedIX = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
-	  ele2SeedIY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+	  ele2seedIEta = -999;
+	  ele2subseedIEta = -999;
+	  ele2seedIPhi = -999;
+	  ele2subseedIPhi = -999;
+	  ele2seedIX = iEta_or_iX_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+	  ele2subseedIX = iEta_or_iX_from_detID( (*ecalRechit_ID)[subseedhitIndex] , false);
+	  ele2seedIY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[seedhitIndex] , false);
+	  ele2subseedIY = iPhi_or_iY_from_detID( (*ecalRechit_ID)[subseedhitIndex] , false);
 	}
 
       }	
+   
+	delete eleRechit_E;
+        delete eleRechit_rawT;
+        delete eleRechit_calibT;
+        delete eleRechit_t;
+        delete eleRechit_pedestal;
+        delete eleRechit_Eta;
+        delete eleRechit_IEtaIX;
+        delete eleRechit_Phi;
+        delete eleRechit_IPhiIY;
+        delete eleRechit_transpCorr;
+      	
+	nEle++;
+
     }
-    
+
+ 
     if (nEle >= 2) {
       ele1E = ele1.E();
       ele1Pt = ele1.Pt();
@@ -525,10 +908,19 @@ void ZeeTiming::Analyze(bool isData, int option, string outFileName, string labe
       t2 = ele2_time;
       t2_TOF2 = ele2_time_TOF2;
       t1_seed = ele1_seedtime;
+      t1_subseed = ele1_subseedtime;
       t2_seed = ele2_seedtime;
+      t2_subseed = ele2_subseedtime;
       t1raw_seed = ele1_seedtimeraw;
+      t1calib_seed = ele1_seedtimecalib;
+      t1raw_subseed = ele1_subseedtimeraw;
+      t1calib_subseed = ele1_subseedtimecalib;
       t2raw_seed = ele2_seedtimeraw;
+      t2calib_seed = ele2_seedtimecalib;
+      t2raw_subseed = ele2_subseedtimeraw;
+      t2calib_subseed = ele2_subseedtimecalib;
        //cout << "ele2: " << ele2.Pt() << " " << ele2_seedtime << "\n";
+       //cout << "ele2: " << ele2.Pt() << " " << ele2_subseedtime << "\n";
 
 if(!isData)
 {
@@ -536,19 +928,19 @@ if(!isData)
         double TR_SMEAR2 = 0.0;
         double TR_SHIFT1 = 0.0;
         double TR_SHIFT2 = 0.0;
-        int pt_bin1 = 0;
-        int pt_bin2 = 0;
-        for(int ipt = 0; ipt <N_pt_divide; ipt++)
+        int E_bin1 = 0;
+        int E_bin2 = 0;
+        for(int ipt = 0; ipt <N_E_divide; ipt++)
         {
-                if(ele1Pt>pt_divide[ipt]) pt_bin1 ++;
-                if(ele2Pt>pt_divide[ipt]) pt_bin2 ++;
+                if(ele1E>E_divide[ipt]) E_bin1 ++;
+                if(ele2E>E_divide[ipt]) E_bin2 ++;
         }
 
-        if(pt_bin1 >= N_pt_divide) pt_bin1 = N_pt_divide-1;
-        if(pt_bin2 >= N_pt_divide) pt_bin2 = N_pt_divide-1;
+        if(E_bin1 >= N_E_divide) E_bin1 = N_E_divide-1;
+        if(E_bin2 >= N_E_divide) E_bin2 = N_E_divide-1;
 
-        TR_SHIFT1 = 0.001*timecorr_shift[pt_bin1];
-        TR_SHIFT2 = 0.001*timecorr_shift[pt_bin2];
+        TR_SHIFT1 = 0.001*timecorr_shift[E_bin1];
+        TR_SHIFT2 = 0.001*timecorr_shift[E_bin2];
 
         if(ele1Pt>0.0) TR_SMEAR1 = 0.001*sqrt((timecorr_smear_aa/(ele1Pt*ele1Pt) + timecorr_smear_bb)/2.0);
         if(ele2Pt>0.0) TR_SMEAR2 = 0.001*sqrt((timecorr_smear_aa/(ele2Pt*ele2Pt) + timecorr_smear_bb)/2.0);
@@ -557,16 +949,22 @@ if(!isData)
         std::mt19937 e2(rd());
         std::normal_distribution<> dist1(t1, TR_SMEAR1);
         std::normal_distribution<> dist1_seed(t1_seed, TR_SMEAR1);
+        std::normal_distribution<> dist1_subseed(t1_subseed, TR_SMEAR1);
         std::normal_distribution<> dist2(t2, TR_SMEAR2);
         std::normal_distribution<> dist2_seed(t2_seed, TR_SMEAR2);
+        std::normal_distribution<> dist2_subseed(t2_subseed, TR_SMEAR2);
         t1_SmearToData = dist1(e2) + TR_SHIFT1;
         t1_seed_SmearToData = dist1_seed(e2) + TR_SHIFT1;
+        t1_subseed_SmearToData = dist1_subseed(e2) + TR_SHIFT1;
         t1_ShiftToData = t1 + TR_SHIFT1;
         t1_seed_ShiftToData = t1_seed + TR_SHIFT1;
+        t1_subseed_ShiftToData = t1_subseed + TR_SHIFT1;
         t2_SmearToData = dist2(e2) + TR_SHIFT2;
         t2_seed_SmearToData = dist2_seed(e2) + TR_SHIFT2;
+        t2_subseed_SmearToData = dist2_subseed(e2) + TR_SHIFT2;
         t2_ShiftToData = t2 + TR_SHIFT2;
         t2_seed_ShiftToData = t2_seed + TR_SHIFT2;
+        t2_subseed_ShiftToData = t2_subseed + TR_SHIFT2;
 }
 else
 {
@@ -576,19 +974,23 @@ else
         t2_ShiftToData = t2;
 
   	t1_seed_SmearToData = t1_seed;
+  	t1_subseed_SmearToData = t1_subseed;
         t1_seed_ShiftToData = t1_seed;
+        t1_subseed_ShiftToData = t1_subseed;
         t2_seed_SmearToData = t2_seed;
+        t2_subseed_SmearToData = t2_subseed;
         t2_seed_ShiftToData = t2_seed;
+        t2_subseed_ShiftToData = t2_subseed;
 
 }
-
-
-    }
-
-    //Fill Event
-    if (mass > 60 && mass < 120) {
+	//Fill Event
+    if (mass > 60 && mass < 150) {
       outputTree->Fill();
     }
+
+    }
+
+    
 
   }//end of event loop
   

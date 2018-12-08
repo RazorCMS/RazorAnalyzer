@@ -8,60 +8,61 @@ RazorAnalyzerDir=`pwd`
 cd -
 
 job_script=${RazorAnalyzerDir}/scripts_condor/runRazorJob_CaltechT2.sh
-filesPerJob=40
+filesPerJob=1
 
 for sample in \
+GMSB_L100TeV_Ctau0_1cm_13TeV-pythia8 \
 GMSB_L100TeV_Ctau1000cm_13TeV-pythia8 \
 GMSB_L100TeV_Ctau10cm_13TeV-pythia8 \
 GMSB_L100TeV_Ctau1200cm_13TeV-pythia8 \
-GMSB_L100TeV_Ctau20000cm_13TeV-pythia8 \
-GMSB_L100TeV_Ctau4000cm_13TeV-pythia8 \
+GMSB_L100TeV_Ctau200cm_13TeV-pythia8 \
+GMSB_L100TeV_Ctau400cm_13TeV-pythia8 \
+GMSB_L100TeV_Ctau600cm_13TeV-pythia8 \
+GMSB_L150TeV_Ctau0_1cm_13TeV-pythia8 \
 GMSB_L150TeV_Ctau1000cm_13TeV-pythia8 \
-GMSB_L150TeV_Ctau100cm_13TeV-pythia8 \
 GMSB_L150TeV_Ctau10cm_13TeV-pythia8 \
-GMSB_L150TeV_Ctau1200cm_13TeV-pythia8 \
-GMSB_L150TeV_Ctau20000cm_13TeV-pythia8 \
 GMSB_L150TeV_Ctau200cm_13TeV-pythia8 \
-GMSB_L150TeV_Ctau4000cm_13TeV-pythia8 \
 GMSB_L150TeV_Ctau400cm_13TeV-pythia8 \
-GMSB_L150TeV_Ctau50cm_13TeV-pythia8 \
-GMSB_L150TeV_Ctau5cm_13TeV-pythia8 \
 GMSB_L150TeV_Ctau600cm_13TeV-pythia8 \
 GMSB_L150TeV_Ctau800cm_13TeV-pythia8 \
-GMSB_L200TeV_Ctau0p01cm_13TeV-pythia8 \
-GMSB_L200TeV_Ctau0p1cm_13TeV-pythia8 \
+GMSB_L200TeV_Ctau0_1cm_13TeV-pythia8 \
 GMSB_L200TeV_Ctau1000cm_13TeV-pythia8 \
-GMSB_L200TeV_Ctau100cm_13TeV-pythia8 \
 GMSB_L200TeV_Ctau10cm_13TeV-pythia8 \
 GMSB_L200TeV_Ctau1200cm_13TeV-pythia8 \
-GMSB_L200TeV_Ctau20000cm_13TeV-pythia8 \
 GMSB_L200TeV_Ctau200cm_13TeV-pythia8 \
 GMSB_L200TeV_Ctau400cm_13TeV-pythia8 \
-GMSB_L200TeV_Ctau50cm_13TeV-pythia8 \
-GMSB_L200TeV_Ctau5cm_13TeV-pythia8 \
 GMSB_L200TeV_Ctau600cm_13TeV-pythia8 \
 GMSB_L200TeV_Ctau800cm_13TeV-pythia8 \
-GMSB_L250TeV_Ctau0p01cm_13TeV-pythia8 \
-GMSB_L250TeV_Ctau0p1cm_13TeV-pythia8 \
-GMSB_L250TeV_Ctau100cm_13TeV-pythia8 \
+GMSB_L250TeV_Ctau1000cm_13TeV-pythia8 \
 GMSB_L250TeV_Ctau10cm_13TeV-pythia8 \
+GMSB_L250TeV_Ctau1200cm_13TeV-pythia8 \
 GMSB_L250TeV_Ctau200cm_13TeV-pythia8 \
 GMSB_L250TeV_Ctau400cm_13TeV-pythia8 \
-GMSB_L250TeV_Ctau50cm_13TeV-pythia8 \
-GMSB_L250TeV_Ctau5cm_13TeV-pythia8 \
 GMSB_L250TeV_Ctau600cm_13TeV-pythia8 \
-GMSB_L300TeV_Ctau0p01cm_13TeV-pythia8 \
-GMSB_L300TeV_Ctau0p1cm_13TeV-pythia8 \
-GMSB_L300TeV_Ctau100cm_13TeV-pythia8 \
+GMSB_L250TeV_Ctau800cm_13TeV-pythia8 \
+GMSB_L300TeV_Ctau0_1cm_13TeV-pythia8 \
+GMSB_L300TeV_Ctau1000cm_13TeV-pythia8 \
 GMSB_L300TeV_Ctau10cm_13TeV-pythia8 \
-GMSB_L300TeV_Ctau50cm_13TeV-pythia8 \
-GMSB_L300TeV_Ctau5cm_13TeV-pythia8 \
+GMSB_L300TeV_Ctau1200cm_13TeV-pythia8 \
+GMSB_L300TeV_Ctau200cm_13TeV-pythia8 \
+GMSB_L300TeV_Ctau400cm_13TeV-pythia8 \
 GMSB_L300TeV_Ctau600cm_13TeV-pythia8 \
-GMSB_L350TeV_Ctau0p1cm_13TeV-pythia8 \
+GMSB_L300TeV_Ctau800cm_13TeV-pythia8 \
+GMSB_L350TeV_Ctau0_1cm_13TeV-pythia8 \
+GMSB_L350TeV_Ctau1000cm_13TeV-pythia8 \
+GMSB_L350TeV_Ctau10cm_13TeV-pythia8 \
+GMSB_L350TeV_Ctau1200cm_13TeV-pythia8 \
 GMSB_L350TeV_Ctau200cm_13TeV-pythia8 \
-GMSB_L400TeV_Ctau0p01cm_13TeV-pythia8 \
-GMSB_L400TeV_Ctau0p1cm_13TeV-pythia8 \
+GMSB_L350TeV_Ctau400cm_13TeV-pythia8 \
+GMSB_L350TeV_Ctau600cm_13TeV-pythia8 \
+GMSB_L350TeV_Ctau800cm_13TeV-pythia8 \
+GMSB_L400TeV_Ctau0_1cm_13TeV-pythia8 \
+GMSB_L400TeV_Ctau1000cm_13TeV-pythia8 \
 GMSB_L400TeV_Ctau10cm_13TeV-pythia8 \
+GMSB_L400TeV_Ctau1200cm_13TeV-pythia8 \
+GMSB_L400TeV_Ctau200cm_13TeV-pythia8 \
+GMSB_L400TeV_Ctau400cm_13TeV-pythia8 \
+GMSB_L400TeV_Ctau600cm_13TeV-pythia8 \
 GMSB_L400TeV_Ctau800cm_13TeV-pythia8
 
 do
@@ -80,7 +81,7 @@ do
 		jdl_file=submit/${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob}.jdl
 		echo "Universe = vanilla" > ${jdl_file}
 		echo "Executable = ${job_script}" >> ${jdl_file}
-		echo "Arguments = ${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob} /store/group/phys_susy/razor/Run2Analysis/DelayedPhotonAnalysis/2016/orderByTime/jobs/ ${analyzer} ${inputfilelist} no 10 ${filesPerJob} ${jobnumber} ${sample}_Job${jobnumber}_Of_${maxjob}.root" >> ${jdl_file}
+		echo "Arguments = ${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob} /store/group/phys_susy/razor/Run2Analysis/DelayedPhotonAnalysis/2016/orderByPt/jobs/ ${analyzer} ${inputfilelist} no 10 ${filesPerJob} ${jobnumber} ${sample}_Job${jobnumber}_Of_${maxjob}.root" >> ${jdl_file}
 		echo "Log = log/${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob}_PC.log" >> ${jdl_file}
 		echo "Output = log/${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob}_\$(Cluster).\$(Process).out" >> ${jdl_file}
 		echo "Error = log/${analyzer}_${sample}_Job${jobnumber}_Of_${maxjob}_\$(Cluster).\$(Process).err" >> ${jdl_file}

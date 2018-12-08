@@ -45,17 +45,6 @@ then
 		#get grid proxy
 		export X509_USER_PROXY=${homeDir}x509_proxy
 		
-		#copy pedestal file
-		if [ ${isData} == "yes" ]
-                then
-                        date
-                        echo "copying pedestal file to local directory ========="
-                        #hadoop fs -get /store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root ./
-                        cp /mnt/hadoop/store/group/phys_susy/razor/Run2Analysis/EcalTiming/EcalPedestals_Legacy2016_time_v1/tree_EcalPedestals_Legacy2016_time_v1_G12rmsonly.root ./
-                        echo "done with copying pedestal file to local directory ========="
-                        date
-                fi
-
 		#run the job
 		cat ${CMSSW_BASE}${inputfilelist} | awk "NR > (${jobnumber}*${filePerJob}) && NR <= ((${jobnumber}+1)*${filePerJob})" > inputfilelistForThisJob_${jobnumber}.txt
 		echo ""
@@ -64,6 +53,7 @@ then
 		cat inputfilelistForThisJob_${jobnumber}.txt
 		echo "************************************"
 		echo ""
+
 		#remove empty input files
 		for ifile in `cat inputfilelistForThisJob_${jobnumber}.txt`
 		do
@@ -111,6 +101,7 @@ then
 		fi
 	else
 		echo echo "WWWWYYYY ============= failed to access file RazorRun_T2, job anandoned"
+		sleep 600000
 	fi
 
 else

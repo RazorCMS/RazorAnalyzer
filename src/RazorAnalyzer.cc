@@ -2415,11 +2415,19 @@ void RazorAnalyzer::getPhotonEffArea90( float eta, double& effAreaChHad, double&
     }
 };
 
+//https://indico.cern.ch/event/732974/contributions/3071231/attachments/1685034/2709197/Photon_ID_Finalv2.pdf
 void RazorAnalyzer::getPhotonEffAreaPFClusterIso( float eta, double& effAreaChHad, double& effAreaNHad, double& effAreaPho )
 {
-      effAreaChHad = 0.113;
-      effAreaNHad  = 0.108;
-      effAreaPho   = 0.167;
+      if(fabs (eta) < 0.8 ) {
+		effAreaChHad = 0.037;
+		effAreaNHad = 0.089;
+		effAreaPho = 0.19;
+	}
+      else {
+		effAreaChHad = 0.031;
+                effAreaNHad = 0.15;
+                effAreaPho = 0.19;		
+	}
  };
 
 //photon ID and isolation cuts from https://twiki.cern.ch/twiki/bin/viewauth/CMS/EgammaIDRecipesRun2
@@ -2638,7 +2646,7 @@ bool RazorAnalyzer::photonPassLooseIso(int i, bool use25nsCuts, bool usePrivateP
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
       if(!usePFClusterIso) return photonPassesIsolation(i, 1.295, 10.910 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 3.630 + 0.0047*phoPt[i], true, usePrivatePF, usePFClusterIso );
-      else return photonPassesIsolation(i, 20.0 + 0.0056*phoPt[i], 10.910 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 20.0+0.0028*phoPt[i], true, usePrivatePF, usePFClusterIso );
+      else return photonPassesIsolation(i, 8.5 + 0.00091*phoPt[i], 10.910 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 8.0+0.00092*phoPt[i], true, usePrivatePF, usePFClusterIso );
     } else {
       return photonPassesIsolation(i, 1.011, 5.931 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 6.641 + 0.0034*phoPt[i], true, usePrivatePF, usePFClusterIso);
     }
@@ -2668,12 +2676,13 @@ bool RazorAnalyzer::photonPassMediumIso(int i, bool use25nsCuts, bool usePrivate
 
 // 80X-v2.2 Cuts from EGamma Presentation
 // https://indico.cern.ch/event/491548/contributions/2384977/attachments/1377936/2093213/CutBasedPhotonID_25-11-2016.pdf
+// for OOT photon: https://indico.cern.ch/event/732974/contributions/3071231/attachments/1685034/2709197/Photon_ID_Finalv2.pdf
 bool RazorAnalyzer::photonPassTightIso(int i, bool use25nsCuts, bool usePrivatePF, bool usePFClusterIso){
 
   if (use25nsCuts) {
     if(fabs(pho_superClusterEta[i]) < 1.479){
       if(!usePFClusterIso)  return photonPassesIsolation(i, 0.202, 0.264 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 2.362 + 0.0047*phoPt[i], true, usePrivatePF);
-      else return photonPassesIsolation(i, 6.0 + 0.0056*phoPt[i], 0.264 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 8.0+0.0028*phoPt[i], true, usePrivatePF, true );
+      else return photonPassesIsolation(i, 5.5 + 0.00094*phoPt[i], 0.264 + 0.0148*phoPt[i] + 0.000017*phoPt[i]*phoPt[i], 5.0+0.00092*phoPt[i], true, usePrivatePF, true );
     } else {
       return photonPassesIsolation(i, 0.034, 0.586 + 0.0163*phoPt[i] + 0.000014*phoPt[i]*phoPt[i], 2.617 + 0.0034*phoPt[i], true, usePrivatePF);
     }
