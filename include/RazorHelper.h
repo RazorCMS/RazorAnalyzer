@@ -34,16 +34,21 @@ class RazorHelper {
         // get lepton scale factor (without up/down uncertainties)
         double getTightMuonScaleFactor(float pt, float eta, bool isTight);
         double getVetoMuonScaleFactor(float pt, float eta, bool isVeto);
+        double getVetoMuonScaleFactorError(float pt, float eta, bool isVeto);
+        double getLooseMuonScaleFactor(float pt, float eta, bool isLoose);
+        double getLooseMuonScaleFactorError(float pt, float eta, bool isLoose);
         double getMuonTrackScaleFactor(float pt, float eta, bool isReconstructed);
         double getTightElectronScaleFactor(float pt, float eta, bool isTight);
         double getLooseElectronScaleFactor(float pt, float eta, bool isLoose);
+        double getLooseElectronScaleFactorError(float pt, float eta, bool isLoose);
         double getVetoElectronScaleFactor(float pt, float eta, bool isVeto);
         double getEleGSFTrackScaleFactor(float pt, float eta, bool isReconstructed);
 
 	//get photon eff scale factor
         double getPhotonScaleFactor(float pt, float eta, bool invert = false);
-        double getPhotonScaleFactor_Tight(float pt, float eta, bool invert = false);
+        double getPhotonScaleFactorError(float pt, float eta, bool invert = false);
 	double getPhotonFastsimToFullsimScaleFactor(float pt, float eta);
+	double getPhotonFastsimToFullsimScaleFactorError(float pt, float eta);
 
         // multiply the variables sf,sfUp,...sfFastsimDown by the appropriate lepton efficiency scale factors
         // (see FullRazorInclusive analyzer for an example of how to use these)
@@ -158,10 +163,13 @@ class RazorHelper {
         double lookupPtEtaScaleFactor(TH2D *hist, double pt, double eta, double ptmin=10.01, double ptmax=199.9, bool useAbsEta=true);
         double lookupPtEtaScaleFactorError(TH2D *hist, double pt, double eta, double ptmin=10.01, double ptmax=199.9, bool useAbsEta=true);
         double lookupEtaPtScaleFactor(TH2D *hist, double pt, double eta, double ptmin=10.01, double ptmax=199.9, bool useAbsEta=true);
+        double lookupEtaPtScaleFactorError(TH2D *hist, double pt, double eta, double ptmin=10.01, double ptmax=199.9, bool useAbsEta=true);
         double getPassOrFailScaleFactor(double eff, double sf, bool passes);
         std::vector<double> getLeptonScaleFactors(TH2D *effHist, TH2D *sfHist, TH2D *fastsimHist,
                 double pt, double eta, bool passes, double smear=0.0);
         double getLeptonScaleFactor(TH2D *effHist, TH2D *sfHist, TH2D *fastsimHist,
+                double pt, double eta, bool passes);
+        double getLeptonScaleFactorError(TH2D *effHist, TH2D *sfHist, TH2D *fastsimHist,
                 double pt, double eta, bool passes);
         void updateScaleFactors(TH2D *effHist, TH2D *sfHist, TH2D *fastsimHist, float pt,
                 float eta, bool passes, float &sf, float &sfUp, float &sfDown,
@@ -199,8 +207,8 @@ class RazorHelper {
         // for Razor2016 80X tag
         void loadPileup_Razor2016_07Aug2017Rereco();
         void loadLepton_Razor2016_07Aug2017Rereco();
-        void loadPhoton_Razor2016_07Aug2017Rereco_DelayedPhoton();
-        void loadTrigger_Razor2016_07Aug2017Rereco_DelayedPhoton();
+        void loadPhoton_Razor2016_07Aug2017Rereco();
+        void loadTrigger_Razor2016_07Aug2017Rereco();
         void loadJECs_Razor2016_07Aug2017Rereco();
         void loadBTag_Razor2016_07Aug2017Rereco();
         void loadAK8JetTag_Razor2016_07Aug2017Rereco();
@@ -284,25 +292,33 @@ class RazorHelper {
         TH2D *eleGSFTrackEffSFHist;
         TH2D *eleGSFTrackEffHist;
 	double eleVetoEffSFMinPt;
+	double eleLooseEffSFMinPt;
 
         // for muons
         TFile *muTightEfficiencyFile;
+        TFile *muLooseEfficiencyFile;
         TFile *muVetoEfficiencyFile;
         TFile *muEffSFFile;
         TFile *vetoMuEffSFFile;
+        TFile *looseMuEffSFFile;
         TFile *muTrackEffSFFile;
         TFile *muTrackEffFile;
 	TFile *muTightEffFastsimSFFile;
         TFile *muVetoEffFastsimSFFile;
+        TFile *muLooseEffFastsimSFFile;
         TH2D *muTightEfficiencyHist;
         TH2D *muVetoEfficiencyHist;
+        TH2D *muLooseEfficiencyHist;
         TH2D *muTightEffFastsimSFHist;
         TH2D *muVetoEffFastsimSFHist;
+        TH2D *muLooseEffFastsimSFHist;
         TH2D *muTightEffSFHist;
         TH2D *muVetoEffSFHist;
+        TH2D *muLooseEffSFHist;
         TH2D *muTrackEffSFHist;
         TH2D *muTrackEffHist;
 	double muVetoEffSFMinPt;
+	double muLooseEffSFMinPt;
 
         // for taus
         TFile *tauEfficiencyFile;
@@ -310,10 +326,8 @@ class RazorHelper {
 
 	// for photons
         TFile *phoEffSFFile;
-        TFile *phoTightEffSFFile;
         TFile *phoEffFastsimSFFile;
         TH2D *phoLooseEffSFHist;
-        TH2D *phoTightEffSFHist;
         TH2D *phoLooseEffFastsimSFHist;
 
         // for single lepton triggers

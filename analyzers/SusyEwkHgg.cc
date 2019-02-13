@@ -92,9 +92,11 @@ struct evt
   std::string event;
 };
 
-#define _phodebug 1
-#define _debug    1
-#define _metdebug 0
+#define _phodebug 0
+#define _debug    0
+#define _metdebug 1
+#define _ecaldebug 0
+#define _jetdebug 0
 #define _info     1
 
 const double EB_R = 129.0;
@@ -389,7 +391,15 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   float triggerEffWeight;
   float triggerEffSFWeight;
   float photonEffSF;
+  float photonEffSFUp, photonEffSFDown;
+  float photonEffSFSys;
+  float pho1EffSF, pho1EffSFUnc, pho1EffSFUp, pho1EffSFDown;
+  float pho2EffSF, pho2EffSFUnc, pho2EffSFUp, pho2EffSFDown;
   float leptonEffSF;
+  float leptonEffSFUp, leptonEffSFDown;
+  float leptonEffSFSys;
+  float lep1EffSF, lep1EffSFUnc, lep1EffSFUp, lep1EffSFDown;
+  float lep2EffSF, lep2EffSFUnc, lep2EffSFUp, lep2EffSFDown;
   float ISRSystWeightUp, ISRSystWeightDown;
   int   NISRJets;
   float ptISR;
@@ -523,7 +533,29 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   razorTree->Branch("triggerEffWeight", &triggerEffWeight, "triggerEffWeight/F");
   razorTree->Branch("triggerEffSFWeight", &triggerEffSFWeight, "triggerEffSFWeight/F");
   razorTree->Branch("photonEffSF", &photonEffSF, "photonEffSF/F");
+  razorTree->Branch("photonEffSFUp", &photonEffSFUp, "photonEffSFUp/F");
+  razorTree->Branch("photonEffSFDown", &photonEffSFDown, "photonEffSFDown/F");
+  razorTree->Branch("photonEffSFSys", &photonEffSFSys, "photonEffSFSys/F");
+  razorTree->Branch("pho1EffSF", &pho1EffSF, "pho1EffSF/F");
+  razorTree->Branch("pho1EffSFUnc", &pho1EffSFUnc, "pho1EffSFUnc/F");
+  razorTree->Branch("pho1EffSFUp", &pho1EffSFUp, "pho1EffSFUp/F");
+  razorTree->Branch("pho1EffSFDown", &pho1EffSFDown, "pho1EffSFDown/F");
+  razorTree->Branch("pho2EffSF", &pho2EffSF, "pho2EffSF/F");
+  razorTree->Branch("pho2EffSFUnc", &pho2EffSFUnc, "pho2EffSFUnc/F");
+  razorTree->Branch("pho2EffSFUp", &pho2EffSFUp, "pho2EffSFUp/F");
+  razorTree->Branch("pho2EffSFDown", &pho2EffSFDown, "pho2EffSFDown/F");
   razorTree->Branch("leptonEffSF", &leptonEffSF, "leptonEffSF/F");
+  razorTree->Branch("leptonEffSFUp", &leptonEffSFUp, "leptonEffSFUp/F");
+  razorTree->Branch("leptonEffSFDown", &leptonEffSFDown, "leptonEffSFDown/F");
+  razorTree->Branch("leptonEffSFSys", &leptonEffSFSys, "leptonEffSFSys/F");
+  razorTree->Branch("lep1EffSF", &lep1EffSF, "lep1EffSF/F");
+  razorTree->Branch("lep1EffSFUnc", &lep1EffSFUnc, "lep1EffSFUnc/F");
+  razorTree->Branch("lep1EffSFUp", &lep1EffSFUp, "lep1EffSFUp/F");
+  razorTree->Branch("lep1EffSFDown", &lep1EffSFDown, "lep1EffSFDown/F");
+  razorTree->Branch("lep2EffSF", &lep2EffSF, "lep2EffSF/F");
+  razorTree->Branch("lep2EffSFUnc", &lep2EffSFUnc, "lep2EffSFUnc/F");
+  razorTree->Branch("lep2EffSFUp", &lep2EffSFUp, "lep2EffSFUp/F");
+  razorTree->Branch("lep2EffSFDown", &lep2EffSFDown, "lep2EffSFDown/F");
   razorTree->Branch("ISRSystWeightUp", &ISRSystWeightUp, "ISRSystWeightUp/F");
   razorTree->Branch("ISRSystWeightDown", &ISRSystWeightDown, "ISRSystWeightDown/F");
   razorTree->Branch("NISRJets", &NISRJets, "NISRJets/I");
@@ -717,7 +749,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
   std::cout << "[INFO]: Total Entries = " << fChain->GetEntries() << "\n";
   for ( Long64_t jentry=0; jentry < nentries; jentry++ )
     {
-      if(_metdebug) std::cout << "[INFO]: Processing entry " << jentry << std::endl;
+      if(_metdebug||_ecaldebug) std::cout << "[INFO]: Processing entry " << jentry << std::endl;
       //begin event
       if( _info && (jentry % 10000 == 0) ) std::cout << "[INFO]: Processing entry " << jentry << std::endl;
       Long64_t ientry = LoadTree( jentry );
@@ -766,17 +798,39 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       SumWeights->Fill(1.0, weight);
 
       //reset tree variables
-      ISRSystWeightUp   = 1.0;
-      ISRSystWeightDown = 1.0;
-      NISRJets          = 0;
-      ptISR             = -1;
-      pileupWeight      = 1.0;
-      pileupWeightUp    = 1.0;
-      pileupWeightDown  = 1.0;
-      triggerEffWeight  = 1.0;
-      triggerEffSFWeight  = 1.0;
-      leptonEffSF       = 1.0;
-      photonEffSF       = 1.0;
+      ISRSystWeightUp    = 1.0;
+      ISRSystWeightDown  = 1.0;
+      NISRJets           = 0;
+      ptISR              = -1;
+      pileupWeight       = 1.0;
+      pileupWeightUp     = 1.0;
+      pileupWeightDown   = 1.0;
+      triggerEffWeight   = 1.0;
+      triggerEffSFWeight = 1.0;
+      leptonEffSF        = 1.0;
+      leptonEffSFUp      = 1.0;
+      leptonEffSFDown    = 1.0;
+      leptonEffSFSys     = 0.0;
+      lep1EffSF          = 1.0;
+      lep1EffSFUnc       = 0.0;
+      lep1EffSFUp        = 1.0;
+      lep1EffSFDown      = 1.0;
+      lep2EffSF          = 1.0;
+      lep2EffSFUnc       = 0.0;
+      lep2EffSFUp        = 1.0;
+      lep2EffSFDown      = 1.0;
+      photonEffSF        = 1.0;
+      photonEffSFUp      = 1.0;
+      photonEffSFDown    = 1.0;
+      photonEffSFSys     = 0.0;
+      pho1EffSF          = 1.0;
+      pho1EffSFUnc       = 0.0;
+      pho1EffSFUp        = 1.0;
+      pho1EffSFDown      = 1.0;
+      pho2EffSF          = 1.0;
+      pho2EffSFUnc       = 0.0;
+      pho2EffSFUp        = 1.0;
+      pho2EffSFDown      = 1.0;
 
       btagCorrFactor    = 1.0;
       sf_btagUp         = 1.0;
@@ -1344,7 +1398,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 	  nTightTaus++;
 	}
       */
-
+	
+	bool ecal_prefiring_affected = false;
       //------------------
       //good photon selection
       //------------------
@@ -1355,6 +1410,12 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       int nPhotonsAbove40GeV = 0;
       for(int i = 0; i < nPhotons; i++)
       {
+        //ECAL Prefiring Recipe
+        if( phoPt[i] > 50. && fabs( pho_superClusterEta[i] ) > 2.25 && fabs ( pho_superClusterEta[i] ) < 3.0 ) ecal_prefiring_affected = true;
+        //if( phoPt[i] > 50. && fabs( pho_superClusterEta[i] ) > 2.25 && fabs ( pho_superClusterEta[i] ) < 3.0 ) continue;
+        if(_ecaldebug) std::cout << "[ECAL Prefiring: not affected \n"<< std::endl;
+        //if( phoPt[i] > 50. && fabs( phoEta[i] ) > 2.25 && fabs ( phoEta[i] ) < 3.0 ) continue;
+
         if ( (pho_seedRecHitSwitchToGain6[i] ||
               pho_seedRecHitSwitchToGain1[i] ||
               pho_anyRecHitSwitchToGain6[i] ||
@@ -1813,19 +1874,67 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       //******************************************************
       if ( analysisTag == "Razor2017_92X" || analysisTag == "Razor2017_17Nov2017Rereco" || analysisTag == "Razor2017_31Mar2018Rereco" )
       {
-        photonEffSF = helper->getPhotonScaleFactor(leadPhoPt, leadPhoEta, true) *
-                      helper->getPhotonScaleFactor(trailingPhoPt, trailingPhoEta, true);
+
+        pho1EffSF *= helper->getPhotonScaleFactor(leadPhoPt, leadPhoEta, true);
+        pho1EffSFUnc += helper->getPhotonScaleFactorError(leadPhoPt, leadPhoEta, true);
+        pho1EffSFUp *= pho1EffSF + pho1EffSFUnc; 
+        pho1EffSFDown *= pho1EffSF - pho1EffSFUnc; 
+
+        pho2EffSF *= helper->getPhotonScaleFactor(trailingPhoPt, trailingPhoEta, true);
+        pho2EffSFUnc += helper->getPhotonScaleFactorError(trailingPhoPt, trailingPhoEta, true);
+        pho2EffSFUp *= pho2EffSF + pho2EffSFUnc; 
+        pho2EffSFDown *= pho2EffSF - pho2EffSFUnc; 
+
+        photonEffSF *= pho1EffSF*pho2EffSF;
+	photonEffSFUp *= fmax(pho1EffSFUp, pho1EffSFDown)*fmax(pho2EffSFUp, pho2EffSFDown);
+	photonEffSFDown *= fmin(pho1EffSFUp, pho1EffSFDown)*fmin(pho2EffSFUp, pho2EffSFDown);
+	photonEffSFSys += photonEffSF*sqrt( pow(pho1EffSFUnc/pho1EffSF, 2.) + pow(pho2EffSFUnc/pho2EffSF, 2.) );
+
+        /*photonEffSF = helper->getPhotonScaleFactor(leadPhoPt, leadPhoEta, true) *
+                      helper->getPhotonScaleFactor(trailingPhoPt, trailingPhoEta, true);*/
       }
       else
       {
-        photonEffSF = helper->getPhotonScaleFactor(leadPhoPt, leadPhoEta) *
-                      helper->getPhotonScaleFactor(trailingPhoPt, trailingPhoEta);
+
+        pho1EffSF *= helper->getPhotonScaleFactor(leadPhoPt, leadPhoEta);
+        pho1EffSFUnc += helper->getPhotonScaleFactorError(leadPhoPt, leadPhoEta);
+        pho1EffSFUp *= pho1EffSF + pho1EffSFUnc; 
+        pho1EffSFDown *= pho1EffSF - pho1EffSFUnc; 
+
+        pho2EffSF *= helper->getPhotonScaleFactor(trailingPhoPt, trailingPhoEta);
+        pho2EffSFUnc += helper->getPhotonScaleFactorError(trailingPhoPt, trailingPhoEta);
+        pho2EffSFUp *= pho2EffSF + pho2EffSFUnc; 
+        pho2EffSFDown *= pho2EffSF - pho2EffSFUnc; 
+
+        photonEffSF *= pho1EffSF*pho2EffSF;
+	photonEffSFUp *= fmax(pho1EffSFUp, pho1EffSFDown)*fmax(pho2EffSFUp, pho2EffSFDown);
+	photonEffSFDown *= fmin(pho1EffSFUp, pho1EffSFDown)*fmin(pho2EffSFUp, pho2EffSFDown);
+	photonEffSFSys += photonEffSF*sqrt( pow(pho1EffSFUnc/pho1EffSF, 2.) + pow(pho2EffSFUnc/pho2EffSF, 2.) );
+
+        /*photonEffSF = helper->getPhotonScaleFactor(leadPhoPt, leadPhoEta) *
+                      helper->getPhotonScaleFactor(trailingPhoPt, trailingPhoEta);*/
       }
 
       if (isFastsimSMS)
       {
-        photonEffSF *= helper->getPhotonFastsimToFullsimScaleFactor(leadPhoPt, leadPhoEta) *
-                       helper->getPhotonFastsimToFullsimScaleFactor(trailingPhoPt, trailingPhoEta);
+
+        pho1EffSF *= helper->getPhotonFastsimToFullsimScaleFactor(leadPhoPt, leadPhoEta);
+        pho1EffSFUnc += helper->getPhotonFastsimToFullsimScaleFactorError(leadPhoPt, leadPhoEta);
+        pho1EffSFUp *= pho1EffSF + pho1EffSFUnc; 
+        pho1EffSFDown *= pho1EffSF - pho1EffSFUnc; 
+
+        pho2EffSF *= helper->getPhotonFastsimToFullsimScaleFactor(trailingPhoPt, trailingPhoEta);
+        pho2EffSFUnc += helper->getPhotonFastsimToFullsimScaleFactorError(trailingPhoPt, trailingPhoEta);
+        pho2EffSFUp *= pho2EffSF + pho2EffSFUnc; 
+        pho2EffSFDown *= pho2EffSF - pho2EffSFUnc; 
+
+        photonEffSF *= pho1EffSF*pho2EffSF;
+	photonEffSFUp *= fmax(pho1EffSFUp, pho1EffSFDown)*fmax(pho2EffSFUp, pho2EffSFDown);
+	photonEffSFDown *= fmin(pho1EffSFUp, pho1EffSFDown)*fmin(pho2EffSFUp, pho2EffSFDown);
+	photonEffSFSys += 0.; //negliegible sys from fastsim to fullsim
+
+        /*photonEffSF *= helper->getPhotonFastsimToFullsimScaleFactor(leadPhoPt, leadPhoEta) *
+                       helper->getPhotonFastsimToFullsimScaleFactor(trailingPhoPt, trailingPhoEta);*/
       }
 
       //***********************************************************
@@ -1969,6 +2078,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       vector<bool> GoodBJetsIsCVSM;
       vector<bool> GoodBJetsIsCVST;
       vector< pair<TLorentzVector, bool> > GoodCSVLBJets; //contains CSVL jets passing selection.  The bool is true if the jet passes CSVM, false if not
+      std::cout << "[INFO]: begin b jet loop \n"<< std::endl;
       for(int i = 0; i < nJets; i++)
       {
         //Jet energy Corrections
@@ -1976,10 +2086,17 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
                                                 fixedGridRhoAll, jetJetArea[i], runNum,
                                                 JetCorrectorIOV, JetCorrector );
         TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
-        if( thisJet.Pt() < BJET_CUT ) continue;//According to the April 1st 2015 A
-        if( fabs( thisJet.Eta() ) >= 2.4 ) continue;
+        if (_jetdebug) std::cout << "jet no. " << i << " raw info (pt, eta, phi, E):" << jetPt[i] << " , " << jetEta[i] << " , " << jetPhi[i] << " , " << jetE[i] << " ;\n"<< std::endl;
+        if (_jetdebug) std::cout << "jet no. " << i << " jec info (pt, eta, phi, E):" << jetPt[i]*JEC << " , " << jetEta[i] << " , " << jetPhi[i] << " , " << jetE[i]*JEC << " ;\n"<< std::endl;
         //ECAL Prefiring Recipe
-        //if( thisJet.Pt() > 100. && fabs( thisJet.Eta() ) > 2.25 ) continue;
+        if( thisJet.Pt() > 100. && fabs( thisJet.Eta() ) > 2.25 && fabs ( thisJet.Eta() ) < 3.0 ) ecal_prefiring_affected = true;
+        //if( thisJet.Pt() > 100. && fabs( thisJet.Eta() ) > 2.25 && fabs ( thisJet.Eta() ) < 3.0 ) continue;
+        if(_ecaldebug) std::cout << "[ECAL Prefiring: not affected \n"<< std::endl;
+        
+	if( thisJet.Pt() < BJET_CUT ) continue;//According to the April 1st 2015 A
+        if (_jetdebug) std::cout << "jet no. " << i << " passed b-jet pt 20 cut ;\n"<< std::endl;
+        if( fabs( thisJet.Eta() ) >= 2.4 ) continue;
+        if (_jetdebug) std::cout << "jet no. " << i << " passed b-jet eta 2.4 cut ;\n"<< std::endl;
         if (!isFastsimSMS)
         {
           if ( !jetPassIDLoose[i] ) continue;
@@ -1992,6 +2109,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), mu.Eta(), mu.Phi()) < 0.4 ) overlapjm = true;
         }
         if(overlapjm) continue;
+        if (_jetdebug) std::cout << "jet no. " << i << " passed b-jet muon cleaning ;\n"<< std::endl;
 
         //remove electrons from jet collection
         bool overlapje = false;
@@ -2001,10 +2119,12 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), ele.Eta(), ele.Phi()) < 0.4 ) overlapje = true;
         }
         if(overlapje) continue;
+        if (_jetdebug) std::cout << "jet no. " << i << " passed b-jet ele cleaning ;\n"<< std::endl;
 
         //exclude higgs-candidate photons from the jet collection
         double deltaRJetPhoton = min( thisJet.DeltaR( pho_cand_vec[0] ), thisJet.DeltaR( pho_cand_vec[1] ) );
         if ( deltaRJetPhoton <= 0.4 ) continue;//According to the April 1st 2015 AN
+        if (_jetdebug) std::cout << "jet no. " << i << " passed b-jet photon cleaning ;\n"<< std::endl;
         //-------------------------
         //Get B-tagging scale fact
         //---------------------------
@@ -2154,6 +2274,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           }//Jetcut
         }//isData (Done with b-tagging scale factor)
         if( !isCSVL(i,dataset) ) continue;
+        if (_jetdebug) std::cout << "jet no. " << i << " passed b-jet Loose WP ;\n"<< std::endl;
         GoodBJets.push_back(thisJet);
         GoodBJetsIsCVSL.push_back(isCSVL(i,dataset));
         GoodBJetsIsCVSM.push_back(isCSVM(i,dataset));
@@ -2170,6 +2291,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         nLooseBTaggedJets++;
         if( isCSVM(i,dataset) ) nMediumBTaggedJets++;
       }//end of loop over jet for b-jet
+      std::cout << "[INFO]: end b jet loop \n"<< std::endl;
 
       //***************************************************
       //***************************************************
@@ -2256,9 +2378,25 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           lep2PassSelection = 1 + 2 * bestMuCand[1].isTightMuon;
           //for MC apply lepton eff scale factor
           if (!isData )
-          {
-            if ( matchesGenMuon(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoMuonScaleFactor( lep1Pt, lep1Eta, true);
-            if ( matchesGenMuon(lep2Eta,lep2Phi)) leptonEffSF *=  helper->getVetoMuonScaleFactor( lep2Pt, lep2Eta, true);
+          { 
+            if ( matchesGenMuon(lep1Eta,lep1Phi)) {
+                lep1EffSF *= helper->getLooseMuonScaleFactor( lep1Pt, lep1Eta, true);
+                lep1EffSFUnc += helper->getLooseMuonScaleFactorError( lep1Pt, lep1Eta, true);
+		leptonEffSF *=  lep1EffSF;
+                lep1EffSFUp *= lep1EffSF + lep1EffSFUnc; 
+                lep1EffSFDown *= lep1EffSF - lep1EffSFUnc; 
+	    }
+            if ( matchesGenMuon(lep2Eta,lep2Phi)) {
+                lep2EffSF *= helper->getLooseMuonScaleFactor( lep2Pt, lep2Eta, true);
+                lep2EffSFUnc += helper->getLooseMuonScaleFactorError( lep2Pt, lep2Eta, true);
+		leptonEffSF *=  lep2EffSF;
+                lep2EffSFUp *= lep2EffSF + lep2EffSFUnc; 
+                lep2EffSFDown *= lep2EffSF - lep2EffSFUnc; 
+            }
+	    //max product of lep1/2sfup/down
+	    leptonEffSFUp *= fmax(lep1EffSFUp, lep1EffSFDown)*fmax(lep2EffSFUp, lep2EffSFDown);
+	    leptonEffSFDown *= fmin(lep1EffSFUp, lep1EffSFDown)*fmin(lep2EffSFUp, lep2EffSFDown);
+	    leptonEffSFSys += leptonEffSF*sqrt( pow(lep1EffSFUnc/lep1EffSF, 2.) + pow(lep2EffSFUnc/lep2EffSF, 2.) );
           }
           //record Z candidate inf
           dileptonMass   = ZCandidate.M();
@@ -2347,11 +2485,27 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
             lep2Phi = bestEleCand[1].electron.Phi();
             lep2PassSelection = 1 + 2 * bestEleCand[1].isTightElectron;
             //for MC apply lepton eff scale factor
-            if (!isData )
-            {
-              if ( matchesGenElectron(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getLooseElectronScaleFactor( lep1Pt, lep1Eta, true);
-              if ( matchesGenElectron(lep2Eta,lep2Phi)) leptonEffSF *=  helper->getLooseElectronScaleFactor( lep2Pt, lep2Eta, true);
+	    if (!isData )
+	    { 
+            if ( matchesGenElectron(lep1Eta,lep1Phi)) {
+                lep1EffSF *= helper->getLooseElectronScaleFactor( lep1Pt, lep1Eta, true);
+                lep1EffSFUnc += helper->getLooseElectronScaleFactorError( lep1Pt, lep1Eta, true);
+		leptonEffSF *=  lep1EffSF;
+                lep1EffSFUp *= lep1EffSF + lep1EffSFUnc; 
+                lep1EffSFDown *= lep1EffSF - lep1EffSFUnc; 
+	    }
+            if ( matchesGenElectron(lep2Eta,lep2Phi)) {
+                lep2EffSF *= helper->getLooseElectronScaleFactor( lep2Pt, lep2Eta, true);
+                lep2EffSFUnc += helper->getLooseElectronScaleFactorError( lep2Pt, lep2Eta, true);
+		leptonEffSF *=  lep2EffSF;
+                lep2EffSFUp *= lep2EffSF + lep2EffSFUnc; 
+                lep2EffSFDown *= lep2EffSF - lep2EffSFUnc; 
             }
+	    //max product of lep1/2sfup/down
+	    leptonEffSFUp *= fmax(lep1EffSFUp, lep1EffSFDown)*fmax(lep2EffSFUp, lep2EffSFDown);
+	    leptonEffSFDown *= fmin(lep1EffSFUp, lep1EffSFDown)*fmin(lep2EffSFUp, lep2EffSFDown);
+	    leptonEffSFSys += leptonEffSF*sqrt( pow(lep1EffSFUnc/lep1EffSF, 2.) + pow(lep2EffSFUnc/lep2EffSF, 2.) );
+	    }
             //record Z candidate info
             dileptonMass   = ZCandidate.M();
             bestDielectronPt   = ZCandidate.Pt();
@@ -2422,11 +2576,32 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
             lep2Phi = bestEmuEleCand.electron.Phi();
             lep2PassSelection = 1 + 2 * bestEmuEleCand.isTightElectron;
             //for MC apply lepton eff scale factor
-            if (!isData )
+            /*if (!isData )
             {
               if ( matchesGenMuon(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoElectronScaleFactor( lep1Pt, lep1Eta, true);
               if ( matchesGenElectron(lep2Eta,lep2Phi)) leptonEffSF *=  helper->getLooseElectronScaleFactor( lep2Pt, lep2Eta, true);
+            }*/
+	    if (!isData )
+	    { 
+            if ( matchesGenMuon(lep1Eta,lep1Phi)) {
+                lep1EffSF *= helper->getLooseMuonScaleFactor( lep1Pt, lep1Eta, true);
+                lep1EffSFUnc += helper->getLooseMuonScaleFactorError( lep1Pt, lep1Eta, true);
+		leptonEffSF *=  lep1EffSF;
+                lep1EffSFUp *= lep1EffSF + lep1EffSFUnc; 
+                lep1EffSFDown *= lep1EffSF - lep1EffSFUnc; 
+	    }
+            if ( matchesGenElectron(lep2Eta,lep2Phi)) {
+                lep2EffSF *= helper->getLooseElectronScaleFactor( lep2Pt, lep2Eta, true);
+                lep2EffSFUnc += helper->getLooseElectronScaleFactorError( lep2Pt, lep2Eta, true);
+		leptonEffSF *=  lep2EffSF;
+                lep2EffSFUp *= lep2EffSF + lep2EffSFUnc; 
+                lep2EffSFDown *= lep2EffSF - lep2EffSFUnc; 
             }
+	    //max product of lep1/2sfup/down
+	    leptonEffSFUp *= fmax(lep1EffSFUp, lep1EffSFDown)*fmax(lep2EffSFUp, lep2EffSFDown);
+	    leptonEffSFDown *= fmin(lep1EffSFUp, lep1EffSFDown)*fmin(lep2EffSFUp, lep2EffSFDown);
+	    leptonEffSFSys += leptonEffSF*sqrt( pow(lep1EffSFUnc/lep1EffSF, 2.) + pow(lep2EffSFUnc/lep2EffSF, 2.) );
+	    }
             //record Z candidate inf
             dileptonMass   = ZCandidate.M();
             bestDileptonPt = ZCandidate.Pt();
@@ -2470,7 +2645,17 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           LeptonCandidate.SetPtEtaPhiM( lep1Pt, lep1Eta, lep1Phi, 0.1057 );
           if (!isData )
           {
-            if ( matchesGenMuon(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getVetoMuonScaleFactor( lep1Pt, lep1Eta, true);
+            if ( matchesGenMuon(lep1Eta,lep1Phi)) {
+                lep1EffSF *= helper->getLooseMuonScaleFactor( lep1Pt, lep1Eta, true);
+                lep1EffSFUnc += helper->getLooseMuonScaleFactorError( lep1Pt, lep1Eta, true);
+		leptonEffSF *=  lep1EffSF;
+                lep1EffSFUp *= lep1EffSF + lep1EffSFUnc; 
+                lep1EffSFDown *= lep1EffSF - lep1EffSFUnc; 
+		
+		leptonEffSFUp *=  lep1EffSF + lep1EffSFUnc; 
+		leptonEffSFDown *=  lep1EffSF - lep1EffSFUnc; 
+                leptonEffSFSys += leptonEffSF*lep1EffSFUnc;
+	    }
           }
         } // end if muCand.size() > 0 loop
       }//end checking if another razorBox was already there
@@ -2505,7 +2690,17 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 
           if (!isData )
           {
-            if ( matchesGenElectron(lep1Eta,lep1Phi)) leptonEffSF *=  helper->getLooseElectronScaleFactor( lep1Pt, lep1Eta, true);
+            if ( matchesGenElectron(lep1Eta,lep1Phi)) {
+                lep1EffSF *= helper->getLooseElectronScaleFactor( lep1Pt, lep1Eta, true);
+                lep1EffSFUnc += helper->getLooseElectronScaleFactorError( lep1Pt, lep1Eta, true);
+		leptonEffSF *=  lep1EffSF;
+                lep1EffSFUp *= lep1EffSF + lep1EffSFUnc; 
+                lep1EffSFDown *= lep1EffSF - lep1EffSFUnc; 
+		
+		leptonEffSFUp *=  lep1EffSF + lep1EffSFUnc; 
+		leptonEffSFDown *=  lep1EffSF - lep1EffSFUnc; 
+                leptonEffSFSys += leptonEffSF*lep1EffSFUnc;
+            }
           }
         } // end of if eleCand.size() > 0 loop
       }//end of one lepton category (check that razor box was not yet assigned)
@@ -2652,6 +2847,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 						                                    fixedGridRhoAll, jetJetArea[i], runNum,
 						                                    JetCorrectorIOV, JetCorrector );
         TLorentzVector thisJet = makeTLorentzVector( jetPt[i]*JEC, jetEta[i], jetPhi[i], jetE[i]*JEC );
+        if (_jetdebug) std::cout << "jet no. " << i << " raw info (pt, eta, phi, E):" << jetPt[i] << " , " << jetEta[i] << " , " << jetPhi[i] << " , " << jetE[i] << " ;\n"<< std::endl;
+        if (_jetdebug) std::cout << "jet no. " << i << " jec info (pt, eta, phi, E):" << jetPt[i]*JEC << " , " << jetEta[i] << " , " << jetPhi[i] << " , " << jetE[i]*JEC << " ;\n"<< std::endl;
         //2017F MET RECIPE
         TLorentzVector thisJet_Raw = makeTLorentzVector( jetPt[i], jetEta[i], jetPhi[i], jetE[i] );
         //if(thisJet.Pt() < 75. &&  (fabs(thisJet.Eta()) > 2.65 && fabs(thisJet.Eta()) < 3.139) )
@@ -2665,10 +2862,15 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
         }
         if(_metdebug) std::cout << "[MET_V2]: metX_RecV2 " << metX_RecV2 << "\n"<< std::endl;
         if(_metdebug) std::cout << "[MET_V2]: metY_RecV2 " << metY_RecV2 << "\n"<< std::endl;
-        if( thisJet.Pt() < JET_CUT ) continue;//According to the April 1st 2015 AN
-        if( fabs( thisJet.Eta() ) >= 2.4 ) continue;
         //ECAL Prefiring Recipe
-        //if( thisJet.Pt() > 100. && fabs( thisJet.Eta() ) > 2.25 ) continue;
+        if( thisJet.Pt() > 100. && fabs( thisJet.Eta() ) > 2.25 && fabs ( thisJet.Eta() ) < 3.0 ) ecal_prefiring_affected = true;
+        //if( thisJet.Pt() > 100. && fabs( thisJet.Eta() ) > 2.25 && fabs ( thisJet.Eta() ) < 3.0 ) continue;
+        if(_ecaldebug) std::cout << "[ECAL Prefiring: not affected \n"<< std::endl;
+
+        if( thisJet.Pt() < JET_CUT ) continue;//According to the April 1st 2015 AN
+        if (_jetdebug) std::cout << "jet no. " << i << " passed jet pt 30 cut ;\n"<< std::endl;
+        if( fabs( thisJet.Eta() ) >= 2.4 ) continue;
+        if (_jetdebug) std::cout << "jet no. " << i << " passed jet eta 2.4 cut ;\n"<< std::endl;
         if (!isFastsimSMS)
         {
           if ( !jetPassIDLoose[i] ) continue;
@@ -2681,6 +2883,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), mu.Eta(), mu.Phi()) < 0.4 ) overlapjm = true;
         }
         if(overlapjm) continue;
+        if (_jetdebug) std::cout << "jet no. " << i << " passed jet muon cleaning ;\n"<< std::endl;
 
         bool overlapje = false;
         for(int k = 0; k < int(GoodElectrons.size()); k++)
@@ -2689,9 +2892,11 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), ele.Eta(), ele.Phi()) < 0.4 ) overlapje = true;
         }
         if(overlapje) continue;
+        if (_jetdebug) std::cout << "jet no. " << i << " passed jet ele cleaning ;\n"<< std::endl;
         //exclude selected photons from the jet collection
         double deltaRJetPhoton = min( thisJet.DeltaR( pho_cand_vec[0] ), thisJet.DeltaR( pho_cand_vec[1] ) );
         if ( deltaRJetPhoton <= 0.4 ) continue;
+        if (_jetdebug) std::cout << "jet no. " << i << " passed jet photon cleaning ;\n"<< std::endl;
         //Exclude selected b-jets from the jet collection
         bool overlapbjj = false;
         for(int b = 0; b < int(bjetSelectedCand.size()); b++)
@@ -2700,6 +2905,7 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
           if (RazorAnalyzer::deltaR( thisJet.Eta(), thisJet.Phi(), Bjet.bjet.Eta(), Bjet.bjet.Phi()) < 0.4 ) overlapbjj = true;
         }
         if(overlapbjj) continue;
+        if (_jetdebug) std::cout << "jet no. " << i << " passed jet b-jet cand cleaning ;\n"<< std::endl;
         JetCandidate  tmp_jetCand;
         tmp_jetCand.jet    = thisJet;
         tmp_jetCand.isCSVL = isCSVL(i,dataset);
@@ -2843,7 +3049,8 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
       if ( theMR > 0 )
       {
         theRsq = computeRsq(hemispheres[0], hemispheres[1], PFMET);
-        t1Rsq  = computeRsq(hemispheres[0], hemispheres[1], t1PFMET);
+        //t1Rsq  = computeRsq(hemispheres[0], hemispheres[1], t1PFMET);
+        t1Rsq  = computeRsq(hemispheres[0], hemispheres[1], t1PFMET_RecV2);
         genMetRsq = computeRsq(hemispheres[0], hemispheres[1], genMET);
       }
 
@@ -2909,9 +3116,12 @@ void SusyEwkHgg::Analyze(bool isData, int option, string outFileName, string lab
 				      << " h2 pt: " << hemispheres[1].Pt() << " h2 eta: " << hemispheres[1].Eta() << std::endl;
         }
       }
-      if (_debug) cout << "Fill event: " << mChi << " " << theMR << " " << t1Rsq << " " << sigmaMoverM << "\n";
 
       //Fill Event
+        //if ( _debug ) std::cout << "run == " << run << " && evt == " << event << " && ecal_prefiring_affected == " << ecal_prefiring_affected << std::endl;
+	//if(ecal_prefiring_affected) continue;
+      if (_debug) cout << "Fill event: " << mChi << " " << theMR << " " << t1Rsq << " " << sigmaMoverM << "\n";
+
       if (!isFastsimSMS)
       {
         razorTree->Fill();
