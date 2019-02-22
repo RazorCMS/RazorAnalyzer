@@ -14,6 +14,7 @@ else
     cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/JEC/JEC_Summer16_23Sep2016V3.tgz ./
     cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/JEC/JEC_Summer16_23Sep2016V4.tgz ./
     cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/JEC/Fall17_17Nov2017_V6_DATA_V8_MC.tgz ./
+    cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/JEC/Fall17_17Nov2017_V32_DATA_MC.tgz ./
     cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/JEC/Spring16_FastSimV1.tgz ./
     cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/JEC/JetResolutionInputAK5PF.txt ./
     cp -v /eos/cms/store/group/phys_susy/razor/Run2Analysis/ScaleFactors/PhotonCorrections/Winter_2016_reReco_v1_ele_smearings.dat ./
@@ -28,6 +29,7 @@ else
     tar vxzf JEC_Summer16_23Sep2016V4.tgz
     tar vxzf Spring16_FastSimV1.tgz
     tar vxzf Fall17_17Nov2017_V6_DATA_V8_MC.tgz 
+    tar vxzf Fall17_17Nov2017_V32_DATA_MC.tgz 
 
     ./Run$2 $1 ${@:3}
     rm Run$2
