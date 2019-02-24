@@ -227,6 +227,7 @@ class RazorHelper {
 
         // for Razor2016 80X tag 03Feb2017
         void loadJECs_Razor2016_03Feb2017Rereco();
+        void loadLepton_Razor2016_03Feb2017Rereco();
 
         // for Razor2016G 80X tag
         void loadPileup_Razor2016G();

@@ -1116,12 +1116,79 @@ void RazorHelper::loadJECs_Razor2016_MoriondRereco() {
 ////////////////////////////////////////////////
 void RazorHelper::loadTag_Razor2016_03Feb2017Rereco() {
     loadPileup_Razor2016_MoriondRereco();
-    loadLepton_Razor2016_MoriondRereco();
+    loadLepton_Razor2016_03Feb2017Rereco();
     loadPhoton_Razor2016_MoriondRereco();
     loadBTag_Razor2016_MoriondRereco();
     loadTrigger_Razor2016_MoriondRereco();
     loadJECs_Razor2016_03Feb2017Rereco();
     loadAK8JetTag_Razor2016_MoriondRereco();
+}
+
+
+void RazorHelper::loadLepton_Razor2016_03Feb2017Rereco(){
+
+    // electron efficiencies and scale factors
+    // LAST UPDATED: 24 Feb 2019
+    std::cout << "RazorHelper: loading 2016 electron efficiency histograms" << std::endl;
+    eleTightEfficiencyFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
+    eleVetoEfficiencyFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
+    eleEffSFFile = TFile::Open("efficiency_results_TightElectronSelectionEffDenominatorGen_2016_Rereco_Golden.root");
+    looseEleEffSFFile = TFile::Open("efficiency_results_LooseElectronSelectionEffDenominatorGen_2016_23SepRereco.root");
+    vetoEleEffSFFile = TFile::Open("efficiency_results_VetoElectronSelectionEffDenominatorGen_2016_Rereco_Golden.root");
+    eleGSFTrackEffSFFile = TFile::Open("efficiencySF_muEleTracking_2016_average.root");
+    eleGSFTrackEffFile = TFile::Open("Efficiency_PromptElectron_TTJets_25ns_Reco_Fullsim.root");
+    eleTightEffFastsimSFFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
+    eleVetoEffFastsimSFFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
+
+    eleTightEfficiencyHist = (TH2D*)eleTightEfficiencyFile->Get("ElectronEff_Tight_Fullsim");
+    eleVetoEfficiencyHist = (TH2D*)eleVetoEfficiencyFile->Get("ElectronEff_Veto_Fullsim");
+
+    // We don't have ID scale factors for Fastsim yet.
+    eleTightEffFastsimSFHist =  (TH2D*)eleTightEffFastsimSFFile->Get("ElectronTight_FastsimScaleFactor");
+    eleVetoEffFastsimSFHist = (TH2D*)eleVetoEffFastsimSFFile->Get("ElectronEff_Veto_Fullsim");
+    eleTightEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_TightElectronSelectionEffDenominatorGen");
+    eleLooseEffSFHist = (TH2D*)eleEffSFFile->Get("ScaleFactor_LooseElectronSelectionEffDenominatorGen");
+    eleLooseEffFastsimSFHist =  (TH2D*)eleTightEffFastsimSFFile->Get("ElectronTight_FastsimScaleFactor");
+    eleVetoEffSFHist = (TH2D*)vetoEleEffSFFile->Get("ScaleFactor_VetoElectronSelectionEffDenominatorGen");
+    eleGSFTrackEffHist = (TH2D*)eleGSFTrackEffFile->Get("Efficiency_PtEta");
+    // These scale factors are weighted according to the fraction of the 2016 run affected
+    // by the 'HIP' issue, under the assumption that tracking scale factors are 1 for runs
+    // not affected by the 'HIP'.
+    eleGSFTrackEffSFHist = (TH2D*)eleGSFTrackEffSFFile->Get("h2_scaleFactorsEGamma");
+
+    // muon efficiencies and scale factors
+    // LAST UPDATED: 24 Feb 2019
+    std::cout << "RazorHelper: loading 2016 muon efficiency histograms" << std::endl;
+    muTightEfficiencyFile = TFile::Open("MuonEffFastsimToFullsimCorrectionFactors.2016.root");
+    muVetoEfficiencyFile = TFile::Open("MuonEffFastsimToFullsimCorrectionFactors.2016.root");
+    muEffSFFile = TFile::Open("efficiency_results_TightMuonSelectionEffDenominatorGen_2016_Rereco_Golden.root");
+    vetoMuEffSFFile = TFile::Open("efficiency_results_VetoMuonSelectionEffDenominatorGen_2016_23SepRereco.root");
+    muTrackEffSFFile = TFile::Open("efficiencySF_muEleTracking_2016_average.root");
+    muTrackEffFile = TFile::Open("Efficiency_PromptMuon_TTJets_25ns_Reco_Fullsim.root");
+    muTightEffFastsimSFFile = TFile::Open("MuonEffFastsimToFullsimCorrectionFactors.2016.root");
+    muVetoEffFastsimSFFile = TFile::Open("MuonEffFastsimToFullsimCorrectionFactors.2016.root");
+
+    muTightEfficiencyHist = (TH2D*)muTightEfficiencyFile->Get("MuonEff_Tight_Fullsim");
+    muVetoEfficiencyHist = (TH2D*)muVetoEfficiencyFile->Get("MuonEff_Veto_Fullsim");
+    // We don't have ID scale factors for Fastsim yet.
+    muTightEffFastsimSFHist = (TH2D*)muTightEffFastsimSFFile->Get("MuonTight_FastsimScaleFactor");
+    muVetoEffFastsimSFHist = (TH2D*)muVetoEffFastsimSFFile->Get("MuonVeto_FastsimScaleFactor");
+    muTightEffSFHist = (TH2D*)muEffSFFile->Get("ScaleFactor_TightMuonSelectionEffDenominatorGen");
+    muVetoEffSFHist = (TH2D*)vetoMuEffSFFile->Get("ScaleFactor_VetoMuonSelectionEffDenominatorGen");
+
+    muLooseEffSFHist = (TH2D*)vetoMuEffSFFile->Get("ScaleFactor_VetoMuonSelectionEffDenominatorGen");
+    muLooseEffFastsimSFHist = (TH2D*)muVetoEffFastsimSFFile->Get("MuonVeto_FastsimScaleFactor");
+    muTrackEffHist = (TH2D*)muTrackEffFile->Get("Efficiency_PtEta");
+    // These scale factors are weighted according to the fraction of the 2016 run affected
+    // by the 'HIP' issue, under the assumption that tracking scale factors are 1 for runs
+    // not affected by the 'HIP'.
+    muTrackEffSFHist = (TH2D*)muTrackEffSFFile->Get("muon");
+
+    // tau efficiencies and scale factors
+    std::cout << "RazorHelper: loading tau efficiency histograms" << std::endl;
+    tauEfficiencyFile = TFile::Open("TauEffFastsimToFullsimCorrectionFactors.2016.root");
+    tauLooseEfficiencyHist = (TH2D*)tauEfficiencyFile->Get("TauEff_Loose_Fullsim");
+
 }
 
 
