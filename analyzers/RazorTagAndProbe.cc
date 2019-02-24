@@ -697,7 +697,6 @@ void RazorTagAndProbe::Analyze(bool isData, int option, string outputfilename, s
 	      if ( !isTightDelayedPhotonWithoutEleVeto(indexProbe, _is25ns) ) continue;
 	    }
 
-
 	    TLorentzVector vprobe;
 	    vprobe.SetPtEtaPhiM(phoPt[indexProbe], phoEta[indexProbe], phoPhi[indexProbe], ELE_MASS);
 
@@ -707,7 +706,6 @@ void RazorTagAndProbe::Analyze(bool isData, int option, string outputfilename, s
 	    TPPair->phi = phoPhi[indexProbe];
 	    //TPPair->charge = phoCharge[indexProbe];
 	    TPPair->charge = 0;
-
 
 	    //****************************************
 	    //PASS OR FAIL

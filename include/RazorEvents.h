@@ -158,6 +158,7 @@ public :
    Float_t         tau_leadChargedHadrCandPt[700];   //[nTaus]
    Int_t           tau_leadChargedHadrCandID[700];   //[nTaus]
    Int_t           nPhotons;
+   Int_t           nPhotons_overlap;
    Float_t         phoE[700];   //[nPhotons]
    Float_t         phoPt[700];   //[nPhotons]
    Float_t         phoEta[700];   //[nPhotons]
@@ -261,7 +262,9 @@ public :
    Float_t         metType0Pt;
    Float_t         metType0Phi;
    Float_t         metType1Pt;
+   Float_t         metType1Pt_raw;
    Float_t         metType1Phi;
+   Float_t         metType1Phi_raw;
    Float_t         metType0Plus1Pt;
    Float_t         metType0Plus1Phi;
    Float_t         metEGCleanPt;
@@ -514,6 +517,7 @@ public :
    TBranch        *b_tau_leadChargedHadrCandPt;   //!
    TBranch        *b_tau_leadChargedHadrCandID;   //!
    TBranch        *b_nPhotons;   //!
+   TBranch        *b_nPhotons_overlap;   //!
    TBranch        *b_phoE;   //!
    TBranch        *b_phoPt;   //!
    TBranch        *b_phoEta;   //!
@@ -617,7 +621,9 @@ public :
    TBranch        *b_metType0Pt;   //!
    TBranch        *b_metType0Phi;   //!
    TBranch        *b_metType1Pt;   //!
+   TBranch        *b_metType1Pt_raw;   //!
    TBranch        *b_metType1Phi;   //!
+   TBranch        *b_metType1Phi_raw;   //!
    TBranch        *b_metType0Plus1Pt;   //!
    TBranch        *b_metType0Plus1Phi;   //!
    TBranch        *b_metEGCleanPt;   //!
@@ -961,6 +967,7 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("tau_leadChargedHadrCandPt", tau_leadChargedHadrCandPt, &b_tau_leadChargedHadrCandPt);
    fChain->SetBranchAddress("tau_leadChargedHadrCandID", tau_leadChargedHadrCandID, &b_tau_leadChargedHadrCandID);
    fChain->SetBranchAddress("nPhotons", &nPhotons, &b_nPhotons);
+   fChain->SetBranchAddress("nPhotons_overlap", &nPhotons_overlap, &b_nPhotons_overlap);
    fChain->SetBranchAddress("phoE", phoE, &b_phoE);
    fChain->SetBranchAddress("phoPt", phoPt, &b_phoPt);
    fChain->SetBranchAddress("phoEta", phoEta, &b_phoEta);
@@ -1064,7 +1071,9 @@ void RazorEvents::Init(TTree *tree)
    fChain->SetBranchAddress("metType0Pt", &metType0Pt, &b_metType0Pt);
    fChain->SetBranchAddress("metType0Phi", &metType0Phi, &b_metType0Phi);
    fChain->SetBranchAddress("metType1Pt", &metType1Pt, &b_metType1Pt);
+   fChain->SetBranchAddress("metType1Pt_raw", &metType1Pt_raw, &b_metType1Pt_raw);
    fChain->SetBranchAddress("metType1Phi", &metType1Phi, &b_metType1Phi);
+   fChain->SetBranchAddress("metType1Phi_raw", &metType1Phi_raw, &b_metType1Phi_raw);
    fChain->SetBranchAddress("metType0Plus1Pt", &metType0Plus1Pt, &b_metType0Plus1Pt);
    fChain->SetBranchAddress("metType0Plus1Phi", &metType0Plus1Phi, &b_metType0Plus1Phi);
    fChain->SetBranchAddress("metEGCleanPt", &metEGCleanPt, &b_metEGCleanPt);

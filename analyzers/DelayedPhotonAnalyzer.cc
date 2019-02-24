@@ -282,6 +282,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   float TOF_pho1, TOF_pho2;
   
   int n_Photons;
+  int n_Photons_reco;
   float pho1E, pho1Pt, pho1Pt_scaleUp, pho1Pt_scaleDown, pho1Eta, pho1Phi, pho1SeedE, pho1SeedPt, pho1SeedEta, pho1SeedPhi, pho1SC_E, pho1SC_Pt, pho1SC_Eta, pho1SC_Phi, pho1angle_xtal, pho1SigmaIetaIeta, pho1R9, pho1HoverE, pho1sumChargedHadronPt, pho1sumNeutralHadronEt, pho1sumPhotonEt, pho1PFsumChargedHadronPt, pho1PFsumNeutralHadronEt, pho1PFsumPhotonEt, pho1ecalPFClusterIso, pho1hcalPFClusterIso, pho1trkSumPtHollowConeDR03, pho1sigmaEOverE, pho1SeedTimeRaw, pho1SeedTimeCalib, pho1SeedTimeCalibTOF, pho1SeedTimeGenV, pho1ClusterTime, pho1ClusterTime_SmearToData, pho1Sminor, pho1Smajor, pho1Setaeta, pho1Sphiphi, pho1Setaphi, pho1GenE, pho1GenPt, pho1GenEta, pho1GenPhi;
   float pho2E, pho2Pt, pho2Pt_scaleUp, pho2Pt_scaleDown, pho2Eta, pho2Phi, pho2SeedE, pho2SeedPt, pho2SeedEta, pho2SeedPhi, pho2SC_E, pho2SC_Pt, pho2SC_Eta, pho2SC_Phi, pho2angle_xtal, pho2SigmaIetaIeta, pho2R9, pho2HoverE, pho2sumChargedHadronPt, pho2sumNeutralHadronEt, pho2sumPhotonEt, pho2PFsumChargedHadronPt, pho2PFsumNeutralHadronEt, pho2PFsumPhotonEt, pho2ecalPFClusterIso, pho2hcalPFClusterIso, pho2trkSumPtHollowConeDR03, pho2sigmaEOverE, pho2SeedTimeRaw, pho2SeedTimeCalib, pho2SeedTimeCalibTOF, pho2SeedTimeGenV, pho2ClusterTime, pho2ClusterTime_SmearToData, pho2Sminor, pho2Smajor, pho2Setaeta, pho2Sphiphi, pho2Setaphi, pho2GenE, pho2GenPt, pho2GenEta, pho2GenPhi;
   bool pho1passEleVeto, pho1passIsoLoose, pho1passIsoMedium, pho1passIsoTight, pho1isStandardPhoton, pho1isPromptPhoton, pho1isDelayedPhoton;
@@ -307,6 +308,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   float MET, t1MET, MET_JESUp, MET_JESDown, t1MET_JESUp, t1MET_JESDown;
   float HT;
 
+  float deltaR_pho12;
   float deltaPt_pho1, deltaPt_pho2;
   float deltaR_pho1, deltaR_pho2;
   float deltaEta_pho1, deltaEta_pho2;
@@ -314,13 +316,25 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   float reco_eta1, reco_eta2;
   float gen_eta1, gen_eta2;
   float R1, R2;
+  float pho1_genVtxX, pho2_genVtxX;
+  float pho1_genVtxY, pho2_genVtxY;
+  float pho1_genVtxZ, pho2_genVtxZ;
+  float pho1_genVtxEta, pho2_genVtxEta;
+  float pho1_genVtxPhi, pho2_genVtxPhi;
   float ZD1, ZD2;
+
+  //leptons
+  float lep1Pt, lep2Pt, mll;
+  Int_t lep1Type, lep2Type;
+
 
   //MET filters
   outputTree->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter, "Flag_HBHENoiseFilter/O");
   outputTree->Branch("Flag_HBHEIsoNoiseFilter", &Flag_HBHEIsoNoiseFilter, "Flag_HBHEIsoNoiseFilter/O");
-  outputTree->Branch("Flag_badChargedCandidateFilter", &Flag_badChargedCandidateFilter, "Flag_badChargedCandidateFilter/O");
-  outputTree->Branch("Flag_badMuonFilter", &Flag_badMuonFilter, "Flag_badMuonFilter/O");
+  //outputTree->Branch("Flag_badChargedCandidateFilter", &Flag_badChargedCandidateFilter, "Flag_badChargedCandidateFilter/O");
+  outputTree->Branch("Flag_badChargedCandidateFilter", &Flag_BadChargedCandidateFilter, "Flag_badChargedCandidateFilter/O");
+  //outputTree->Branch("Flag_badMuonFilter", &Flag_badMuonFilter, "Flag_badMuonFilter/O");
+  outputTree->Branch("Flag_badMuonFilter", &Flag_BadPFMuonFilter, "Flag_badMuonFilter/O");
   outputTree->Branch("Flag_badGlobalMuonFilter", &Flag_badGlobalMuonFilter, "Flag_badGlobalMuonFilter/O");
   outputTree->Branch("Flag_duplicateMuonFilter", &Flag_duplicateMuonFilter, "Flag_duplicateMuonFilter/O");
   outputTree->Branch("Flag_CSCTightHaloFilter", &Flag_CSCTightHaloFilter, "Flag_CSCTightHaloFilter/O");
@@ -383,6 +397,8 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   outputTree->Branch("TOF_pho2", &TOF_pho2, "TOF_pho2/F");
 
   outputTree->Branch("n_Photons", &n_Photons, "n_Photons/I"); // 1 or 2
+  outputTree->Branch("n_Photons_reco", &n_Photons_reco, "n_Photons_reco/I"); // 1 or 2
+  outputTree->Branch("nPhotons_overlap", &nPhotons_overlap, "nPhotons_overlap/I"); // 1 or 2
   outputTree->Branch("pho1E", &pho1E, "pho1E/F");
   outputTree->Branch("pho1Pt", &pho1Pt, "pho1Pt/F");
   outputTree->Branch("pho1Pt_scaleUp", &pho1Pt_scaleUp, "pho1Pt_scaleUp/F");
@@ -518,19 +534,31 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
   outputTree->Branch("jet2Phi", &jet2Phi, "jet2Phi/F");  
 
   outputTree->Branch("MET", &MET, "MET/F");
+  outputTree->Branch("genMetPt", &genMetPt, "genMetPt/F");
+  outputTree->Branch("genMetPhi", &genMetPhi, "genMetPhi/F");
   outputTree->Branch("sumMET", &sumMET, "sumMET/F");
   outputTree->Branch("MET_JESUp", &MET_JESUp, "MET_JESUp/F");
   outputTree->Branch("MET_JESDown", &MET_JESDown, "MET_JESDown/F");
   outputTree->Branch("t1MET", &t1MET, "t1MET/F");
+  outputTree->Branch("t1MET_raw", &metType1Pt_raw, "t1MET_raw/F");
+  outputTree->Branch("t1METPhi", &metType1Phi, "t1METPhi/F");
+  outputTree->Branch("t1METPhi_raw", &metType1Phi_raw, "t1METPhi_raw/F");
   outputTree->Branch("t1MET_JESUp", &t1MET_JESUp, "t1MET_JESUp/F");
   outputTree->Branch("t1MET_JESDown", &t1MET_JESDown, "t1MET_JESDown/F");
   outputTree->Branch("HT", &HT, "HT/F");
+
+  outputTree->Branch("lep1Pt", &lep1Pt, "lep1Pt/F");
+  outputTree->Branch("lep2Pt", &lep2Pt, "lep2Pt/F");
+  outputTree->Branch("mll", &mll, "mll/F");
+  outputTree->Branch("lep1Type", &lep1Type, "lep1Type/I");
+  outputTree->Branch("lep2Type", &lep2Type, "lep2Type/I");
 
   outputTree->Branch("HLTDecision", HLTDecision, "HLTDecision[300]/O");
 //  outputTree->Branch("HLTPrescale", HLTPrescale,"HLTPrescale[300]/I");
 
   outputTree->Branch("deltaPt_pho1", &deltaPt_pho1, "deltaPt_pho1/F");
   outputTree->Branch("deltaPt_pho2", &deltaPt_pho2, "deltaPt_pho2/F");
+  outputTree->Branch("deltaR_pho12", &deltaR_pho12, "deltaR_pho12/F");
   outputTree->Branch("deltaR_pho1", &deltaR_pho1, "deltaR_pho1/F");
   outputTree->Branch("deltaR_pho2", &deltaR_pho2, "deltaR_pho2/F");
   outputTree->Branch("deltaEta_pho1", &deltaEta_pho1, "deltaEta_pho1/F");
@@ -544,6 +572,16 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 
   outputTree->Branch("R1", &R1, "R1/F");
   outputTree->Branch("R2", &R2, "R2/F");
+  outputTree->Branch("pho1_genVtxX", &pho1_genVtxX, "pho1_genVtxX/F");
+  outputTree->Branch("pho2_genVtxX", &pho2_genVtxX, "pho2_genVtxX/F");
+  outputTree->Branch("pho1_genVtxY", &pho1_genVtxY, "pho1_genVtxY/F");
+  outputTree->Branch("pho2_genVtxY", &pho2_genVtxY, "pho2_genVtxY/F");
+  outputTree->Branch("pho1_genVtxZ", &pho1_genVtxZ, "pho1_genVtxZ/F");
+  outputTree->Branch("pho2_genVtxZ", &pho2_genVtxZ, "pho2_genVtxZ/F");
+  outputTree->Branch("pho1_genVtxEta", &pho1_genVtxEta, "pho1_genVtxEta/F");
+  outputTree->Branch("pho2_genVtxEta", &pho2_genVtxEta, "pho2_genVtxEta/F");
+  outputTree->Branch("pho1_genVtxPhi", &pho1_genVtxPhi, "pho1_genVtxPhi/F");
+  outputTree->Branch("pho2_genVtxPhi", &pho2_genVtxPhi, "pho2_genVtxPhi/F");
   outputTree->Branch("ZD1", &ZD1, "ZD1/F");
   outputTree->Branch("ZD2", &ZD2, "ZD2/F");
 
@@ -600,6 +638,7 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
     TOF_neu2_RF = -999;
 
     n_Photons = 0;
+    n_Photons_reco = 0;
     pho1E = -999, pho1Pt = -999, pho1Pt_scaleUp = -999, pho1Pt_scaleDown = -999, pho1Eta = -999, pho1Phi = -999, pho1SeedE = -999, pho1SeedPt = -999, pho1SeedEta = -999, pho1SeedPhi = -999, pho1SC_E = -999, pho1SC_Pt = -999, pho1SC_Eta = -999, pho1SC_Phi = -999, pho1angle_xtal = -999, pho1SigmaIetaIeta = -999, pho1R9 = -999, pho1HoverE = -999, pho1sumChargedHadronPt = -999, pho1sumNeutralHadronEt = -999, pho1sumPhotonEt = -999, pho1PFsumChargedHadronPt = -999, pho1PFsumNeutralHadronEt = -999, pho1PFsumPhotonEt = -999, pho1ecalPFClusterIso = -999, pho1hcalPFClusterIso = -999, pho1trkSumPtHollowConeDR03 = -999, pho1sigmaEOverE = -999, pho1SeedTimeRaw = -999, pho1SeedTimeCalib = -999, pho1SeedTimeCalibTOF = -999, pho1SeedTimeGenV = -999, pho1ClusterTime = -999, pho1ClusterTime_SmearToData, pho1Sminor = -999, pho1Smajor = -999, pho1Setaeta = -999, pho1Sphiphi = -999, pho1Setaphi = -999, pho1GenE = -999, pho1GenPt = -999, pho1GenEta = -999, pho1GenPhi = -999;
     pho2E = -999, pho2Pt = -999, pho2Pt_scaleDown = -999, pho2Pt_scaleDown = -999, pho2Eta = -999, pho2Phi = -999, pho2SeedE = -999, pho2SeedPt = -999, pho2SeedEta = -999, pho2SeedPhi = -999, pho2SC_E = -999, pho2SC_Pt = -999, pho2SC_Eta = -999, pho2SC_Phi = -999, pho2angle_xtal = -999, pho2SigmaIetaIeta = -999, pho2R9 = -999, pho2HoverE = -999, pho2sumChargedHadronPt = -999, pho2sumNeutralHadronEt = -999, pho2sumPhotonEt = -999, pho2PFsumChargedHadronPt = -999, pho2PFsumNeutralHadronEt = -999, pho2PFsumPhotonEt = -999, pho2ecalPFClusterIso = -999, pho2hcalPFClusterIso = -999, pho2trkSumPtHollowConeDR03 = -999, pho2sigmaEOverE = -999, pho2SeedTimeRaw = -999, pho2SeedTimeCalib = -999, pho2SeedTimeCalibTOF = -999, pho2SeedTimeGenV = -999, pho2ClusterTime = -999, pho2ClusterTime_SmearToData, pho2Sminor = -999, pho2Smajor = -999, pho2Setaeta = -999, pho2Sphiphi = -999, pho2Setaphi = -999, pho2GenE = -999, pho2GenPt = -999, pho2GenEta = -999, pho2GenPhi = -999;
     pho1passEleVeto = false, pho1passIsoLoose = false, pho1passIsoMedium = false, pho1passIsoTight = false, pho1isStandardPhoton = false, pho1isPromptPhoton = false, pho1isDelayedPhoton = false;
@@ -625,9 +664,15 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
     
     MET = -999, t1MET = -999, MET_JESUp = -999, MET_JESDown = -999, t1MET_JESUp = -999, t1MET_JESDown = -999;
     HT = -999;
+  
+
+    lep1Pt = -999, lep2Pt = -999;
+    mll =-999;
+    lep1Type = 0, lep2Type = 0;
 
     deltaPt_pho1 = -999;
     deltaPt_pho2 = -999;
+    deltaR_pho12 = -999;
     deltaR_pho1 = -999;
     deltaR_pho2 = -999;
     deltaEta_pho1 = -999;
@@ -641,6 +686,16 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 
     R1 = -999;
     R2 = -999;
+    pho1_genVtxX = -999;
+    pho2_genVtxX = -999;
+    pho1_genVtxY = -999;
+    pho2_genVtxY = -999;
+    pho1_genVtxZ = -999;
+    pho2_genVtxZ = -999;
+    pho1_genVtxEta = -999;
+    pho2_genVtxEta = -999;
+    pho1_genVtxPhi = -999;
+    pho2_genVtxPhi = -999;
     ZD1 = -999;
     ZD2 = -999;
 
@@ -712,7 +767,12 @@ void DelayedPhotonAnalyzer::Analyze(bool isData, int option, string outFileName,
 	//if(!photonPassLooseIso(ind_pho)) continue;
 	//if(!pho_passEleVeto[ind_pho]) continue;
       	//if(!(isEGammaPOGTightElectron(i))) continue;
-      	
+  	//check overlap, this is mainly for overlap within one collection
+	//float dR_pho1 = deltaR(phoEta[ind_pho], phoPhi[ind_pho], pho1Eta, pho1Phi);
+	//float dR_pho2 = deltaR(phoEta[ind_pho], phoPhi[ind_pho], pho2Eta, pho2Phi);
+	//if(dR_pho1 < 0.3 && phoPt[ind_pho]<pho1Pt) continue; // overlap, remove
+	//if(dR_pho2 < 0.3 && phoPt[ind_pho]<pho2Pt) continue; // overlap, remove
+
 	nPho++;
 	float pho_pt_corr = phoPt[ind_pho];
 	float pho_pt_corr_scaleUp = phoPt[ind_pho];
@@ -1133,7 +1193,11 @@ else
 	pho2ClusterTime_SmearToData = pho2ClusterTime;
 }
 
+n_Photons_reco = nPho;
+
  if(nPho == 0) continue; 
+
+deltaR_pho12 = deltaR(pho1Eta, pho1Phi, pho2Eta, pho2Phi);
 
 HT = 0.0;
 HT = pho1Pt;
@@ -1322,6 +1386,106 @@ if( !isData )
 	MET_JESDown    = PFMET_JESDown.Pt();
        	t1MET_JESDown  = t1PFMET_JESDown.Pt();
 } 
+
+////lepton loop
+vector<TLorentzVector> GoodLeptons;
+vector<int> GoodLeptonType;
+vector<float> GoodLeptonPt;
+
+TLorentzVector lep1;
+TLorentzVector lep2;
+
+lep1.SetPtEtaPhiM(0,0,0,0);
+lep2.SetPtEtaPhiM(0,0,0,0);
+
+for(int i = 0; i < nMuons; i++){
+ 	if(muonPt[i] < 5) continue;
+        if(fabs(muonEta[i]) > 2.4) continue;
+	bool alreadySelected = false;
+        for (uint j=0; j<GoodLeptons.size(); j++) {
+          if ( deltaR(GoodLeptons[j].Eta(), GoodLeptons[j].Phi(), muonEta[i],muonPhi[i]) < 0.1) alreadySelected = true;
+        }
+	
+	if (alreadySelected) continue;
+	
+	//use only tight leptons
+	if(isTightMuon(i) && muonPt[i] >= 20) {	
+	  
+          GoodLeptonType.push_back(13 * -1 * muonCharge[i]);
+          GoodLeptonPt.push_back(muonPt[i]);
+	  
+	  TLorentzVector thisMuon = makeTLorentzVector(muonPt[i], muonEta[i], muonPhi[i], muonE[i]);
+          thisMuon.SetPtEtaPhiM( muonPt[i], muonEta[i], muonPhi[i], 0.1057);
+	  GoodLeptons.push_back(thisMuon);
+
+        }
+}
+
+for(int i = 0; i < nElectrons; i++){
+	float eleCorrPt = elePt[i];
+	if(eleCorrPt < 5) continue;
+        if(fabs(eleEta[i]) > 2.5) continue;
+	
+	bool alreadySelected = false;
+        for (uint j=0; j<GoodLeptons.size(); j++) {
+          if ( deltaR(GoodLeptons[j].Eta(), GoodLeptons[j].Phi(), eleEta[i],elePhi[i]) < 0.1) alreadySelected = true;
+        }
+	
+	if (alreadySelected) continue;
+
+        if( isTightElectron(i) && eleCorrPt > 25 ) {
+	  TLorentzVector thisElectron;
+	  thisElectron.SetPtEtaPhiM( eleCorrPt, eleEta[i], elePhi[i], 0.000511);
+	  GoodLeptons.push_back(thisElectron);
+       		
+          GoodLeptonType.push_back(11 * -1 * eleCharge[i]);
+          GoodLeptonPt.push_back(eleCorrPt);
+        }
+	
+}	
+
+for(int i = 0; i < nTaus; i++){
+        if (tauPt[i] < 20) continue;
+        if (fabs(tauEta[i]) > 2.4) continue;
+	bool alreadySelected = false;
+        for (uint j=0; j<GoodLeptons.size(); j++) {
+          if ( deltaR(GoodLeptons[j].Eta(), GoodLeptons[j].Phi(), tauEta[i],tauPhi[i]) < 0.1 ) alreadySelected = true;
+        }
+
+	if (alreadySelected) continue;
+	if (isTightTau(i)) {
+	  TLorentzVector thisTau;
+          thisTau.SetPtEtaPhiM( tauPt[i], tauEta[i], tauPhi[i], 1.777);
+	  GoodLeptons.push_back(thisTau);
+	
+	  GoodLeptonType.push_back(15);
+          GoodLeptonPt.push_back(tauPt[i]);
+	}	
+}
+
+//get lep1 and lep2
+
+for (uint i=0; i<GoodLeptons.size(); i++) {
+	if (GoodLeptonPt[i] > lep1Pt) {
+		//swap: 1->2, this -> 1
+		lep2 = lep1;
+		lep2Pt = lep1Pt;
+		lep2Type = lep1Type;
+		lep1Pt = GoodLeptonPt[i];
+		lep1Type = GoodLeptonType[i];
+		lep1 =  GoodLeptons[i];	
+	}
+	else if (GoodLeptonPt[i] > lep2Pt) {
+		//swap: this -> 2, don't change 1
+		lep2Pt = GoodLeptonPt[i];
+		lep2Type = GoodLeptonType[i];
+		lep2 =  GoodLeptons[i];	
+	}
+}
+
+mll = (lep1+lep2).M();
+
+
  //fill the output tree
  if (nPho >= 1) // require at least one photon
  { 
@@ -1368,6 +1532,9 @@ if( !isData )
 			float decay_x2 = gParticleDecayVertexX[neu2_index];
 			float decay_y2 = gParticleDecayVertexY[neu2_index];
 			float decay_z2 = gParticleDecayVertexZ[neu2_index];
+			
+			TVector3 vec_decay1(decay_x1, decay_y1, decay_z1);
+			TVector3 vec_decay2(decay_x2, decay_y2, decay_z2);
 
 			// need to match up the photon index and the reco photon - this is done based on momentum
 			// pho1Pt is reco level, gpho1Pt is gen level information
@@ -1444,6 +1611,17 @@ if( !isData )
 					
 				R1 = is1To1 ? pow(decay_x1*decay_x1 + decay_y1*decay_y1, 0.5) : pow(decay_x2*decay_x2 + decay_y2*decay_y2, 0.5) ; 
 				R2 = is1To1 ? pow(decay_x2*decay_x2 + decay_y2*decay_y2, 0.5) : pow(decay_x1*decay_x1 + decay_y1*decay_y1, 0.5) ; 
+				pho1_genVtxX = is1To1 ? decay_x1 : decay_x2;
+				pho2_genVtxX = is1To1 ? decay_x2 : decay_x1;
+				pho1_genVtxY = is1To1 ? decay_y1 : decay_y2;
+				pho2_genVtxY = is1To1 ? decay_y2 : decay_y1;
+				pho1_genVtxZ = is1To1 ? decay_z1 : decay_z2;
+				pho2_genVtxZ = is1To1 ? decay_z2 : decay_z1;
+				pho1_genVtxEta = is1To1 ? vec_decay1.Eta() : vec_decay2.Eta();
+				pho2_genVtxEta = is1To1 ? vec_decay2.Eta() : vec_decay1.Eta();
+				pho1_genVtxPhi = is1To1 ? vec_decay1.Phi() : vec_decay2.Phi();
+				pho2_genVtxPhi = is1To1 ? vec_decay2.Phi() : vec_decay1.Phi();
+
 				ZD1 = is1To1 ? decay_z1 : decay_z2 ;
 				ZD2 = is1To1 ? decay_z2 : decay_z1 ;
 
@@ -1512,6 +1690,10 @@ jetEta_all.clear();
 jetPhi_all.clear();
 GoodJetsJESUp.clear();
 GoodJetsJESDown.clear();
+
+GoodLeptons.clear();
+GoodLeptonType.clear();
+GoodLeptonPt.clear();
 
 }//event loop
 
