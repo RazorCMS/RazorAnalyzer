@@ -2086,7 +2086,7 @@ void RazorHelper::loadBTag_Razor2017_17Nov2017Rereco() {
     btagreaderMistag_do = new BTagCalibrationReader(btagcalib, BTagEntry::OP_MEDIUM, "incl", "down");  // sys down
 
     // Fastsim
-    btagcalibfastsim = new BTagCalibration("csvv2", "./fastsim_csvv2_ttbar_26_1_2017.csv");
+    btagcalibfastsim = new BTagCalibration("csvv2", "./csvv2_13TEV_17_6_3_2019.csv");
     btagreaderfastsim = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "central");
     btagreaderfastsim_up = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "up");
     btagreaderfastsim_do = new BTagCalibrationReader(btagcalibfastsim, BTagEntry::OP_MEDIUM, "fastsim", "down");
@@ -2310,7 +2310,7 @@ void RazorHelper::loadLepton_Razor2017_31Mar2018Rereco(){
     //vetoEleEffSFFile = TFile::Open("efficiency_results_VetoElectronSelectionEffDenominatorGen_2017_31Mar2018_Golden.root");
     eleGSFTrackEffSFFile = TFile::Open("ElectronRecoEffScaleFactors_Run2017.root");
     eleTightEffFastsimSFFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
-    eleLooseEffFastsimSFFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
+    eleLooseEffFastsimSFFile = TFile::Open("detailed_ele_full_fast_sf_17.root");
     eleVetoEffFastsimSFFile = TFile::Open("ElectronEffFastsimToFullsimCorrectionFactors.2016.root");
 
     // eleTightEfficiencyHist = (TH2D*)eleTightEfficiencyFile->Get("ElectronEff_Tight_Fullsim");
@@ -2326,7 +2326,7 @@ void RazorHelper::loadLepton_Razor2017_31Mar2018Rereco(){
     eleGSFTrackEffSFHist = (TH2D*)eleGSFTrackEffSFFile->Get("h2_scaleFactorsEGamma");
     eleTightEffFastsimSFHist =  (TH2D*)eleTightEffFastsimSFFile->Get("ElectronTight_FastsimScaleFactor");
     //for now 20190124
-    eleLooseEffFastsimSFHist =  (TH2D*)eleLooseEffFastsimSFFile->Get("ElectronTight_FastsimScaleFactor");
+    eleLooseEffFastsimSFHist =  (TH2D*)eleLooseEffFastsimSFFile->Get("CutBasedLooseNoIso94XV2_sf");
     //eleLooseEffFastsimSFHist =  (TH2D*)eleLooseEffFastsimSFFile->Get("ElectronLoose_FastsimScaleFactor");
     eleVetoEffFastsimSFHist = (TH2D*)eleVetoEffFastsimSFFile->Get("ElectronEff_Veto_Fullsim");
 
@@ -2477,14 +2477,14 @@ void RazorHelper::loadJECs_Razor2017_31Mar2018Rereco() {
 
       std::vector<JetCorrectorParameters> correctionParametersFastsim = std::vector<JetCorrectorParameters> ();
       correctionParametersFastsim.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_FastSimV1_MC_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Fall17_FastsimV1_L1FastJet_AK4PFchs.txt", jecPathname.c_str())));
       correctionParametersFastsim.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_FastSimV1_MC_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Fall17_FastsimV1_L2Relative_AK4PFchs.txt", jecPathname.c_str())));
       correctionParametersFastsim.push_back(JetCorrectorParameters(
-                  Form("%s/Spring16_FastSimV1_MC_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
+                  Form("%s/Fall17_FastsimV1_L3Absolute_AK4PFchs.txt", jecPathname.c_str())));
       JetCorrectorParameters *JetResolutionParametersFastsim = new JetCorrectorParameters(Form("%s/JetResolutionInputAK5PF.txt",jecPathname.c_str()));
       FactorizedJetCorrector *JetCorrectorFastsim = new FactorizedJetCorrector(correctionParametersFastsim);
-      std::string jecUncPath = jecPathname+"/Spring16_FastSimV1_MC_Uncertainty_AK4PFchs.txt";
+      std::string jecUncPath = jecPathname+"/Fall17_FastsimV1_Uncertainty_AK4PFchs.txt";
       JetCorrectionUncertainty *jecUncFastsim = new JetCorrectionUncertainty(jecUncPath);
       SimpleJetResolution* JetResolutionCalculatorFastsim = new SimpleJetResolution(*JetResolutionParametersFastsim);
 
